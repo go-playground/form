@@ -1,10 +1,10 @@
 package assembler
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 
+	. "github.com/go-playground/assert"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -86,11 +86,11 @@ func TestStraighUpArray(t *testing.T) {
 	decoder.Decode(&test, values)
 	decoder.Decode(&test2, values)
 
-	fmt.Println("Test:", test)
-	fmt.Println("Test 2:", test2)
-	fmt.Println(*test2.MyArray[0])
-	fmt.Println(*test2.MyArray[1])
-	fmt.Println(*test2.MyArray[2])
+	// fmt.Println("Test:", test)
+	// fmt.Println("Test 2:", test2)
+	// fmt.Println(*test2.MyArray[0])
+	// fmt.Println(*test2.MyArray[1])
+	// fmt.Println(*test2.MyArray[2])
 
 }
 
@@ -114,11 +114,11 @@ func TestArrayNumbered(t *testing.T) {
 	decoder.Decode(&test, values)
 	decoder.Decode(&test2, values)
 
-	fmt.Println("Test:", test)
-	fmt.Println("Test 2:", test2)
-	fmt.Println(*test2.MyArray[0])
-	fmt.Println(test2.MyArray[1])
-	fmt.Println(*test2.MyArray[2])
+	// fmt.Println("Test:", test)
+	// fmt.Println("Test 2:", test2)
+	// fmt.Println(*test2.MyArray[0])
+	// fmt.Println(test2.MyArray[1])
+	// fmt.Println(*test2.MyArray[2])
 
 }
 
@@ -142,12 +142,8 @@ func TestArrayOfArray(t *testing.T) {
 	decoder.Decode(&test, values)
 	decoder.Decode(&test2, values)
 
-	fmt.Println("Test:", test)
-	fmt.Println("Test 2:", test2)
-	// fmt.Println(*test2.MyArray[0])
-	// fmt.Println(*test2.MyArray[1])
-	// fmt.Println(*test2.MyArray[2])
-
+	// fmt.Println("Test:", test)
+	// fmt.Println("Test 2:", test2)
 }
 
 func TestString(t *testing.T) {
@@ -226,7 +222,7 @@ func TestArrayStructString(t *testing.T) {
 
 	decoder.Decode(&test, values)
 
-	fmt.Println("Test Phone:", test)
+	// fmt.Println("Test Phone:", test)
 }
 
 func TestArrayStructStringArrayString(t *testing.T) {
@@ -252,5 +248,154 @@ func TestArrayStructStringArrayString(t *testing.T) {
 
 	decoder.Decode(&test, values)
 
-	fmt.Println("Test Phone2:", test)
+	// fmt.Println("Test Phone2:", test)
+}
+
+func TestBool(t *testing.T) {
+
+	type boolStruct struct {
+		OK    bool
+		OKPtr *bool
+	}
+
+	values := url.Values{"OKPtr": []string{"true"}, "OK": []string{"t"}}
+
+	decoder := NewDecoder()
+
+	var test boolStruct
+
+	decoder.Decode(&test, values)
+
+	// fmt.Println("Test Bool:", test)
+}
+
+func TestFloat(t *testing.T) {
+
+	type floatStruct struct {
+		Float    float64
+		FloatPtr *float64
+	}
+
+	values := url.Values{"Float": []string{"1.3333"}, "FloatPtr": []string{"13.546"}}
+
+	decoder := NewDecoder()
+
+	var test floatStruct
+
+	decoder.Decode(&test, values)
+
+	// fmt.Println("Test Float:", test)
+}
+
+func TestMap(t *testing.T) {
+
+	type mapStruct struct {
+		MapStringInt       map[string]int
+		MapStringPtrString map[*string]string
+		MapPrtString       *map[string]string
+	}
+
+	values := url.Values{"MapStringInt[key1]": []string{"3"}, "MapStringInt[key2]": []string{"5"}, "MapStringPtrString[ptrkey]": []string{"13"}, "MapPrtString[mpkey]": []string{"mpvalue"}}
+
+	decoder := NewDecoder()
+
+	var test mapStruct
+
+	decoder.Decode(&test, values)
+
+	// fmt.Println("Test Map:", test)
+
+	// for k, v := range test.MapStringPtrString {
+	// 	fmt.Println(*k, v)
+	// }
+}
+
+func TestBench(t *testing.T) {
+
+	values := url.Values{
+		"Nest.Children[0].ID":   []string{"joeybloggs_id"},
+		"Nest.Children[0].Name": []string{"Joeybloggs"},
+		"String":                []string{"golang is very fun"},
+		"Slice[0]":              []string{"1"},
+		"Slice[1]":              []string{"2"},
+		"Slice[2]":              []string{"3"},
+		"Slice[3]":              []string{"4"},
+		"Bool":                  []string{"true"},
+	}
+
+	// values := url.Values{
+	// 	"Nest.Children[0].ID":   []string{"joeybloggs_id"},
+	// 	"Nest.Children[0].Name": []string{"Joeybloggs"},
+	// 	"String":                []string{"golang is very fun"},
+	// 	"Slice":                 []string{"1", "2", "3", "4"},
+	// 	"Bool":                  []string{"true"},
+	// }
+
+	// type BenchFormamSchema struct {
+	// 	Nest struct {
+	// 		Children []struct {
+	// 			ID   string
+	// 			Name string
+	// 		}
+	// 	}
+	// 	String string
+	// 	Slice  []int
+	// 	Bool   bool
+	// }
+
+	decoder := NewDecoder()
+
+	test := new(BenchFormamSchema)
+
+	decoder.Decode(test, values)
+
+	// fmt.Printf("Test Bench: %#v", test)
+
+	Equal(t, len(test.Nest.Children), 1)
+	Equal(t, test.Nest.Children[0].ID, "joeybloggs_id")
+	Equal(t, test.Nest.Children[0].Name, "Joeybloggs")
+	Equal(t, test.String, "golang is very fun")
+	Equal(t, test.Slice[0], int(1))
+	Equal(t, test.Slice[1], int(2))
+	Equal(t, test.Slice[2], int(3))
+	Equal(t, test.Slice[3], int(4))
+	Equal(t, test.Bool, true)
+}
+
+type BenchFormamSchema struct {
+	Nest struct {
+		Children []struct {
+			ID   string
+			Name string
+		}
+	}
+	String string
+	Slice  []int
+	Bool   bool
+}
+
+func BenchmarkAssemblerTest2Parallel(b *testing.B) {
+
+	values := url.Values{
+		"Nest.Children[0].ID":   []string{"joeybloggs_id"},
+		"Nest.Children[0].Name": []string{"Joeybloggs"},
+		"String":                []string{"golang is very fun"},
+		"Slice[0]":              []string{"1"},
+		"Slice[1]":              []string{"2"},
+		"Slice[2]":              []string{"3"},
+		"Slice[3]":              []string{"4"},
+		"Bool":                  []string{"true"},
+	}
+
+	ass := NewDecoder()
+
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			test := new(BenchFormamSchema)
+			if errs := ass.Decode(test, values); errs != nil {
+				b.Error(errs)
+			}
+		}
+	})
 }
