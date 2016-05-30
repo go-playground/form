@@ -16,17 +16,17 @@ type cachedStruct struct {
 
 type structCacheMap struct {
 	lock sync.RWMutex
-	m    map[reflect.Type]*cachedStruct
+	m    map[reflect.Type]cachedStruct
 }
 
-func (s *structCacheMap) Get(key reflect.Type) (*cachedStruct, bool) {
+func (s *structCacheMap) Get(key reflect.Type) (cachedStruct, bool) {
 	s.lock.RLock()
 	value, ok := s.m[key]
 	s.lock.RUnlock()
 	return value, ok
 }
 
-func (s *structCacheMap) Set(key reflect.Type, value *cachedStruct) {
+func (s *structCacheMap) Set(key reflect.Type, value cachedStruct) {
 	s.lock.Lock()
 	s.m[key] = value
 	s.lock.Unlock()

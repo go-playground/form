@@ -42,6 +42,8 @@ func TestInt(t *testing.T) {
 		IntPtrArray      []*int
 		IntArrayArray    [][]int
 		IntPtrArrayArray [][]*int
+		IntMap           map[int]int
+		IntPtrMap        map[*int]*int
 	}
 
 	values := url.Values{
@@ -64,6 +66,8 @@ func TestInt(t *testing.T) {
 		"IntPtrArrayArray[0][0]": []string{"1"},
 		"IntPtrArrayArray[0][2]": []string{"3"},
 		"IntPtrArrayArray[2][0]": []string{"1"},
+		"IntMap[1]":              []string{"3"},
+		"IntPtrMap[1]":           []string{"3"},
 	}
 
 	var test TestInt
@@ -114,6 +118,13 @@ func TestInt(t *testing.T) {
 	Equal(t, test.IntPtrArrayArray[0][1], nil)
 	Equal(t, *test.IntPtrArrayArray[0][2], int(3))
 	Equal(t, *test.IntPtrArrayArray[2][0], int(1))
+
+	Equal(t, len(test.IntMap), 1)
+	Equal(t, len(test.IntPtrMap), 1)
+
+	v, ok := test.IntMap[1]
+	Equal(t, ok, true)
+	Equal(t, v, 3)
 }
 
 // func TestInt8(t *testing.T) {

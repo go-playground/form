@@ -54,11 +54,9 @@ type index struct {
 }
 
 type recursiveData struct {
-	isSlice  bool
-	isMap    bool
 	sliceLen int
-	keys     []*key
-	indicies []*index
+	keys     []key
+	indicies []index
 }
 
 type dataMap map[string]*recursiveData
@@ -81,7 +79,7 @@ func (d *formDecoder) setError(namespace string, err error) {
 // Decoder is the assembler decode instance
 type Decoder struct {
 	tagName         string
-	structCache     *structCacheMap
+	structCache     structCacheMap
 	customTypeFuncs map[reflect.Type]CustomTypeFunc
 }
 
@@ -89,7 +87,7 @@ type Decoder struct {
 func NewDecoder() *Decoder {
 	return &Decoder{
 		tagName:     "form",
-		structCache: &structCacheMap{m: map[reflect.Type]*cachedStruct{}},
+		structCache: structCacheMap{m: map[reflect.Type]cachedStruct{}},
 	}
 }
 
@@ -158,6 +156,8 @@ func (d *formDecoder) parseMapData() {
 	var idx int
 	var idx2 int
 	var cum int
+	var cidx int
+	var cidx2 int
 
 	for k := range d.values {
 
@@ -175,31 +175,38 @@ func (d *formDecoder) parseMapData() {
 			var rd *recursiveData
 			var ok bool
 
-			if rd, ok = d.dm[k[:idx+cum]]; !ok {
-				rd = new(recursiveData)
-				d.dm[k[:idx+cum]] = rd
+			cidx = cum + idx
+			cidx2 = cum + idx2
+
+			if rd, ok = d.dm[k[:cidx]]; !ok {
+				rd = &recursiveData{
+					keys:     make([]key, 0, 8),
+					indicies: make([]index, 0, 8),
+				}
+				d.dm[k[:cidx]] = rd
 			}
 
-			j, err := strconv.Atoi(k[cum+idx+1 : cum+idx2])
-			if err != nil {
-				// is map + key
-				rd.isMap = true
-				k := &key{
-					value:       k[cum+idx+1 : cum+idx2],
-					searchValue: k[cum+idx : cum+idx2+1],
-				}
-				rd.keys = append(rd.keys, k)
-			} else {
+			j, err := strconv.Atoi(k[cidx+1 : cidx2])
+
+			// is map + key
+			ke := key{
+				value:       k[cidx+1 : cidx2],
+				searchValue: k[cidx : cidx2+1],
+			}
+			rd.keys = append(rd.keys, ke)
+
+			// only if no error otherwise not an index
+			if err == nil {
+
 				// is slice + indicies
-				rd.isSlice = true
 
 				if j > rd.sliceLen {
 					rd.sliceLen = j
 				}
 
-				ind := &index{
+				ind := index{
 					value:       j,
-					searchValue: k[cum+idx : cum+idx2+1],
+					searchValue: k[cidx : cidx2+1],
 				}
 				rd.indicies = append(rd.indicies, ind)
 			}

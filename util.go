@@ -31,10 +31,10 @@ func (d *Decoder) ExtractType(current reflect.Value) (reflect.Value, reflect.Kin
 	}
 }
 
-func (d *Decoder) parseStruct(current reflect.Value) *cachedStruct {
+func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
 
 	typ := current.Type()
-	s := &cachedStruct{fields: make([]cachedField, 0, 1)}
+	s := cachedStruct{fields: make([]cachedField, 0, 1)}
 
 	numFields := current.NumField()
 
