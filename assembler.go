@@ -170,7 +170,6 @@ func (d *formDecoder) parseMapData() {
 				d.dm[k[:idx+cum]] = rd
 			}
 
-			// fmt.Println(k, cum+idx+1, cum+idx2)
 			j, err := strconv.Atoi(k[cum+idx+1 : cum+idx2])
 			if err != nil {
 				// is map + key
@@ -202,38 +201,6 @@ func (d *formDecoder) parseMapData() {
 
 func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 
-	// if v.Kind() == reflect.Ptr {
-	// 	// if v.IsNil() && v.CanSet() {
-	// 	// 	v.Set(reflect.New(v.Type().Elem()))
-	// 	// }
-	// 	v = v.Elem()
-	// }
-	// if v.Kind() == reflect.Ptr && !v.IsNil() {
-	// 	v = v.Elem()
-	// }
-
-	// if v.Kind() != reflect.Struct && v.Kind() != reflect.Interface {
-	// 	panic("value passed for validation is not a struct")
-	// }
-	// if v.Kind() == reflect.Ptr {
-	// 	if v.IsNil() {
-	// 		// v.Elem().Set(reflect.New(v.Type().Elem()))
-	// 		// fmt.Println(v)
-	// 		// fmt.Println(v.Elem())
-	// 		// fmt.Println(v.Type())
-	// 		// fmt.Println(v.Type().Elem())
-	// 		// fmt.Println(reflect.New(v.Type()))
-	// 		// fmt.Println(reflect.New(v.Type()).Elem())
-	// 	}
-
-	// 	// v = v.Elem()
-	// }
-
-	// if v.Kind() != reflect.Struct && v.Kind() != reflect.Interface {
-	// 	panic("value passed for validation is not a struct")
-	// }
-
-	// fmt.Println(v)
 	typ := v.Type()
 	numFields := v.NumField()
 	var fld reflect.StructField
@@ -265,13 +232,6 @@ func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set boo
 		if d.setFieldByType(v.Field(i), nn, 0) {
 			set = true
 		}
-		// TODO check if pointer before switch
-
-		// switch fld.Kind() {
-
-		// }
-
-		// 	v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, nsPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude, nil)
 	}
 
 	return
@@ -279,11 +239,7 @@ func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set boo
 
 func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, idx int) (set bool) {
 
-	// var s string
-	// var arr []string
-	// var ok bool
 	var err error
-	// var val reflect.Value
 
 	v, kind := d.d.ExtractType(current)
 
@@ -313,27 +269,17 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		return
 	case reflect.Ptr:
 
-		// if arr = d.values[namespace]; len(arr) == 0 {
-		// 	return
-		// }
-
 		if !ok {
 			return
 		}
 
-		// if v.IsNil() {
 		newVal := reflect.New(v.Type().Elem())
 		if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
 			v.Set(newVal)
 		}
-		// }
-
-		// set = d.setFieldByType(v.Elem(), values, namespace, idx, dm, errs)
 
 	case reflect.String:
-		// if arr = d.values[namespace]; len(arr) == 0 {
-		// 	return
-		// }
+
 		if !ok {
 			return
 		}
@@ -342,15 +288,8 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		set = true
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		// if arr, ok = d.values[namespace]; len(arr) == 0 {
-		if !ok || len(arr[0]) == 0 {
-			// if !ok {
-			// 	return
-			// }
 
-			// v.SetInt(0)
-			// v.Set(reflect.ValueOf(int8(0)))
-			// set = true
+		if !ok || len(arr[0]) == 0 {
 			return
 		}
 
@@ -362,22 +301,11 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		}
 
 		v.SetUint(u64)
-		// v.Set(reflect.ValueOf(int8(i64)))
 		set = true
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if !ok || len(arr[0]) == 0 {
 			return
 		}
-		// if arr, ok = d.values[namespace]; len(arr) == 0 {
-		// 	if !ok {
-		// 		return
-		// 	}
-
-		// 	v.SetInt(0)
-		// 	// v.Set(reflect.ValueOf(int8(0)))
-		// 	set = true
-		// 	return
-		// }
 
 		var i64 int64
 
@@ -387,11 +315,10 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		}
 
 		v.SetInt(i64)
-		// v.Set(reflect.ValueOf(int8(i64)))
 		set = true
 
 	case reflect.Float32, reflect.Float64:
-		// if arr = d.values[namespace]; len(arr) == 0 {
+
 		if !ok || len(arr[0]) == 0 {
 			return
 		}
@@ -408,7 +335,6 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 
 	case reflect.Bool:
 
-		// if arr = d.values[namespace]; len(arr) == 0 {
 		if !ok || len(arr[0]) == 0 {
 			return
 		}
@@ -425,7 +351,6 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 
 	case reflect.Slice, reflect.Array:
 
-		// if arr, _ = d.values[namespace]; len(arr) == 0 {
 		if !ok {
 
 			d.parseMapData()
@@ -540,10 +465,9 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 
 		v.Set(mp)
 
-	// set here
 	case reflect.Struct:
 
-		// must register customtypefunc..unless want default to be set by default...
+		// if we get here then no custom time function declared so use RFC3339 by default
 		if v.Type() == timeType {
 
 			t, err := time.Parse(time.RFC3339, arr[0])
@@ -552,43 +476,10 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 			}
 
 			v.Set(reflect.ValueOf(t))
-
-			// return
-			// goto FALLTHROUGH
-			// look for custom type here
-
-			// Parse time... but how?
-			// think maybe this should be left out and must specify a custom type function
-			// because everyone may have different requirements...
 			return
 		}
 
 		set = d.traverseStruct(v, namespace)
-		// return
-
-		// FALLTHROUGH:
-		// 	fallthrough
-
-		// default:
-
-		// 	// if d.d.customTypeFuncs != nil {
-
-		// 	// 	if arr = d.values[namespace]; len(arr) != 0 {
-		// 	// 		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
-		// 	// 			val, err := cf(arr)
-		// 	// 			if err != nil {
-		// 	// 				d.setError(namespace, err)
-		// 	// 				return
-		// 	// 			}
-
-		// 	// 			v.Set(reflect.ValueOf(val))
-		// 	// 			set = true
-		// 	// 			return
-		// 	// 		}
-		// 	// 	}
-		// 	// }
-		// 	// look for custom type here
-		// 	fmt.Println("Currently unknown!")
 	}
 
 	return
@@ -603,14 +494,10 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 		return
 	case reflect.Ptr:
 
-		// if v.IsNil() {
 		newVal := reflect.New(v.Type().Elem())
 		if err = d.getMapKey(key, newVal.Elem()); err == nil {
 			v.Set(newVal)
 		}
-		// }
-
-		// set = d.setFieldByType(v.Elem(), values, namespace, idx, dm, errs)
 
 	case reflect.String:
 		v.SetString(key)
