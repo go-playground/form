@@ -44,6 +44,7 @@ func TestInt(t *testing.T) {
 		IntPtrArrayArray [][]*int
 		IntMap           map[int]int
 		IntPtrMap        map[*int]*int
+		NoURLValue       int
 	}
 
 	values := url.Values{
@@ -124,146 +125,115 @@ func TestInt(t *testing.T) {
 
 	v, ok := test.IntMap[1]
 	Equal(t, ok, true)
-	Equal(t, v, 3)
+	Equal(t, v, int(3))
+
+	Equal(t, test.NoURLValue, int(0))
 }
 
-// func TestInt8(t *testing.T) {
+func TestUint(t *testing.T) {
 
-// 	type intStruct struct {
-// 		Int8Field    int8
-// 		Int8PtrField *int8
-// 	}
+	type TestUint struct {
+		Uint              uint
+		Uint8             uint8
+		Uint16            uint16
+		Uint32            uint32
+		Uint64            uint64
+		UintPtr           *uint
+		Uint8Ptr          *uint8
+		Uint16Ptr         *uint16
+		Uint32Ptr         *uint32
+		Uint64Ptr         *uint64
+		UintArray         []uint
+		UintPtrArray      []*uint
+		UintArrayArray    [][]uint
+		UintPtrArrayArray [][]*uint
+		UintMap           map[uint]uint
+		UintPtrMap        map[*uint]*uint
+		NoURLValue        uint
+	}
 
-// 	tests := []struct {
-// 		values   url.Values
-// 		expected int8
-// 		isPtr    bool
-// 	}{
-// 		{
-// 			values:   url.Values{"Int8Field": []string{"7"}},
-// 			expected: 7,
-// 		},
-// 		{
-// 			values:   url.Values{"Int8PtrField": []string{"6"}},
-// 			expected: 6,
-// 			isPtr:    true,
-// 		},
-// 	}
+	values := url.Values{
+		"Uint":                    []string{"3"},
+		"Uint8":                   []string{"3"},
+		"Uint16":                  []string{"3"},
+		"Uint32":                  []string{"3"},
+		"Uint64":                  []string{"3"},
+		"UintPtr":                 []string{"3"},
+		"Uint8Ptr":                []string{"3"},
+		"Uint16Ptr":               []string{"3"},
+		"Uint32Ptr":               []string{"3"},
+		"Uint64Ptr":               []string{"3"},
+		"UintArray":               []string{"1", "2", "3"},
+		"UintPtrArray[0]":         []string{"1"},
+		"UintPtrArray[2]":         []string{"3"},
+		"UintArrayArray[0][0]":    []string{"1"},
+		"UintArrayArray[0][2]":    []string{"3"},
+		"UintArrayArray[2][0]":    []string{"1"},
+		"UintPtrArrayArray[0][0]": []string{"1"},
+		"UintPtrArrayArray[0][2]": []string{"3"},
+		"UintPtrArrayArray[2][0]": []string{"1"},
+		"UintMap[1]":              []string{"3"},
+		"UintPtrMap[1]":           []string{"3"},
+	}
 
-// 	decoder := NewDecoder()
+	var test TestUint
 
-// 	var test intStruct
-// 	var val int8
+	test.UintArray = make([]uint, 4)
 
-// 	for i, tt := range tests {
-// 		decoder.Decode(&test, tt.values)
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
 
-// 		if tt.isPtr {
-// 			if test.Int8PtrField == nil {
-// 				t.Errorf("Idx: %d Expected '%d' Got '%d'", i, tt.expected, test.Int8PtrField)
-// 				continue
-// 			}
-// 			val = *test.Int8PtrField
-// 		} else {
-// 			val = test.Int8Field
-// 		}
+	Equal(t, test.Uint, uint(3))
+	Equal(t, test.Uint8, uint8(3))
+	Equal(t, test.Uint16, uint16(3))
+	Equal(t, test.Uint32, uint32(3))
+	Equal(t, test.Uint64, uint64(3))
 
-// 		if val != tt.expected {
-// 			t.Errorf("Idx: %d Expected '%d' Got '%d'", i, tt.expected, val)
-// 		}
-// 	}
-// 	// values := url.Values{
-// 	// 	"Int8Field": []string{"5"},
-// 	// }
+	Equal(t, *test.UintPtr, uint(3))
+	Equal(t, *test.Uint8Ptr, uint8(3))
+	Equal(t, *test.Uint16Ptr, uint16(3))
+	Equal(t, *test.Uint32Ptr, uint32(3))
+	Equal(t, *test.Uint64Ptr, uint64(3))
 
-// 	// fmt.Println(test.Int8Field)
-// 	// type mm map[string]*intStruct
-// 	// // m := map[int]string{}
-// 	// m := make(mm)
-// 	// fmt.Println(reflect.ValueOf(m).Kind())
-// }
+	Equal(t, len(test.UintArray), 4)
+	Equal(t, test.UintArray[0], uint(1))
+	Equal(t, test.UintArray[1], uint(2))
+	Equal(t, test.UintArray[2], uint(3))
+	Equal(t, test.UintArray[3], uint(0))
 
-// func TestStraighUpArray(t *testing.T) {
+	Equal(t, len(test.UintPtrArray), 3)
+	Equal(t, *test.UintPtrArray[0], uint(1))
+	Equal(t, test.UintPtrArray[1], nil)
+	Equal(t, *test.UintPtrArray[2], uint(3))
 
-// 	type Array struct {
-// 		MyArray []int8
-// 	}
+	Equal(t, len(test.UintArrayArray), 3)
+	Equal(t, len(test.UintArrayArray[0]), 3)
+	Equal(t, len(test.UintArrayArray[1]), 0)
+	Equal(t, len(test.UintArrayArray[2]), 1)
+	Equal(t, test.UintArrayArray[0][0], uint(1))
+	Equal(t, test.UintArrayArray[0][1], uint(0))
+	Equal(t, test.UintArrayArray[0][2], uint(3))
+	Equal(t, test.UintArrayArray[2][0], uint(1))
 
-// 	type ArrayPtr struct {
-// 		MyArray []*int8
-// 	}
+	Equal(t, len(test.UintPtrArrayArray), 3)
+	Equal(t, len(test.UintPtrArrayArray[0]), 3)
+	Equal(t, len(test.UintPtrArrayArray[1]), 0)
+	Equal(t, len(test.UintPtrArrayArray[2]), 1)
+	Equal(t, *test.UintPtrArrayArray[0][0], uint(1))
+	Equal(t, test.UintPtrArrayArray[0][1], nil)
+	Equal(t, *test.UintPtrArrayArray[0][2], uint(3))
+	Equal(t, *test.UintPtrArrayArray[2][0], uint(1))
 
-// 	values := url.Values{"MyArray": []string{"0", "1", "2"}}
+	Equal(t, len(test.UintMap), 1)
+	Equal(t, len(test.UintPtrMap), 1)
 
-// 	decoder := NewDecoder()
+	v, ok := test.UintMap[1]
+	Equal(t, ok, true)
+	Equal(t, v, uint(3))
 
-// 	var test Array
-// 	var test2 ArrayPtr
-
-// 	// test2.MyArray = make([]*int8, 1, 1)
-
-// 	decoder.Decode(&test, values)
-// 	decoder.Decode(&test2, values)
-
-// 	// fmt.Println("Test:", test)
-// 	// fmt.Println("Test 2:", test2)
-// 	// fmt.Println(*test2.MyArray[0])
-// 	// fmt.Println(*test2.MyArray[1])
-// 	// fmt.Println(*test2.MyArray[2])
-
-// }
-
-// func TestArrayNumbered(t *testing.T) {
-
-// 	type Array struct {
-// 		MyArray []int8
-// 	}
-
-// 	type ArrayPtr struct {
-// 		MyArray []*int8
-// 	}
-
-// 	values := url.Values{"MyArray[0]": []string{"32"}, "MyArray[2]": []string{"33"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test Array
-// 	var test2 ArrayPtr
-
-// 	decoder.Decode(&test, values)
-// 	decoder.Decode(&test2, values)
-
-// 	// fmt.Println("Test:", test)
-// 	// fmt.Println("Test 2:", test2)
-// 	// fmt.Println(*test2.MyArray[0])
-// 	// fmt.Println(test2.MyArray[1])
-// 	// fmt.Println(*test2.MyArray[2])
-
-// }
-
-// func TestArrayOfArray(t *testing.T) {
-
-// 	type Array struct {
-// 		MyArray [][]int8
-// 	}
-
-// 	type ArrayPtr struct {
-// 		MyArray [][]*int8
-// 	}
-
-// 	values := url.Values{"MyArray[0][0]": []string{"32"}, "MyArray[0][1]": []string{"35"}, "MyArray[2][0]": []string{"33"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test Array
-// 	var test2 ArrayPtr
-
-// 	decoder.Decode(&test, values)
-// 	decoder.Decode(&test2, values)
-
-// 	// fmt.Println("Test:", test)
-// 	// fmt.Println("Test 2:", test2)
-// }
+	Equal(t, test.NoURLValue, uint(0))
+}
 
 // func TestString(t *testing.T) {
 
