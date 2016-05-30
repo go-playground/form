@@ -15,6 +15,8 @@ const (
 	blank              = ""
 	namespaceSeparator = "."
 	ignore             = "-"
+	fieldNS            = "Field Namespace:"
+	errorText          = " ERROR:"
 )
 
 var (
@@ -31,9 +33,9 @@ func (d DecodeErrors) Error() string {
 	buff := bytes.NewBufferString(blank)
 
 	for k, err := range d {
-		buff.WriteString("NS:")
+		buff.WriteString(fieldNS)
 		buff.WriteString(k)
-		buff.WriteString(" ERROR:")
+		buff.WriteString(errorText)
 		buff.WriteString(err.Error())
 		buff.WriteString("\n")
 	}

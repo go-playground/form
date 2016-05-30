@@ -319,11 +319,11 @@ func TestCustomType(t *testing.T) {
 		TimePtr *time.Time
 	}
 
-	values := url.Values{"Time": []string{"2016-01-02T15:04:05Z"}, "TimePtr": []string{"2017-01-02T15:04:05Z"}}
+	values := url.Values{"Time": []string{"2016-01-02"}, "TimePtr": []string{"2017-01-02"}}
 
 	decoder := NewDecoder()
 	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse(time.RFC3339, vals[0])
+		return time.Parse("2006-01-02", vals[0])
 	}, time.Time{})
 
 	var test customStruct
