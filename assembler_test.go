@@ -3,6 +3,7 @@ package assembler
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	. "github.com/go-playground/assert"
 	"gopkg.in/mgo.v2/bson"
@@ -221,7 +222,8 @@ func TestArrayStructString(t *testing.T) {
 	var test User
 
 	decoder.Decode(&test, values)
-
+	// fmt.Println(test.ID)
+	// fmt.Println(test.ID.Hex())
 	// fmt.Println("Test Phone:", test)
 }
 
@@ -308,6 +310,30 @@ func TestMap(t *testing.T) {
 	// for k, v := range test.MapStringPtrString {
 	// 	fmt.Println(*k, v)
 	// }
+}
+
+func TestCustomType(t *testing.T) {
+
+	type customStruct struct {
+		Time    time.Time
+		TimePtr *time.Time
+	}
+
+	values := url.Values{"Time": []string{"2016-01-02T15:04:05Z"}, "TimePtr": []string{"2017-01-02T15:04:05Z"}}
+
+	decoder := NewDecoder()
+	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		return time.Parse(time.RFC3339, vals[0])
+	}, time.Time{})
+
+	var test customStruct
+
+	errs := decoder.Decode(&test, values)
+	if errs != nil {
+		t.Error("ERRORS!:", errs)
+	}
+
+	// fmt.Println("Test Custom Type:", test)
 }
 
 func TestBench(t *testing.T) {

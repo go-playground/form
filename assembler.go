@@ -14,11 +14,15 @@ import (
 const (
 	blank              = ""
 	namespaceSeparator = "."
+	ignore             = "-"
 )
 
 var (
 	timeType = reflect.TypeOf(time.Time{})
 )
+
+// CustomTypeFunc ...
+type CustomTypeFunc func([]string) (interface{}, error)
 
 // DecodeErrors is a map of errors encountered during form decoding
 type DecodeErrors map[string]error
@@ -26,7 +30,10 @@ type DecodeErrors map[string]error
 func (d DecodeErrors) Error() string {
 	buff := bytes.NewBufferString(blank)
 
-	for _, err := range d {
+	for k, err := range d {
+		buff.WriteString("NS:")
+		buff.WriteString(k)
+		buff.WriteString(" ERROR:")
 		buff.WriteString(err.Error())
 		buff.WriteString("\n")
 	}
@@ -54,9 +61,25 @@ type recursiveData struct {
 
 type dataMap map[string]*recursiveData
 
+type formDecoder struct {
+	d      *Decoder
+	errs   DecodeErrors
+	dm     dataMap
+	values url.Values
+}
+
+func (d *formDecoder) setError(namespace string, err error) {
+	if d.errs == nil {
+		d.errs = make(DecodeErrors)
+	}
+
+	d.errs[namespace] = err
+}
+
 // Decoder is the assembler decode instance
 type Decoder struct {
-	tagName string
+	tagName         string
+	customTypeFuncs map[reflect.Type]CustomTypeFunc
 }
 
 // NewDecoder creates a new decoder instance
@@ -66,51 +89,67 @@ func NewDecoder() *Decoder {
 	}
 }
 
+// RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
+func (d *Decoder) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+
+	if d.customTypeFuncs == nil {
+		d.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
+	}
+
+	for _, t := range types {
+		d.customTypeFuncs[reflect.TypeOf(t)] = fn
+	}
+}
+
 // Decode decodes the given values and set the cooresponding struct values on v
 func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
-	// val := reflect.Indirect(reflect.ValueOf(v))
-
-	// fmt.Println(val)
-	errs := make(DecodeErrors)
-	dm := d.parseMapData(values)
+	dec := &formDecoder{
+		d:      d,
+		values: values,
+	}
 
 	val := reflect.ValueOf(v)
 
 	if val.Kind() == reflect.Ptr {
+
 		if val.IsNil() && val.CanSet() {
 			val.Set(reflect.New(val.Type().Elem()))
 		}
+
 		val = val.Elem()
 	}
-	// if v.Kind() == reflect.Ptr && !v.IsNil() {
-	// 	v = v.Elem()
-	// }
 
 	if val.Kind() != reflect.Struct && val.Kind() != reflect.Interface {
 		panic("value passed for validation is not a struct")
 	}
 
-	d.traverseStruct(val, values, "", dm, errs)
+	dec.traverseStruct(val, "")
 
-	if len(errs) == 0 {
+	if len(dec.errs) == 0 {
 		return nil
 	}
 
-	err = errs
+	err = dec.errs
 
 	return
 }
 
 // find a way to parse this once and only when needed?
-func (d *Decoder) parseMapData(values url.Values) (dm dataMap) {
+func (d *formDecoder) parseMapData() {
 
-	dm = make(dataMap)
+	// already parsed
+	if d.dm != nil {
+		return
+	}
+
+	d.dm = make(dataMap)
 	var idx int
 	var idx2 int
 	var cum int
 
-	for k := range values {
+	for k := range d.values {
 
 		idx, idx2, cum = 0, 0, 0
 
@@ -126,9 +165,9 @@ func (d *Decoder) parseMapData(values url.Values) (dm dataMap) {
 			var rd *recursiveData
 			var ok bool
 
-			if rd, ok = dm[k[:idx+cum]]; !ok {
+			if rd, ok = d.dm[k[:idx+cum]]; !ok {
 				rd = new(recursiveData)
-				dm[k[:idx+cum]] = rd
+				d.dm[k[:idx+cum]] = rd
 			}
 
 			// fmt.Println(k, cum+idx+1, cum+idx2)
@@ -159,22 +198,9 @@ func (d *Decoder) parseMapData(values url.Values) (dm dataMap) {
 			cum += idx2 + 1
 		}
 	}
-
-	// fmt.Println(len(dm))
-	// for k, v := range dm {
-	// 	fmt.Println(k, v)
-	// 	if v.isSlice {
-	// 		fmt.Println(len(v.indicies), v.sliceLen)
-	// 		for _, sv := range v.indicies {
-	// 			fmt.Println(sv.value, sv.searchValue)
-	// 		}
-	// 	}
-	// }
-
-	return
 }
 
-func (d *Decoder) traverseStruct(v reflect.Value, values url.Values, namespace string, dm dataMap, errs DecodeErrors) (set bool) {
+func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 
 	// if v.Kind() == reflect.Ptr {
 	// 	// if v.IsNil() && v.CanSet() {
@@ -222,15 +248,21 @@ func (d *Decoder) traverseStruct(v reflect.Value, values url.Values, namespace s
 			continue
 		}
 
-		key = fld.Name
+		if key = fld.Tag.Get(d.d.tagName); key == ignore {
+			continue
+		}
 
-		if namespace == blank {
+		if len(key) == 0 {
+			key = fld.Name
+		}
+
+		if len(namespace) == 0 {
 			nn = key
 		} else {
 			nn = namespace + namespaceSeparator + key
 		}
 
-		if d.setFieldByType(v.Field(i), values, nn, 0, dm, errs) {
+		if d.setFieldByType(v.Field(i), nn, 0) {
 			set = true
 		}
 		// TODO check if pointer before switch
@@ -245,28 +277,53 @@ func (d *Decoder) traverseStruct(v reflect.Value, values url.Values, namespace s
 	return
 }
 
-func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, namespace string, idx int, dm dataMap, errs DecodeErrors) (set bool) {
+func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, idx int) (set bool) {
 
 	// var s string
-	var arr []string
-	var ok bool
+	// var arr []string
+	// var ok bool
 	var err error
 	// var val reflect.Value
 
-	v, kind := d.ExtractType(current)
+	v, kind := d.d.ExtractType(current)
+
+	arr, ok := d.values[namespace]
+
+	if d.d.customTypeFuncs != nil {
+
+		if ok {
+
+			if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
+				val, err := cf(arr)
+				if err != nil {
+					d.setError(namespace, err)
+					return
+				}
+
+				v.Set(reflect.ValueOf(val))
+				set = true
+				return
+			}
+		}
+		return
+	}
 
 	switch kind {
 	case reflect.Interface, reflect.Invalid:
 		return
 	case reflect.Ptr:
 
-		if arr = values[namespace]; len(arr) == 0 {
+		// if arr = d.values[namespace]; len(arr) == 0 {
+		// 	return
+		// }
+
+		if !ok {
 			return
 		}
 
 		// if v.IsNil() {
 		newVal := reflect.New(v.Type().Elem())
-		if set = d.setFieldByType(newVal.Elem(), values, namespace, idx, dm, errs); set {
+		if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
 			v.Set(newVal)
 		}
 		// }
@@ -274,7 +331,10 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 		// set = d.setFieldByType(v.Elem(), values, namespace, idx, dm, errs)
 
 	case reflect.String:
-		if arr = values[namespace]; len(arr) == 0 {
+		// if arr = d.values[namespace]; len(arr) == 0 {
+		// 	return
+		// }
+		if !ok {
 			return
 		}
 
@@ -282,21 +342,22 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 		set = true
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if arr, ok = values[namespace]; len(arr) == 0 {
-			if !ok {
-				return
-			}
+		// if arr, ok = d.values[namespace]; len(arr) == 0 {
+		if !ok || len(arr[0]) == 0 {
+			// if !ok {
+			// 	return
+			// }
 
-			v.SetInt(0)
+			// v.SetInt(0)
 			// v.Set(reflect.ValueOf(int8(0)))
-			set = true
+			// set = true
 			return
 		}
 
 		var u64 uint64
 
 		if u64, err = strconv.ParseUint(arr[idx], 10, 64); err != nil || v.OverflowUint(u64) {
-			errs[namespace] = fmt.Errorf("Invalid Unsigned Integer Value '%s', Type '%v'", arr[idx], v.Type())
+			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s', Type '%v'", arr[idx], v.Type()))
 			return
 		}
 
@@ -304,21 +365,24 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 		// v.Set(reflect.ValueOf(int8(i64)))
 		set = true
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if arr, ok = values[namespace]; len(arr) == 0 {
-			if !ok {
-				return
-			}
-
-			v.SetInt(0)
-			// v.Set(reflect.ValueOf(int8(0)))
-			set = true
+		if !ok || len(arr[0]) == 0 {
 			return
 		}
+		// if arr, ok = d.values[namespace]; len(arr) == 0 {
+		// 	if !ok {
+		// 		return
+		// 	}
+
+		// 	v.SetInt(0)
+		// 	// v.Set(reflect.ValueOf(int8(0)))
+		// 	set = true
+		// 	return
+		// }
 
 		var i64 int64
 
 		if i64, err = strconv.ParseInt(arr[idx], 10, 64); err != nil || v.OverflowInt(i64) {
-			errs[namespace] = fmt.Errorf("Invalid Integer Value '%s', Type '%v'", arr[idx], v.Type())
+			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s', Type '%v'", arr[idx], v.Type()))
 			return
 		}
 
@@ -327,14 +391,15 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 		set = true
 
 	case reflect.Float32, reflect.Float64:
-		if arr = values[namespace]; len(arr) == 0 {
+		// if arr = d.values[namespace]; len(arr) == 0 {
+		if !ok || len(arr[0]) == 0 {
 			return
 		}
 
 		var f float64
 
 		if f, err = strconv.ParseFloat(arr[0], 64); err != nil || v.OverflowFloat(f) {
-			errs[namespace] = fmt.Errorf("Invalid Float Value '%s', Type '%v'", arr[0], v.Type())
+			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s', Type '%v'", arr[0], v.Type()))
 			return
 		}
 
@@ -343,14 +408,15 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 
 	case reflect.Bool:
 
-		if arr = values[namespace]; len(arr) == 0 {
+		// if arr = d.values[namespace]; len(arr) == 0 {
+		if !ok || len(arr[0]) == 0 {
 			return
 		}
 
 		var b bool
 
 		if b, err = strconv.ParseBool(arr[0]); err != nil {
-			errs[namespace] = fmt.Errorf("Invalid Boolean Value '%s', Type '%v'", arr[idx], v.Type())
+			d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s', Type '%v'", arr[idx], v.Type()))
 			return
 		}
 
@@ -359,10 +425,13 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 
 	case reflect.Slice, reflect.Array:
 
-		if arr, _ = values[namespace]; len(arr) == 0 {
+		// if arr, _ = d.values[namespace]; len(arr) == 0 {
+		if !ok {
+
+			d.parseMapData()
 
 			// maybe it's an numbered array i.e. Pnone[0].Number
-			if rd := dm[namespace]; rd != nil {
+			if rd := d.dm[namespace]; rd != nil {
 
 				var varr reflect.Value
 
@@ -380,7 +449,7 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 				for i := 0; i < len(rd.indicies); i++ {
 					newVal := reflect.New(v.Type().Elem()).Elem()
 
-					if d.setFieldByType(newVal, values, namespace+rd.indicies[i].searchValue, 0, dm, errs) {
+					if d.setFieldByType(newVal, namespace+rd.indicies[i].searchValue, 0) {
 						set = true
 						varr.Index(rd.indicies[i].value).Set(newVal)
 					}
@@ -393,6 +462,10 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 				v.Set(varr)
 			}
 
+			return
+		}
+
+		if len(arr) == 0 {
 			return
 		}
 
@@ -412,7 +485,7 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 		for i := 0; i < len(arr); i++ {
 			newVal := reflect.New(v.Type().Elem()).Elem()
 
-			if d.setFieldByType(newVal, values, namespace, i, dm, errs) {
+			if d.setFieldByType(newVal, namespace, i) {
 				set = true
 				varr.Index(i).Set(newVal)
 			}
@@ -428,8 +501,10 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 
 		var rd *recursiveData
 
+		d.parseMapData()
+
 		// no natural map support so skip directly to dm lookup
-		if rd = dm[namespace]; rd == nil {
+		if rd = d.dm[namespace]; rd == nil {
 			return
 		}
 
@@ -449,11 +524,11 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 			kv := reflect.New(typ.Key()).Elem()
 
 			if err := d.getMapKey(rd.keys[i].value, kv); err != nil {
-				errs[namespace] = err
+				d.setError(namespace, err)
 				continue
 			}
 
-			if d.setFieldByType(newVal, values, namespace+rd.keys[i].searchValue, 0, dm, errs) {
+			if d.setFieldByType(newVal, namespace+rd.keys[i].searchValue, 0) {
 				set = true
 				mp.SetMapIndex(kv, newVal)
 			}
@@ -468,9 +543,18 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 	// set here
 	case reflect.Struct:
 
-		// TODO: time is struct
+		// must register customtypefunc..unless want default to be set by default...
 		if v.Type() == timeType {
 
+			t, err := time.Parse(time.RFC3339, arr[0])
+			if err != nil {
+				d.setError(namespace, err)
+			}
+
+			v.Set(reflect.ValueOf(t))
+
+			// return
+			// goto FALLTHROUGH
 			// look for custom type here
 
 			// Parse time... but how?
@@ -479,18 +563,40 @@ func (d *Decoder) setFieldByType(current reflect.Value, values url.Values, names
 			return
 		}
 
-		set = d.traverseStruct(v, values, namespace, dm, errs)
-	default:
-		// look for custom type here
-		fmt.Println("Currently unknown!")
+		set = d.traverseStruct(v, namespace)
+		// return
+
+		// FALLTHROUGH:
+		// 	fallthrough
+
+		// default:
+
+		// 	// if d.d.customTypeFuncs != nil {
+
+		// 	// 	if arr = d.values[namespace]; len(arr) != 0 {
+		// 	// 		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
+		// 	// 			val, err := cf(arr)
+		// 	// 			if err != nil {
+		// 	// 				d.setError(namespace, err)
+		// 	// 				return
+		// 	// 			}
+
+		// 	// 			v.Set(reflect.ValueOf(val))
+		// 	// 			set = true
+		// 	// 			return
+		// 	// 		}
+		// 	// 	}
+		// 	// }
+		// 	// look for custom type here
+		// 	fmt.Println("Currently unknown!")
 	}
 
 	return
 }
 
-func (d *Decoder) getMapKey(key string, current reflect.Value) (err error) {
+func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 
-	v, kind := d.ExtractType(current)
+	v, kind := d.d.ExtractType(current)
 
 	switch kind {
 	case reflect.Interface, reflect.Invalid:
@@ -557,277 +663,3 @@ func (d *Decoder) getMapKey(key string, current reflect.Value) (err error) {
 
 	return
 }
-
-// maybe just return error instead of passing namespace + errs map...
-// func (d *Decoder) getMapKey(key string, current reflect.Value) (v reflect.Value, err error) {
-
-// 	v, kind := d.ExtractType(current)
-
-// 	switch kind {
-// 	case reflect.Interface, reflect.Invalid:
-// 		return
-// 	case reflect.Ptr:
-
-// 		// if v.IsNil() {
-// 		v = reflect.New(v.Type().Elem())
-// 		myVal, e := d.getMapKey(key, v.Elem()) // TODO: must test this!!!!
-// 		err = e
-// 		// newVal.Set(myVal)
-// 		// }
-
-// 		// set = d.setFieldByType(v.Elem(), values, namespace, idx, dm, errs)
-
-// 	case reflect.String:
-// 		return reflect.ValueOf(key), nil
-
-// 	case reflect.Uint:
-
-// 		if u64, e := strconv.ParseUint(key, 10, 64); e != nil || v.OverflowUint(u64) {
-// 			err = fmt.Errorf("Invalid Uint Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(uint(u64))
-// 		}
-
-// 		return
-
-// 	case reflect.Uint8:
-
-// 		if u64, e := strconv.ParseUint(key, 10, 8); e != nil || v.OverflowUint(u64) {
-// 			err = fmt.Errorf("Invalid Uint8 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(uint8(u64))
-// 		}
-
-// 		return
-
-// 	case reflect.Uint16:
-
-// 		if u64, e := strconv.ParseUint(key, 10, 16); e != nil || v.OverflowUint(u64) {
-// 			err = fmt.Errorf("Invalid Uint16 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(uint16(u64))
-// 		}
-
-// 		return
-
-// 	case reflect.Uint32:
-
-// 		if u64, e := strconv.ParseUint(key, 10, 32); e != nil || v.OverflowUint(u64) {
-// 			err = fmt.Errorf("Invalid Uint32 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(uint32(u64))
-// 		}
-
-// 		return
-
-// 	case reflect.Uint64:
-
-// 		if u64, e := strconv.ParseUint(key, 10, 64); e != nil || v.OverflowUint(u64) {
-// 			err = fmt.Errorf("Invalid Uint64 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(uint64(u64))
-// 		}
-
-// 		return
-
-// 	case reflect.Int:
-
-// 		if i64, e := strconv.ParseInt(key, 10, 64); e != nil || v.OverflowInt(i64) {
-// 			err = fmt.Errorf("Invalid Int Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(int(i64))
-// 		}
-
-// 		return
-
-// 	case reflect.Int8:
-
-// 		if i64, e := strconv.ParseInt(key, 10, 8); e != nil || v.OverflowInt(i64) {
-// 			err = fmt.Errorf("Invalid Int8 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(int8(i64))
-// 		}
-
-// 		return
-
-// 	case reflect.Int16:
-
-// 		if i64, e := strconv.ParseInt(key, 10, 16); e != nil || v.OverflowInt(i64) {
-// 			err = fmt.Errorf("Invalid Int16 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(int16(i64))
-// 		}
-
-// 		return
-
-// 	case reflect.Int32:
-
-// 		if i64, e := strconv.ParseInt(key, 10, 32); e != nil || v.OverflowInt(i64) {
-// 			err = fmt.Errorf("Invalid Int32 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(int32(i64))
-// 		}
-
-// 		return
-
-// 	case reflect.Int64:
-
-// 		if i64, e := strconv.ParseInt(key, 10, 64); e != nil || v.OverflowInt(i64) {
-// 			err = fmt.Errorf("Invalid Int64 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(int64(i64))
-// 		}
-
-// 		return
-
-// 	case reflect.Float32:
-
-// 		if f, e := strconv.ParseFloat(key, 32); e != nil || v.OverflowFloat(f) {
-// 			err = fmt.Errorf("Invalid Float32 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(float32(f))
-// 		}
-
-// 		return
-
-// 	case reflect.Float64:
-
-// 		if f, e := strconv.ParseFloat(key, 64); e != nil || v.OverflowFloat(f) {
-// 			err = fmt.Errorf("Invalid Float64 Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(float64(f))
-// 		}
-
-// 		return
-
-// 	case reflect.Bool:
-
-// 		if b, e := strconv.ParseBool(key); e != nil {
-// 			err = fmt.Errorf("Invalid Boolean Value '%s', Type '%v'", key, v.Type())
-// 		} else {
-// 			v = reflect.ValueOf(b)
-// 		}
-
-// 		return
-
-// 	case reflect.Slice, reflect.Array:
-
-// 		if arr, _ = values[namespace]; len(arr) == 0 {
-
-// 			// maybe it's an numbered array i.e. Pnone[0].Number
-// 			if rd := dm[namespace]; rd != nil {
-
-// 				var varr reflect.Value
-
-// 				sl := rd.sliceLen + 1
-
-// 				if v.IsNil() {
-// 					varr = reflect.MakeSlice(v.Type(), sl, sl)
-// 				} else if v.Len() < sl {
-// 					varr = reflect.MakeSlice(v.Type(), sl, sl)
-// 					reflect.Copy(varr, v)
-// 				} else {
-// 					varr = v
-// 				}
-
-// 				for i := 0; i < len(rd.indicies); i++ {
-// 					newVal := reflect.New(v.Type().Elem()).Elem()
-
-// 					if d.setFieldByType(newVal, values, namespace+rd.indicies[i].searchValue, 0, dm, errs) {
-// 						set = true
-// 						varr.Index(rd.indicies[i].value).Set(newVal)
-// 					}
-// 				}
-
-// 				if !set {
-// 					return
-// 				}
-
-// 				v.Set(varr)
-// 			}
-
-// 			return
-// 		}
-
-// 		var varr reflect.Value
-
-// 		if v.IsNil() {
-// 			varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
-// 		} else if v.Len() < len(arr) {
-// 			varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
-// 			reflect.Copy(varr, v)
-// 		} else {
-// 			varr = v
-// 		}
-
-// 		for i := 0; i < len(arr); i++ {
-// 			newVal := reflect.New(v.Type().Elem()).Elem()
-
-// 			if d.setFieldByType(newVal, values, namespace, i, dm, errs) {
-// 				set = true
-// 				varr.Index(i).Set(newVal)
-// 			}
-// 		}
-
-// 		if !set {
-// 			return
-// 		}
-
-// 		v.Set(varr)
-
-// 	// case reflect.Map:
-// 	// 	if arr = values[namespace]; len(arr) == 0 {
-// 	// 		return
-// 	// 	}
-
-// 	// 	v.Set(reflect.ValueOf(arr[0]))
-// 	// 	set = true
-
-// 	case reflect.Map:
-
-// 		var rd *recursiveData
-
-// 		if rd = dm[namespace]; rd == nil {
-// 			return
-// 		}
-
-// 		var mp reflect.Value
-// 		typ := v.Type()
-
-// 		if v.IsNil() {
-// 			mp = reflect.MakeMap(typ)
-// 		} else {
-// 			mp = v
-// 		}
-
-// 		for i := 0; i < len(rd.keys); i++ {
-// 			newVal := reflect.New(typ.Elem())
-
-// 			if d.setFieldByType(newVal, values, namespace+rd.keys[i].searchValue, 0, dm, errs) {
-// 				set = true
-// 				mp.SetMapIndex(rd.keys[i].value, newVal)
-// 			}
-// 		}
-
-// 		if !set {
-// 			return
-// 		}
-
-// 		// set here
-// 	case reflect.Struct:
-
-// 		// TODO: time is struct
-// 		if v.Type() == timeType {
-// 			// Parse time... but how?
-// 			// think maybe this should be left out and must specify a custom type function
-// 			// because everyone may have different requirements...
-// 			return
-// 		}
-
-// 		set = d.traverseStruct(v, values, namespace, dm, errs)
-// 	default:
-// 		// look for custom type? or should it be done before this switch, must check out bson.ObjectId because is of typee
-// 		// string but requires a specific method to ensure that it's valid
-// 		fmt.Println("Currently unknown!")
-// 	}
-// }
