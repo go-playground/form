@@ -81,14 +81,22 @@ func (d *formDecoder) setError(namespace string, err error) {
 // Decoder is the assembler decode instance
 type Decoder struct {
 	tagName         string
+	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]CustomTypeFunc
 }
 
 // NewDecoder creates a new decoder instance
 func NewDecoder() *Decoder {
 	return &Decoder{
-		tagName: "assembler",
+		tagName:     "form",
+		structCache: &structCacheMap{m: map[reflect.Type]*cachedStruct{}},
 	}
+}
+
+// SetTagName sets the given tag name to be used by the decoder.
+// Default is "form"
+func (d *Decoder) SetTagName(tagName string) {
+	d.tagName = tagName
 }
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
@@ -204,35 +212,54 @@ func (d *formDecoder) parseMapData() {
 func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 
 	typ := v.Type()
-	numFields := v.NumField()
-	var fld reflect.StructField
-	var key string
 	var nn string // new namespace
 
-	for i := 0; i < numFields; i++ {
+	// is anonymous struct, cannot parse or cache as
+	// it has no name to index by
+	if len(typ.Name()) == 0 {
+		numFields := v.NumField()
+		var fld reflect.StructField
+		var key string
 
-		fld = typ.Field(i)
+		for i := 0; i < numFields; i++ {
 
-		if fld.PkgPath != blank && !fld.Anonymous {
-			continue
+			fld = typ.Field(i)
+
+			if fld.PkgPath != blank && !fld.Anonymous {
+				continue
+			}
+
+			if key = fld.Tag.Get(d.d.tagName); key == ignore {
+				continue
+			}
+
+			if len(key) == 0 {
+				key = fld.Name
+			}
+
+			if len(namespace) == 0 {
+				nn = key
+			} else {
+				nn = namespace + namespaceSeparator + key
+			}
+
+			set = d.setFieldByType(v.Field(i), nn, 0)
+		}
+	} else {
+		s, ok := d.d.structCache.Get(typ)
+		if !ok {
+			s = d.d.parseStruct(v)
 		}
 
-		if key = fld.Tag.Get(d.d.tagName); key == ignore {
-			continue
-		}
+		for _, f := range s.fields {
 
-		if len(key) == 0 {
-			key = fld.Name
-		}
+			if len(namespace) == 0 {
+				nn = f.name
+			} else {
+				nn = namespace + namespaceSeparator + f.name
+			}
 
-		if len(namespace) == 0 {
-			nn = key
-		} else {
-			nn = namespace + namespaceSeparator + key
-		}
-
-		if d.setFieldByType(v.Field(i), nn, 0) {
-			set = true
+			set = d.setFieldByType(v.Field(f.idx), nn, 0)
 		}
 	}
 

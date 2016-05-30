@@ -30,3 +30,37 @@ func (d *Decoder) ExtractType(current reflect.Value) (reflect.Value, reflect.Kin
 		return current, current.Kind()
 	}
 }
+
+func (d *Decoder) parseStruct(current reflect.Value) *cachedStruct {
+
+	typ := current.Type()
+	s := &cachedStruct{fields: make([]cachedField, 0, 1)}
+
+	numFields := current.NumField()
+
+	var fld reflect.StructField
+	var name string
+
+	for i := 0; i < numFields; i++ {
+
+		fld = typ.Field(i)
+
+		if fld.PkgPath != blank && !fld.Anonymous {
+			continue
+		}
+
+		if name = fld.Tag.Get(d.tagName); name == ignore {
+			continue
+		}
+
+		if len(name) == 0 {
+			name = fld.Name
+		}
+
+		s.fields = append(s.fields, cachedField{idx: i, name: name})
+	}
+
+	d.structCache.Set(typ, s)
+
+	return s
+}
