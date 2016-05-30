@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"testing"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func TestInt8(t *testing.T) {
@@ -79,6 +81,8 @@ func TestStraighUpArray(t *testing.T) {
 	var test Array
 	var test2 ArrayPtr
 
+	// test2.MyArray = make([]*int8, 1, 1)
+
 	decoder.Decode(&test, values)
 	decoder.Decode(&test2, values)
 
@@ -88,4 +92,165 @@ func TestStraighUpArray(t *testing.T) {
 	fmt.Println(*test2.MyArray[1])
 	fmt.Println(*test2.MyArray[2])
 
+}
+
+func TestArrayNumbered(t *testing.T) {
+
+	type Array struct {
+		MyArray []int8
+	}
+
+	type ArrayPtr struct {
+		MyArray []*int8
+	}
+
+	values := url.Values{"MyArray[0]": []string{"32"}, "MyArray[2]": []string{"33"}}
+
+	decoder := NewDecoder()
+
+	var test Array
+	var test2 ArrayPtr
+
+	decoder.Decode(&test, values)
+	decoder.Decode(&test2, values)
+
+	fmt.Println("Test:", test)
+	fmt.Println("Test 2:", test2)
+	fmt.Println(*test2.MyArray[0])
+	fmt.Println(test2.MyArray[1])
+	fmt.Println(*test2.MyArray[2])
+
+}
+
+func TestArrayOfArray(t *testing.T) {
+
+	type Array struct {
+		MyArray [][]int8
+	}
+
+	type ArrayPtr struct {
+		MyArray [][]*int8
+	}
+
+	values := url.Values{"MyArray[0][0]": []string{"32"}, "MyArray[0][1]": []string{"35"}, "MyArray[2][0]": []string{"33"}}
+
+	decoder := NewDecoder()
+
+	var test Array
+	var test2 ArrayPtr
+
+	decoder.Decode(&test, values)
+	decoder.Decode(&test2, values)
+
+	fmt.Println("Test:", test)
+	fmt.Println("Test 2:", test2)
+	// fmt.Println(*test2.MyArray[0])
+	// fmt.Println(*test2.MyArray[1])
+	// fmt.Println(*test2.MyArray[2])
+
+}
+
+func TestString(t *testing.T) {
+
+	type stringStruct struct {
+		StringField    string
+		StringPtrField *string
+	}
+
+	tests := []struct {
+		values   url.Values
+		expected string
+		isPtr    bool
+	}{
+		{
+			values:   url.Values{"StringField": []string{"7"}},
+			expected: "7",
+		},
+		{
+			values:   url.Values{"StringPtrField": []string{"6"}},
+			expected: "6",
+			isPtr:    true,
+		},
+	}
+
+	decoder := NewDecoder()
+
+	var test stringStruct
+	var val string
+
+	for i, tt := range tests {
+		decoder.Decode(&test, tt.values)
+
+		if tt.isPtr {
+			if test.StringPtrField == nil {
+				t.Errorf("Idx: %d Expected '%s' Got '%v'", i, tt.expected, test.StringPtrField)
+				continue
+			}
+			val = *test.StringPtrField
+		} else {
+			val = test.StringField
+		}
+
+		if val != tt.expected {
+			t.Errorf("Idx: %d Expected '%s' Got '%s'", i, tt.expected, val)
+		}
+	}
+	// values := url.Values{
+	// 	"Int8Field": []string{"5"},
+	// }
+
+	// fmt.Println(test.Int8Field)
+	// type mm map[string]*intStruct
+	// // m := map[int]string{}
+	// m := make(mm)
+	// fmt.Println(reflect.ValueOf(m).Kind())
+}
+
+func TestArrayStructString(t *testing.T) {
+
+	type Phone struct {
+		Number string
+	}
+
+	type User struct {
+		Name         string
+		PhoneNumbers []Phone
+		ID           bson.ObjectId
+	}
+
+	values := url.Values{"ID": []string{"bson.ID"}, "Name": []string{"Joey Bloggs"}, "PhoneNumbers[0].Number": []string{"1(111)111-1111"}, "PhoneNumbers[1].Number": []string{"9(999)999-9999"}}
+
+	decoder := NewDecoder()
+
+	var test User
+
+	decoder.Decode(&test, values)
+
+	fmt.Println("Test Phone:", test)
+}
+
+func TestArrayStructStringArrayString(t *testing.T) {
+	type Home struct {
+		Address string
+	}
+
+	type Phone struct {
+		Number string
+		Homes  []Home
+	}
+
+	type User struct {
+		Name         string
+		PhoneNumbers []Phone
+	}
+
+	values := url.Values{"Name": []string{"Joey Bloggs"}, "PhoneNumbers[0].Number": []string{"1(111)111-1111"}, "PhoneNumbers[1].Number": []string{"9(999)999-9999"}, "PhoneNumbers[0].Homes[0].Address": []string{"Beaumont"}}
+
+	decoder := NewDecoder()
+
+	var test User
+
+	decoder.Decode(&test, values)
+
+	fmt.Println("Test Phone2:", test)
 }
