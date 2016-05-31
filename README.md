@@ -1,8 +1,11 @@
 Package form
 ============
 <img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">
-![Project status](https://img.shields.io/badge/version-0.9-green.svg)
-[![GoDoc](https://github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
+![Project status](https://img.shields.io/badge/version-1.0-green.svg)
+[![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
+[![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
+[![GoDoc](https://godoc.org/github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
 Package form parses url.Values and fills a struct with values, creating objects as necessary.
