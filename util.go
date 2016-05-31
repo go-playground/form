@@ -23,9 +23,6 @@ func (d *Decoder) ExtractType(current reflect.Value) (reflect.Value, reflect.Kin
 
 		return d.ExtractType(current.Elem())
 
-	case reflect.Invalid:
-		return current, reflect.Invalid
-
 	default:
 		return current, current.Kind()
 	}

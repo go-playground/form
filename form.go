@@ -219,6 +219,7 @@ func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set boo
 	// is anonymous struct, cannot parse or cache as
 	// it has no name to index by
 	if len(typ.Name()) == 0 {
+
 		numFields := v.NumField()
 		var fld reflect.StructField
 		var key string
@@ -391,7 +392,11 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 				if v.IsNil() {
 					varr = reflect.MakeSlice(v.Type(), sl, sl)
 				} else if v.Len() < sl {
-					varr = reflect.MakeSlice(v.Type(), sl, sl)
+					if v.Cap() <= sl {
+						varr = reflect.MakeSlice(v.Type(), sl, sl)
+					} else {
+						varr = reflect.MakeSlice(v.Type(), sl, v.Cap())
+					}
 					reflect.Copy(varr, v)
 				} else {
 					varr = v
@@ -426,7 +431,11 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		if v.IsNil() {
 			varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
 		} else if v.Len() < len(arr) {
-			varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
+			if v.Cap() <= len(arr) {
+				varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
+			} else {
+				varr = reflect.MakeSlice(v.Type(), len(arr), v.Cap())
+			}
 			reflect.Copy(varr, v)
 		} else {
 			existing = true
@@ -520,7 +529,8 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value, namespace str
 	v, kind := d.d.ExtractType(current)
 
 	switch kind {
-	case reflect.Interface, reflect.Invalid:
+	case reflect.Interface:
+		v.Set(reflect.ValueOf(key))
 		return
 	case reflect.Ptr:
 

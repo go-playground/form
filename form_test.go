@@ -496,31 +496,61 @@ func TestStruct(t *testing.T) {
 		Name      string `form:"name"`
 		Phone     []Phone
 		PhonePtr  []*Phone
+		NonNilPtr *Phone
 		Ignore    string `form:"-"`
 		Anonymous struct {
 			Value     string
 			Ignore    string `form:"-"`
 			unexposed string
 		}
-		Time      time.Time
-		TimePtr   *time.Time
-		unexposed string
-		Invalid   interface{}
+		Time                       time.Time
+		TimePtr                    *time.Time
+		unexposed                  string
+		Invalid                    interface{}
+		ExistingMap                map[string]string `form:"mp"`
+		MapNoValue                 map[int]int
+		NilArray                   []string
+		TooSmallArray              []string
+		TooSmallCapOKArray         []string
+		ZeroLengthArray            []string
+		TooSmallNumberedArray      []string
+		TooSmallCapOKNumberedArray []string
+		BigEnoughNumberedArray     []string
+		IfaceNonNil                interface{}
+		IfaceInvalid               interface{}
 	}
 
 	values := url.Values{
-		"name":               []string{"joeybloggs"},
-		"Ignore":             []string{"ignore"},
-		"Phone[0].Number":    []string{"1(111)111-1111"},
-		"Phone[1].Number":    []string{"9(999)999-9999"},
-		"PhonePtr[0].Number": []string{"1(111)111-1111"},
-		"PhonePtr[1].Number": []string{"9(999)999-9999"},
-		"Anonymous.Value":    []string{"Anon"},
-		"Time":               []string{"2016-01-02"},
-		"TimePtr":            []string{"2016-01-02"},
+		"name":                          []string{"joeybloggs"},
+		"Ignore":                        []string{"ignore"},
+		"Phone[0].Number":               []string{"1(111)111-1111"},
+		"Phone[1].Number":               []string{"9(999)999-9999"},
+		"PhonePtr[0].Number":            []string{"1(111)111-1111"},
+		"PhonePtr[1].Number":            []string{"9(999)999-9999"},
+		"NonNilPtr.Number":              []string{"9(999)999-9999"},
+		"Anonymous.Value":               []string{"Anon"},
+		"Time":                          []string{"2016-01-02"},
+		"TimePtr":                       []string{"2016-01-02"},
+		"mp[key]":                       []string{"value"},
+		"NilArray":                      []string{"1", "2"},
+		"TooSmallArray":                 []string{"1", "2"},
+		"TooSmallCapOKArray":            []string{"1", "2"},
+		"ZeroLengthArray":               []string{},
+		"TooSmallNumberedArray[2]":      []string{"2"},
+		"TooSmallCapOKNumberedArray[2]": []string{"2"},
+		"BigEnoughNumberedArray[2]":     []string{"1"},
 	}
 
 	var test TestStruct
+	test.ExistingMap = map[string]string{"existingkey": "existingvalue"}
+	test.NonNilPtr = new(Phone)
+	test.IfaceNonNil = new(Phone)
+	test.IfaceInvalid = nil
+	test.TooSmallArray = []string{"0"}
+	test.TooSmallCapOKArray = make([]string, 0, 10)
+	test.TooSmallNumberedArray = []string{"0"}
+	test.TooSmallCapOKNumberedArray = make([]string, 0, 10)
+	test.BigEnoughNumberedArray = make([]string, 3, 10)
 
 	decoder := NewDecoder()
 	decoder.SetTagName("form")
@@ -539,7 +569,36 @@ func TestStruct(t *testing.T) {
 	Equal(t, len(test.PhonePtr), 2)
 	Equal(t, (*test.PhonePtr[0]).Number, "1(111)111-1111")
 	Equal(t, (*test.PhonePtr[1]).Number, "9(999)999-9999")
+	Equal(t, test.NonNilPtr.Number, "9(999)999-9999")
 	Equal(t, test.Anonymous.Value, "Anon")
+	Equal(t, len(test.ExistingMap), 2)
+	Equal(t, test.ExistingMap["existingkey"], "existingvalue")
+	Equal(t, test.ExistingMap["key"], "value")
+	Equal(t, len(test.NilArray), 2)
+	Equal(t, test.NilArray[0], "1")
+	Equal(t, test.NilArray[1], "2")
+	Equal(t, len(test.TooSmallArray), 2)
+	Equal(t, test.TooSmallArray[0], "1")
+	Equal(t, test.TooSmallArray[1], "2")
+	Equal(t, len(test.ZeroLengthArray), 0)
+	Equal(t, len(test.TooSmallNumberedArray), 3)
+	Equal(t, test.TooSmallNumberedArray[0], "0")
+	Equal(t, test.TooSmallNumberedArray[1], "")
+	Equal(t, test.TooSmallNumberedArray[2], "2")
+	Equal(t, len(test.BigEnoughNumberedArray), 3)
+	Equal(t, cap(test.BigEnoughNumberedArray), 10)
+	Equal(t, test.BigEnoughNumberedArray[0], "")
+	Equal(t, test.BigEnoughNumberedArray[1], "")
+	Equal(t, test.BigEnoughNumberedArray[2], "1")
+	Equal(t, len(test.TooSmallCapOKArray), 2)
+	Equal(t, cap(test.TooSmallCapOKArray), 10)
+	Equal(t, test.TooSmallCapOKArray[0], "1")
+	Equal(t, test.TooSmallCapOKArray[1], "2")
+	Equal(t, len(test.TooSmallCapOKNumberedArray), 3)
+	Equal(t, cap(test.TooSmallCapOKNumberedArray), 10)
+	Equal(t, test.TooSmallCapOKNumberedArray[0], "")
+	Equal(t, test.TooSmallCapOKNumberedArray[1], "")
+	Equal(t, test.TooSmallCapOKNumberedArray[2], "2")
 
 	tm, _ := time.Parse("2006-01-02", "2016-01-02")
 	Equal(t, test.Time.Equal(tm), true)
@@ -584,21 +643,33 @@ func TestNativeTime(t *testing.T) {
 func TestErrors(t *testing.T) {
 
 	type TestError struct {
-		Bool    bool `form:"bool"`
-		Int     int
-		Uint    uint
-		Float32 float32
-		String  string
-		Time    time.Time
+		Bool           bool `form:"bool"`
+		Int            int
+		Uint           uint
+		Float32        float32
+		String         string
+		Time           time.Time
+		MapBadIntKey   map[int]int
+		MapBadUintKey  map[uint]uint
+		MapBadFloatKey map[float32]float32
+		MapBadBoolKey  map[bool]bool
+		MapBadKeyType  map[complex64]int
+		BadArrayValue  []int
 	}
 
 	values := url.Values{
-		"bool":    []string{"yes"},
-		"Int":     []string{"bad"},
-		"Uint":    []string{"bad"},
-		"Float32": []string{"bad"},
-		"String":  []string{"str bad return val"},
-		"Time":    []string{"bad"},
+		"bool":                []string{"yes"},
+		"Int":                 []string{"bad"},
+		"Uint":                []string{"bad"},
+		"Float32":             []string{"bad"},
+		"String":              []string{"str bad return val"},
+		"Time":                []string{"bad"},
+		"MapBadIntKey[key]":   []string{"1"},
+		"MapBadUintKey[key]":  []string{"1"},
+		"MapBadFloatKey[key]": []string{"1.1"},
+		"MapBadBoolKey[yes]":  []string{"true"},
+		"MapBadKeyType[1.4]":  []string{"5"},
+		"BadArrayValue[0]":    []string{"badintval"},
 	}
 
 	var test TestError
@@ -631,6 +702,24 @@ func TestErrors(t *testing.T) {
 
 	k = err["Time"]
 	Equal(t, k.Error(), "parsing time \"bad\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"bad\" as \"2006\"")
+
+	k = err["MapBadIntKey"]
+	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int' Namespace 'MapBadIntKey'")
+
+	k = err["MapBadUintKey"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint' Namespace 'MapBadUintKey'")
+
+	k = err["MapBadFloatKey"]
+	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloatKey'")
+
+	k = err["MapBadBoolKey"]
+	Equal(t, k.Error(), "Invalid Boolean Value 'yes' Type 'bool' Namespace 'MapBadBoolKey'")
+
+	k = err["MapBadKeyType"]
+	Equal(t, k.Error(), "Unsupported Map Key '1.4', Type 'complex64' Namespace 'MapBadKeyType'")
+
+	k = err["BadArrayValue[0]"]
+	Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
 }
 
 func TestPanics(t *testing.T) {
@@ -657,281 +746,23 @@ func TestPanics(t *testing.T) {
 	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
 }
 
-// func TestString(t *testing.T) {
-
-// 	type stringStruct struct {
-// 		StringField    string
-// 		StringPtrField *string
-// 	}
-
-// 	tests := []struct {
-// 		values   url.Values
-// 		expected string
-// 		isPtr    bool
-// 	}{
-// 		{
-// 			values:   url.Values{"StringField": []string{"7"}},
-// 			expected: "7",
-// 		},
-// 		{
-// 			values:   url.Values{"StringPtrField": []string{"6"}},
-// 			expected: "6",
-// 			isPtr:    true,
-// 		},
-// 	}
-
-// 	decoder := NewDecoder()
-
-// 	var test stringStruct
-// 	var val string
-
-// 	for i, tt := range tests {
-// 		decoder.Decode(&test, tt.values)
-
-// 		if tt.isPtr {
-// 			if test.StringPtrField == nil {
-// 				t.Errorf("Idx: %d Expected '%s' Got '%v'", i, tt.expected, test.StringPtrField)
-// 				continue
-// 			}
-// 			val = *test.StringPtrField
-// 		} else {
-// 			val = test.StringField
-// 		}
-
-// 		if val != tt.expected {
-// 			t.Errorf("Idx: %d Expected '%s' Got '%s'", i, tt.expected, val)
-// 		}
-// 	}
-// 	// values := url.Values{
-// 	// 	"Int8Field": []string{"5"},
-// 	// }
-
-// 	// fmt.Println(test.Int8Field)
-// 	// type mm map[string]*intStruct
-// 	// // m := map[int]string{}
-// 	// m := make(mm)
-// 	// fmt.Println(reflect.ValueOf(m).Kind())
-// }
-
-// func TestArrayStructString(t *testing.T) {
-
-// 	type Phone struct {
-// 		Number string
-// 	}
-
-// 	type User struct {
-// 		Name         string
-// 		PhoneNumbers []Phone
-// 		ID           bson.ObjectId
-// 	}
-
-// 	values := url.Values{"ID": []string{"bson.ID"}, "Name": []string{"Joey Bloggs"}, "PhoneNumbers[0].Number": []string{"1(111)111-1111"}, "PhoneNumbers[1].Number": []string{"9(999)999-9999"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test User
-
-// 	decoder.Decode(&test, values)
-// 	// fmt.Println(test.ID)
-// 	// fmt.Println(test.ID.Hex())
-// 	// fmt.Println("Test Phone:", test)
-// }
-
-// func TestArrayStructStringArrayString(t *testing.T) {
-// 	type Home struct {
-// 		Address string
-// 	}
-
-// 	type Phone struct {
-// 		Number string
-// 		Homes  []Home
-// 	}
-
-// 	type User struct {
-// 		Name         string
-// 		PhoneNumbers []Phone
-// 	}
-
-// 	values := url.Values{"Name": []string{"Joey Bloggs"}, "PhoneNumbers[0].Number": []string{"1(111)111-1111"}, "PhoneNumbers[1].Number": []string{"9(999)999-9999"}, "PhoneNumbers[0].Homes[0].Address": []string{"Beaumont"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test User
-
-// 	decoder.Decode(&test, values)
-
-// 	// fmt.Println("Test Phone2:", test)
-// }
-
-// func TestBool(t *testing.T) {
-
-// 	type boolStruct struct {
-// 		OK    bool
-// 		OKPtr *bool
-// 	}
-
-// 	values := url.Values{"OKPtr": []string{"true"}, "OK": []string{"t"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test boolStruct
-
-// 	decoder.Decode(&test, values)
-
-// 	// fmt.Println("Test Bool:", test)
-// }
-
-// func TestFloat(t *testing.T) {
-
-// 	type floatStruct struct {
-// 		Float    float64
-// 		FloatPtr *float64
-// 	}
-
-// 	values := url.Values{"Float": []string{"1.3333"}, "FloatPtr": []string{"13.546"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test floatStruct
-
-// 	decoder.Decode(&test, values)
-
-// 	// fmt.Println("Test Float:", test)
-// }
-
-// func TestMap(t *testing.T) {
-
-// 	type mapStruct struct {
-// 		MapStringInt       map[string]int
-// 		MapStringPtrString map[*string]string
-// 		MapPrtString       *map[string]string
-// 	}
-
-// 	values := url.Values{"MapStringInt[key1]": []string{"3"}, "MapStringInt[key2]": []string{"5"}, "MapStringPtrString[ptrkey]": []string{"13"}, "MapPrtString[mpkey]": []string{"mpvalue"}}
-
-// 	decoder := NewDecoder()
-
-// 	var test mapStruct
-
-// 	decoder.Decode(&test, values)
-
-// 	// fmt.Println("Test Map:", test)
-
-// 	// for k, v := range test.MapStringPtrString {
-// 	// 	fmt.Println(*k, v)
-// 	// }
-// }
-
-// func TestCustomType(t *testing.T) {
-
-// 	type customStruct struct {
-// 		Time    time.Time
-// 		TimePtr *time.Time
-// 	}
-
-// 	values := url.Values{"Time": []string{"2016-01-02"}, "TimePtr": []string{"2017-01-02"}}
-
-// 	decoder := NewDecoder()
-// 	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-// 		return time.Parse("2006-01-02", vals[0])
-// 	}, time.Time{})
-
-// 	var test customStruct
-
-// 	errs := decoder.Decode(&test, values)
-// 	if errs != nil {
-// 		t.Error("ERRORS!:", errs)
-// 	}
-
-// 	// fmt.Println("Test Custom Type:", test)
-// }
-
-// func TestBench(t *testing.T) {
-
-// 	values := url.Values{
-// 		"Nest.Children[0].ID":   []string{"joeybloggs_id"},
-// 		"Nest.Children[0].Name": []string{"Joeybloggs"},
-// 		"String":                []string{"golang is very fun"},
-// 		"Slice[0]":              []string{"1"},
-// 		"Slice[1]":              []string{"2"},
-// 		"Slice[2]":              []string{"3"},
-// 		"Slice[3]":              []string{"4"},
-// 		"Bool":                  []string{"true"},
-// 	}
-
-// 	// values := url.Values{
-// 	// 	"Nest.Children[0].ID":   []string{"joeybloggs_id"},
-// 	// 	"Nest.Children[0].Name": []string{"Joeybloggs"},
-// 	// 	"String":                []string{"golang is very fun"},
-// 	// 	"Slice":                 []string{"1", "2", "3", "4"},
-// 	// 	"Bool":                  []string{"true"},
-// 	// }
-
-// 	// type BenchFormamSchema struct {
-// 	// 	Nest struct {
-// 	// 		Children []struct {
-// 	// 			ID   string
-// 	// 			Name string
-// 	// 		}
-// 	// 	}
-// 	// 	String string
-// 	// 	Slice  []int
-// 	// 	Bool   bool
-// 	// }
-
-// 	decoder := NewDecoder()
-
-// 	test := new(BenchFormamSchema)
-
-// 	decoder.Decode(test, values)
-
-// 	// fmt.Printf("Test Bench: %#v", test)
-
-// 	Equal(t, len(test.Nest.Children), 1)
-// 	Equal(t, test.Nest.Children[0].ID, "joeybloggs_id")
-// 	Equal(t, test.Nest.Children[0].Name, "Joeybloggs")
-// 	Equal(t, test.String, "golang is very fun")
-// 	Equal(t, test.Slice[0], int(1))
-// 	Equal(t, test.Slice[1], int(2))
-// 	Equal(t, test.Slice[2], int(3))
-// 	Equal(t, test.Slice[3], int(4))
-// 	Equal(t, test.Bool, true)
-// }
-
-// type BenchFormamSchema struct {
-// 	Nest struct {
-// 		Children []struct {
-// 			ID   string
-// 			Name string
-// 		}
-// 	}
-// 	String string
-// 	Slice  []int
-// 	Bool   bool
-// }
-
-// func BenchmarkAssemblerTest2Parallel(b *testing.B) {
-
-// 	values := url.Values{
-// 		"Nest.Children[0].ID":   []string{"joeybloggs_id"},
-// 		"Nest.Children[0].Name": []string{"Joeybloggs"},
-// 		"String":                []string{"golang is very fun"},
-// 		"Slice[0]":              []string{"1"},
-// 		"Slice[1]":              []string{"2"},
-// 		"Slice[2]":              []string{"3"},
-// 		"Slice[3]":              []string{"4"},
-// 		"Bool":                  []string{"true"},
-// 	}
-
-// 	ass := NewDecoder()
-
-// 	b.ReportAllocs()
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			test := new(BenchFormamSchema)
-// 			if errs := ass.Decode(test, values); errs != nil {
-// 				b.Error(errs)
-// 			}
-// 		}
-// 	})
-// }
+func TestMapKeys(t *testing.T) {
+
+	type TestMapKeys struct {
+		MapIfaceKey map[interface{}]string
+		MapFloatKey map[float32]float32
+	}
+
+	values := url.Values{
+		"MapIfaceKey[key]": []string{"3"},
+		"MapFloatKey[0.0]": []string{"3.3"},
+	}
+
+	var test TestMapKeys
+
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+	Equal(t, test.MapIfaceKey["key"], "3")
+	Equal(t, test.MapFloatKey[float32(0.0)], float32(3.3))
+}
