@@ -156,7 +156,7 @@ Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go version go1.6.2 darwin/amd64
 
-NOTE: the 1 allocationand B/op in the first 4 is actually the struct allocating when passing it in, so primitives are actually zero allocation.
+NOTE: the 1 allocation and B/op in the first 4 is actually the struct allocating when passing it in, so primitives are actually zero allocation.
 
 ```go
 go test -bench=. -benchmem=true
