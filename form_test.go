@@ -749,13 +749,15 @@ func TestPanics(t *testing.T) {
 func TestMapKeys(t *testing.T) {
 
 	type TestMapKeys struct {
-		MapIfaceKey map[interface{}]string
-		MapFloatKey map[float32]float32
+		MapIfaceKey  map[interface{}]string
+		MapFloatKey  map[float32]float32
+		MapNestedInt map[int]map[int]int
 	}
 
 	values := url.Values{
-		"MapIfaceKey[key]": []string{"3"},
-		"MapFloatKey[0.0]": []string{"3.3"},
+		"MapIfaceKey[key]":   []string{"3"},
+		"MapFloatKey[0.0]":   []string{"3.3"},
+		"MapNestedInt[1][2]": []string{"3"},
 	}
 
 	var test TestMapKeys
@@ -765,4 +767,33 @@ func TestMapKeys(t *testing.T) {
 	Equal(t, errs, nil)
 	Equal(t, test.MapIfaceKey["key"], "3")
 	Equal(t, test.MapFloatKey[float32(0.0)], float32(3.3))
+
+	Equal(t, len(test.MapNestedInt), 1)
+	Equal(t, len(test.MapNestedInt[1]), 1)
+	Equal(t, test.MapNestedInt[1][2], 3)
+}
+
+func TestStructRecursion(t *testing.T) {
+
+	type Nested struct {
+		Value  string
+		Nested *Nested
+	}
+
+	type TestRecursive struct {
+		Nested Nested
+	}
+
+	values := url.Values{
+		"Value":        []string{"value"},
+		"Nested.Value": []string{"value"},
+	}
+
+	var test TestRecursive
+
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+	Equal(t, test.Nested.Value, "value")
+	Equal(t, test.Nested.Nested, nil)
 }

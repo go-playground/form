@@ -62,10 +62,12 @@ type recursiveData struct {
 type dataMap map[string]*recursiveData
 
 type formDecoder struct {
-	d      *Decoder
-	errs   DecodeErrors
-	dm     dataMap
-	values url.Values
+	d                   *Decoder
+	errs                DecodeErrors
+	dm                  dataMap
+	values              url.Values
+	maxKeyLen           int
+	maxKeyLenCalculated bool
 }
 
 func (d *formDecoder) setError(namespace string, err error) {
@@ -120,11 +122,13 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	val := reflect.ValueOf(v)
 
-	if val.Kind() == reflect.Ptr {
+	kind := val.Kind()
+
+	if kind == reflect.Ptr {
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct {
+	if kind != reflect.Ptr || val.Kind() != reflect.Struct {
 		panic("interface must be a pointer to a struct")
 	}
 
@@ -139,7 +143,18 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 	return
 }
 
-// find a way to parse this once and only when needed?
+func (d *formDecoder) parseMaxKeyLen() {
+
+	for k := range d.values {
+
+		if len(k) > d.maxKeyLen {
+			d.maxKeyLen = len(k)
+		}
+	}
+
+	d.maxKeyLenCalculated = true
+}
+
 func (d *formDecoder) parseMapData() {
 
 	// already parsed
@@ -155,6 +170,10 @@ func (d *formDecoder) parseMapData() {
 	var cidx2 int
 
 	for k := range d.values {
+
+		if len(k) > d.maxKeyLen {
+			d.maxKeyLen = len(k)
+		}
 
 		idx, idx2, cum = 0, 0, 0
 
@@ -175,8 +194,8 @@ func (d *formDecoder) parseMapData() {
 
 			if rd, ok = d.dm[k[:cidx]]; !ok {
 				rd = &recursiveData{
-					keys:     make([]key, 0, 8),
-					indicies: make([]index, 0, 8),
+					keys:     make([]key, 0, 8),   // initializing with initial capacity of 8 to avoid too many reallocations of the underlying array
+					indicies: make([]index, 0, 8), // initializing with initial capacity of 8 to avoid too many reallocations of the underlying array
 				}
 				d.dm[k[:cidx]] = rd
 			}
@@ -209,6 +228,8 @@ func (d *formDecoder) parseMapData() {
 			cum += idx2 + 1
 		}
 	}
+
+	d.maxKeyLenCalculated = true
 }
 
 func (d *formDecoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
@@ -515,6 +536,15 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 			}
 
 			v.Set(reflect.ValueOf(t))
+			return
+		}
+
+		if !d.maxKeyLenCalculated {
+			d.parseMaxKeyLen()
+		}
+
+		// we must be recursing infinitly...but that's ok we caught it on the very first overun.
+		if len(namespace) > d.maxKeyLen {
 			return
 		}
 
