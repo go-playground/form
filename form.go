@@ -121,16 +121,11 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 	val := reflect.ValueOf(v)
 
 	if val.Kind() == reflect.Ptr {
-
-		if val.IsNil() && val.CanSet() {
-			val.Set(reflect.New(val.Type().Elem()))
-		}
-
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct && val.Kind() != reflect.Interface {
-		panic("value passed for validation is not a struct")
+	if val.Kind() != reflect.Struct {
+		panic("interface must be a pointer to a struct")
 	}
 
 	dec.traverseStruct(val, "")
@@ -297,17 +292,12 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 				return
 			}
 		}
-		return
 	}
 
 	switch kind {
 	case reflect.Interface, reflect.Invalid:
 		return
 	case reflect.Ptr:
-
-		if !ok {
-			return
-		}
 
 		newVal := reflect.New(v.Type().Elem())
 		if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
@@ -332,7 +322,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		var u64 uint64
 
 		if u64, err = strconv.ParseUint(arr[idx], 10, 64); err != nil || v.OverflowUint(u64) {
-			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s', Type '%v'", arr[idx], v.Type()))
+			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), namespace))
 			return
 		}
 
@@ -346,7 +336,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		var i64 int64
 
 		if i64, err = strconv.ParseInt(arr[idx], 10, 64); err != nil || v.OverflowInt(i64) {
-			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s', Type '%v'", arr[idx], v.Type()))
+			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), namespace))
 			return
 		}
 
@@ -362,7 +352,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		var f float64
 
 		if f, err = strconv.ParseFloat(arr[idx], 64); err != nil || v.OverflowFloat(f) {
-			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s', Type '%v'", arr[0], v.Type()))
+			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[0], v.Type(), namespace))
 			return
 		}
 
@@ -378,7 +368,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		var b bool
 
 		if b, err = strconv.ParseBool(arr[idx]); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s', Type '%v'", arr[idx], v.Type()))
+			d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), namespace))
 			return
 		}
 
@@ -484,7 +474,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 			newVal := reflect.New(typ.Elem()).Elem()
 			kv := reflect.New(typ.Key()).Elem()
 
-			if err := d.getMapKey(rd.keys[i].value, kv); err != nil {
+			if err := d.getMapKey(rd.keys[i].value, kv, namespace); err != nil {
 				d.setError(namespace, err)
 				continue
 			}
@@ -506,7 +496,11 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		// if we get here then no custom time function declared so use RFC3339 by default
 		if v.Type() == timeType {
 
-			t, err := time.Parse(time.RFC3339, arr[0])
+			if !ok || len(arr[idx]) == 0 {
+				return
+			}
+
+			t, err := time.Parse(time.RFC3339, arr[idx])
 			if err != nil {
 				d.setError(namespace, err)
 			}
@@ -521,7 +515,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 	return
 }
 
-func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
+func (d *formDecoder) getMapKey(key string, current reflect.Value, namespace string) (err error) {
 
 	v, kind := d.d.ExtractType(current)
 
@@ -531,7 +525,7 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 	case reflect.Ptr:
 
 		newVal := reflect.New(v.Type().Elem())
-		if err = d.getMapKey(key, newVal.Elem()); err == nil {
+		if err = d.getMapKey(key, newVal.Elem(), namespace); err == nil {
 			v.Set(newVal)
 		}
 
@@ -542,7 +536,7 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 
 		u64, e := strconv.ParseUint(key, 10, 64)
 		if e != nil || v.OverflowUint(u64) {
-			err = fmt.Errorf("Invalid Unsigned Integer Value '%s', Type '%v'", key, v.Type())
+			err = fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), namespace)
 			return
 		}
 
@@ -552,7 +546,7 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 
 		i64, e := strconv.ParseInt(key, 10, 64)
 		if e != nil || v.OverflowInt(i64) {
-			err = fmt.Errorf("Invalid Integer Value '%s', Type '%v'", key, v.Type())
+			err = fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), namespace)
 			return
 		}
 
@@ -562,7 +556,7 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 
 		f, e := strconv.ParseFloat(key, 64)
 		if e != nil || v.OverflowFloat(f) {
-			err = fmt.Errorf("Invalid Float Value '%s', Type '%v'", key, v.Type())
+			err = fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", key, v.Type(), namespace)
 			return
 		}
 
@@ -572,7 +566,7 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 
 		b, e := strconv.ParseBool(key)
 		if e != nil {
-			err = fmt.Errorf("Invalid Boolean Value '%s', Type '%v'", key, v.Type())
+			err = fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", key, v.Type(), namespace)
 			return
 		}
 
@@ -581,7 +575,7 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value) (err error) {
 	default:
 		// look for custom type? or should it be done before this switch, must check out bson.ObjectId because is of typee
 		// string but requires a specific method to ensure that it's valid
-		err = fmt.Errorf("Unsupported Map Key '%s', Type '%v'", key, v.Type())
+		err = fmt.Errorf("Unsupported Map Key '%s', Type '%v' Namespace '%s'", key, v.Type(), namespace)
 	}
 
 	return

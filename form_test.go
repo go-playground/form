@@ -1,8 +1,10 @@
 package form
 
 import (
+	"errors"
 	"net/url"
 	"testing"
+	"time"
 
 	. "github.com/go-playground/assert"
 )
@@ -401,6 +403,258 @@ func TestFloat(t *testing.T) {
 	Equal(t, v, float32(3.3))
 
 	Equal(t, test.NoURLValue, float32(0.0))
+}
+
+func TestBool(t *testing.T) {
+
+	type TestBool struct {
+		Bool              bool
+		BoolPtr           *bool
+		BoolArray         []bool
+		BoolPtrArray      []*bool
+		BoolArrayArray    [][]bool
+		BoolPtrArrayArray [][]*bool
+		BoolMap           map[bool]bool
+		BoolPtrMap        map[*bool]*bool
+		NoURLValue        bool
+	}
+
+	values := url.Values{
+		"Bool":                    []string{"true"},
+		"BoolPtr":                 []string{"true"},
+		"BoolArray":               []string{"true", "t", "1"},
+		"BoolPtrArray[0]":         []string{"true"},
+		"BoolPtrArray[2]":         []string{"T"},
+		"BoolArrayArray[0][0]":    []string{"TRUE"},
+		"BoolArrayArray[0][2]":    []string{"True"},
+		"BoolArrayArray[2][0]":    []string{"true"},
+		"BoolPtrArrayArray[0][0]": []string{"true"},
+		"BoolPtrArrayArray[0][2]": []string{"true"},
+		"BoolPtrArrayArray[2][0]": []string{"true"},
+		"BoolMap[true]":           []string{"true"},
+		"BoolPtrMap[t]":           []string{"true"},
+	}
+
+	var test TestBool
+
+	test.BoolArray = make([]bool, 4)
+
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+
+	Equal(t, test.Bool, true)
+
+	Equal(t, *test.BoolPtr, true)
+
+	Equal(t, len(test.BoolArray), 4)
+	Equal(t, test.BoolArray[0], true)
+	Equal(t, test.BoolArray[1], true)
+	Equal(t, test.BoolArray[2], true)
+	Equal(t, test.BoolArray[3], false)
+
+	Equal(t, len(test.BoolPtrArray), 3)
+	Equal(t, *test.BoolPtrArray[0], true)
+	Equal(t, test.BoolPtrArray[1], nil)
+	Equal(t, *test.BoolPtrArray[2], true)
+
+	Equal(t, len(test.BoolArrayArray), 3)
+	Equal(t, len(test.BoolArrayArray[0]), 3)
+	Equal(t, len(test.BoolArrayArray[1]), 0)
+	Equal(t, len(test.BoolArrayArray[2]), 1)
+	Equal(t, test.BoolArrayArray[0][0], true)
+	Equal(t, test.BoolArrayArray[0][1], false)
+	Equal(t, test.BoolArrayArray[0][2], true)
+	Equal(t, test.BoolArrayArray[2][0], true)
+
+	Equal(t, len(test.BoolPtrArrayArray), 3)
+	Equal(t, len(test.BoolPtrArrayArray[0]), 3)
+	Equal(t, len(test.BoolPtrArrayArray[1]), 0)
+	Equal(t, len(test.BoolPtrArrayArray[2]), 1)
+	Equal(t, *test.BoolPtrArrayArray[0][0], true)
+	Equal(t, test.BoolPtrArrayArray[0][1], nil)
+	Equal(t, *test.BoolPtrArrayArray[0][2], true)
+	Equal(t, *test.BoolPtrArrayArray[2][0], true)
+
+	Equal(t, len(test.BoolMap), 1)
+	Equal(t, len(test.BoolPtrMap), 1)
+
+	v, ok := test.BoolMap[true]
+	Equal(t, ok, true)
+	Equal(t, v, true)
+
+	Equal(t, test.NoURLValue, false)
+}
+
+func TestStruct(t *testing.T) {
+
+	type Phone struct {
+		Number string
+	}
+
+	type TestStruct struct {
+		Name      string `form:"name"`
+		Phone     []Phone
+		PhonePtr  []*Phone
+		Ignore    string `form:"-"`
+		Anonymous struct {
+			Value     string
+			Ignore    string `form:"-"`
+			unexposed string
+		}
+		Time      time.Time
+		TimePtr   *time.Time
+		unexposed string
+		Invalid   interface{}
+	}
+
+	values := url.Values{
+		"name":               []string{"joeybloggs"},
+		"Ignore":             []string{"ignore"},
+		"Phone[0].Number":    []string{"1(111)111-1111"},
+		"Phone[1].Number":    []string{"9(999)999-9999"},
+		"PhonePtr[0].Number": []string{"1(111)111-1111"},
+		"PhonePtr[1].Number": []string{"9(999)999-9999"},
+		"Anonymous.Value":    []string{"Anon"},
+		"Time":               []string{"2016-01-02"},
+		"TimePtr":            []string{"2016-01-02"},
+	}
+
+	var test TestStruct
+
+	decoder := NewDecoder()
+	decoder.SetTagName("form")
+	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		return time.Parse("2006-01-02", vals[0])
+	}, time.Time{})
+
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+
+	Equal(t, test.Name, "joeybloggs")
+	Equal(t, test.Ignore, "")
+	Equal(t, len(test.Phone), 2)
+	Equal(t, test.Phone[0].Number, "1(111)111-1111")
+	Equal(t, test.Phone[1].Number, "9(999)999-9999")
+	Equal(t, len(test.PhonePtr), 2)
+	Equal(t, (*test.PhonePtr[0]).Number, "1(111)111-1111")
+	Equal(t, (*test.PhonePtr[1]).Number, "9(999)999-9999")
+	Equal(t, test.Anonymous.Value, "Anon")
+
+	tm, _ := time.Parse("2006-01-02", "2016-01-02")
+	Equal(t, test.Time.Equal(tm), true)
+	Equal(t, (*test.TimePtr).Equal(tm), true)
+
+	s := struct {
+		Value     string
+		Ignore    string `form:"-"`
+		unexposed string
+	}{}
+
+	errs = decoder.Decode(&s, values)
+	Equal(t, errs, nil)
+	Equal(t, s.Value, "")
+	Equal(t, s.Ignore, "")
+	Equal(t, s.unexposed, "")
+}
+
+func TestNativeTime(t *testing.T) {
+
+	type TestError struct {
+		Time        time.Time
+		TimeNoValue time.Time
+	}
+
+	values := url.Values{
+		"Time":        []string{"2006-01-02T15:04:05Z"},
+		"TimeNoValue": []string{""},
+	}
+
+	var test TestError
+
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+
+	tm, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
+	Equal(t, test.Time.Equal(tm), true)
+	Equal(t, test.TimeNoValue.Equal(tm), false)
+}
+
+func TestErrors(t *testing.T) {
+
+	type TestError struct {
+		Bool    bool `form:"bool"`
+		Int     int
+		Uint    uint
+		Float32 float32
+		String  string
+		Time    time.Time
+	}
+
+	values := url.Values{
+		"bool":    []string{"yes"},
+		"Int":     []string{"bad"},
+		"Uint":    []string{"bad"},
+		"Float32": []string{"bad"},
+		"String":  []string{"str bad return val"},
+		"Time":    []string{"bad"},
+	}
+
+	var test TestError
+
+	decoder := NewDecoder()
+	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		return nil, errors.New("Bad Type Conversion")
+	}, "")
+	errs := decoder.Decode(&test, values)
+	NotEqual(t, errs, nil)
+
+	e := errs.Error()
+	NotEqual(t, e, "")
+
+	err := errs.(DecodeErrors)
+	k := err["bool"]
+	Equal(t, k.Error(), "Invalid Boolean Value 'yes' Type 'bool' Namespace 'bool'")
+
+	k = err["Int"]
+	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int' Namespace 'Int'")
+
+	k = err["Uint"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint' Namespace 'Uint'")
+
+	k = err["Float32"]
+	Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float32' Namespace 'Float32'")
+
+	k = err["String"]
+	Equal(t, k.Error(), "Bad Type Conversion")
+
+	k = err["Time"]
+	Equal(t, k.Error(), "parsing time \"bad\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"bad\" as \"2006\"")
+}
+
+func TestPanics(t *testing.T) {
+
+	type Phone struct {
+		Number string
+	}
+
+	type TestError struct {
+		Phone []Phone
+	}
+
+	values := url.Values{
+		"Phone[0.Number": []string{"1(111)111-1111"},
+	}
+
+	var test TestError
+
+	decoder := NewDecoder()
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing bracket")
+
+	i := 1
+	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
 }
 
 // func TestString(t *testing.T) {
