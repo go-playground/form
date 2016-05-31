@@ -23,7 +23,7 @@ var (
 	timeType = reflect.TypeOf(time.Time{})
 )
 
-// CustomTypeFunc ...
+// CustomTypeFunc allows for registering/overriding types to be parsed.
 type CustomTypeFunc func([]string) (interface{}, error)
 
 // DecodeErrors is a map of errors encountered during form decoding
@@ -78,14 +78,14 @@ func (d *formDecoder) setError(namespace string, err error) {
 	d.errs[namespace] = err
 }
 
-// Decoder is the assembler decode instance
+// Decoder is the main decode instance
 type Decoder struct {
 	tagName         string
 	structCache     structCacheMap
 	customTypeFuncs map[reflect.Type]CustomTypeFunc
 }
 
-// NewDecoder creates a new decoder instance
+// NewDecoder creates a new decoder instance with sane defaults
 func NewDecoder() *Decoder {
 	return &Decoder{
 		tagName:     "form",
@@ -112,7 +112,7 @@ func (d *Decoder) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}
 	}
 }
 
-// Decode decodes the given values and set the cooresponding struct values on v
+// Decode decodes the given values and sets the corresponding struct values
 func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	dec := &formDecoder{
