@@ -235,6 +235,174 @@ func TestUint(t *testing.T) {
 	Equal(t, test.NoURLValue, uint(0))
 }
 
+func TestString(t *testing.T) {
+
+	type TestString struct {
+		String              string
+		StringPtr           *string
+		StringArray         []string
+		StringPtrArray      []*string
+		StringArrayArray    [][]string
+		StringPtrArrayArray [][]*string
+		StringMap           map[string]string
+		StringPtrMap        map[*string]*string
+		NoURLValue          string
+	}
+
+	values := url.Values{
+		"String":                    []string{"3"},
+		"StringPtr":                 []string{"3"},
+		"StringArray":               []string{"1", "2", "3"},
+		"StringPtrArray[0]":         []string{"1"},
+		"StringPtrArray[2]":         []string{"3"},
+		"StringArrayArray[0][0]":    []string{"1"},
+		"StringArrayArray[0][2]":    []string{"3"},
+		"StringArrayArray[2][0]":    []string{"1"},
+		"StringPtrArrayArray[0][0]": []string{"1"},
+		"StringPtrArrayArray[0][2]": []string{"3"},
+		"StringPtrArrayArray[2][0]": []string{"1"},
+		"StringMap[1]":              []string{"3"},
+		"StringPtrMap[1]":           []string{"3"},
+	}
+
+	var test TestString
+
+	test.StringArray = make([]string, 4)
+
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+
+	Equal(t, test.String, "3")
+
+	Equal(t, *test.StringPtr, "3")
+
+	Equal(t, len(test.StringArray), 4)
+	Equal(t, test.StringArray[0], "1")
+	Equal(t, test.StringArray[1], "2")
+	Equal(t, test.StringArray[2], "3")
+	Equal(t, test.StringArray[3], "")
+
+	Equal(t, len(test.StringPtrArray), 3)
+	Equal(t, *test.StringPtrArray[0], "1")
+	Equal(t, test.StringPtrArray[1], nil)
+	Equal(t, *test.StringPtrArray[2], "3")
+
+	Equal(t, len(test.StringArrayArray), 3)
+	Equal(t, len(test.StringArrayArray[0]), 3)
+	Equal(t, len(test.StringArrayArray[1]), 0)
+	Equal(t, len(test.StringArrayArray[2]), 1)
+	Equal(t, test.StringArrayArray[0][0], "1")
+	Equal(t, test.StringArrayArray[0][1], "")
+	Equal(t, test.StringArrayArray[0][2], "3")
+	Equal(t, test.StringArrayArray[2][0], "1")
+
+	Equal(t, len(test.StringPtrArrayArray), 3)
+	Equal(t, len(test.StringPtrArrayArray[0]), 3)
+	Equal(t, len(test.StringPtrArrayArray[1]), 0)
+	Equal(t, len(test.StringPtrArrayArray[2]), 1)
+	Equal(t, *test.StringPtrArrayArray[0][0], "1")
+	Equal(t, test.StringPtrArrayArray[0][1], nil)
+	Equal(t, *test.StringPtrArrayArray[0][2], "3")
+	Equal(t, *test.StringPtrArrayArray[2][0], "1")
+
+	Equal(t, len(test.StringMap), 1)
+	Equal(t, len(test.StringPtrMap), 1)
+
+	v, ok := test.StringMap["1"]
+	Equal(t, ok, true)
+	Equal(t, v, "3")
+
+	Equal(t, test.NoURLValue, "")
+}
+
+func TestFloat(t *testing.T) {
+
+	type TestFloat struct {
+		Float32              float32
+		Float32Ptr           *float32
+		Float64              float64
+		Float64Ptr           *float64
+		Float32Array         []float32
+		Float32PtrArray      []*float32
+		Float32ArrayArray    [][]float32
+		Float32PtrArrayArray [][]*float32
+		Float32Map           map[float32]float32
+		Float32PtrMap        map[*float32]*float32
+		NoURLValue           float32
+	}
+
+	values := url.Values{
+		"Float32":                    []string{"3.3"},
+		"Float32Ptr":                 []string{"3.3"},
+		"Float64":                    []string{"3.3"},
+		"Float64Ptr":                 []string{"3.3"},
+		"Float32Array":               []string{"1.1", "2.2", "3.3"},
+		"Float32PtrArray[0]":         []string{"1.1"},
+		"Float32PtrArray[2]":         []string{"3.3"},
+		"Float32ArrayArray[0][0]":    []string{"1.1"},
+		"Float32ArrayArray[0][2]":    []string{"3.3"},
+		"Float32ArrayArray[2][0]":    []string{"1.1"},
+		"Float32PtrArrayArray[0][0]": []string{"1.1"},
+		"Float32PtrArrayArray[0][2]": []string{"3.3"},
+		"Float32PtrArrayArray[2][0]": []string{"1.1"},
+		"Float32Map[1.1]":            []string{"3.3"},
+		"Float32PtrMap[1.1]":         []string{"3.3"},
+	}
+
+	var test TestFloat
+
+	test.Float32Array = make([]float32, 4)
+
+	decoder := NewDecoder()
+	errs := decoder.Decode(&test, values)
+	Equal(t, errs, nil)
+
+	Equal(t, test.Float32, float32(3.3))
+	Equal(t, test.Float64, float64(3.3))
+
+	Equal(t, *test.Float32Ptr, float32(3.3))
+	Equal(t, *test.Float64Ptr, float64(3.3))
+
+	Equal(t, len(test.Float32Array), 4)
+	Equal(t, test.Float32Array[0], float32(1.1))
+	Equal(t, test.Float32Array[1], float32(2.2))
+	Equal(t, test.Float32Array[2], float32(3.3))
+	Equal(t, test.Float32Array[3], float32(0.0))
+
+	Equal(t, len(test.Float32PtrArray), 3)
+	Equal(t, *test.Float32PtrArray[0], float32(1.1))
+	Equal(t, test.Float32PtrArray[1], nil)
+	Equal(t, *test.Float32PtrArray[2], float32(3.3))
+
+	Equal(t, len(test.Float32ArrayArray), 3)
+	Equal(t, len(test.Float32ArrayArray[0]), 3)
+	Equal(t, len(test.Float32ArrayArray[1]), 0)
+	Equal(t, len(test.Float32ArrayArray[2]), 1)
+	Equal(t, test.Float32ArrayArray[0][0], float32(1.1))
+	Equal(t, test.Float32ArrayArray[0][1], float32(0.0))
+	Equal(t, test.Float32ArrayArray[0][2], float32(3.3))
+	Equal(t, test.Float32ArrayArray[2][0], float32(1.1))
+
+	Equal(t, len(test.Float32PtrArrayArray), 3)
+	Equal(t, len(test.Float32PtrArrayArray[0]), 3)
+	Equal(t, len(test.Float32PtrArrayArray[1]), 0)
+	Equal(t, len(test.Float32PtrArrayArray[2]), 1)
+	Equal(t, *test.Float32PtrArrayArray[0][0], float32(1.1))
+	Equal(t, test.Float32PtrArrayArray[0][1], nil)
+	Equal(t, *test.Float32PtrArrayArray[0][2], float32(3.3))
+	Equal(t, *test.Float32PtrArrayArray[2][0], float32(1.1))
+
+	Equal(t, len(test.Float32Map), 1)
+	Equal(t, len(test.Float32PtrMap), 1)
+
+	v, ok := test.Float32Map[float32(1.1)]
+	Equal(t, ok, true)
+	Equal(t, v, float32(3.3))
+
+	Equal(t, test.NoURLValue, float32(0.0))
+}
+
 // func TestString(t *testing.T) {
 
 // 	type stringStruct struct {

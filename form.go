@@ -320,12 +320,12 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 			return
 		}
 
-		v.SetString(arr[0])
+		v.SetString(arr[idx])
 		set = true
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 
-		if !ok || len(arr[0]) == 0 {
+		if !ok || len(arr[idx]) == 0 {
 			return
 		}
 
@@ -339,7 +339,7 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		v.SetUint(u64)
 		set = true
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if !ok || len(arr[0]) == 0 {
+		if !ok || len(arr[idx]) == 0 {
 			return
 		}
 
@@ -355,13 +355,13 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 
 	case reflect.Float32, reflect.Float64:
 
-		if !ok || len(arr[0]) == 0 {
+		if !ok || len(arr[idx]) == 0 {
 			return
 		}
 
 		var f float64
 
-		if f, err = strconv.ParseFloat(arr[0], 64); err != nil || v.OverflowFloat(f) {
+		if f, err = strconv.ParseFloat(arr[idx], 64); err != nil || v.OverflowFloat(f) {
 			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s', Type '%v'", arr[0], v.Type()))
 			return
 		}
@@ -371,13 +371,13 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 
 	case reflect.Bool:
 
-		if !ok || len(arr[0]) == 0 {
+		if !ok || len(arr[idx]) == 0 {
 			return
 		}
 
 		var b bool
 
-		if b, err = strconv.ParseBool(arr[0]); err != nil {
+		if b, err = strconv.ParseBool(arr[idx]); err != nil {
 			d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s', Type '%v'", arr[idx], v.Type()))
 			return
 		}
