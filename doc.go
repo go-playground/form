@@ -10,7 +10,7 @@ It has the following features:
       with multiple values passed.
     - Allows for Custom Type registration.
     - Handles time.Time using RFC3339 time format by default,
-      but can easily be changes usings registering a Custom Type.
+      but can easily be changed by registering a Custom Type, see below.
 
 Common Questions
 

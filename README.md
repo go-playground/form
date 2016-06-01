@@ -16,7 +16,7 @@ It has the following features:
 -   Supports map of almost all types.  
 -   Supports both Numbered and Normal arrays i.e. "Array[0]" and just "Array" with multiple values passed.
 -   Allows for Custom Type registration.
--   Handles time.Time using RFC3339 time format by default, but can easily be changes usings registering a Custom Type.
+-   Handles time.Time using RFC3339 time format by default, but can easily be changed by registering a Custom Type, see below.
 
 Common Questions
 
@@ -37,7 +37,7 @@ Supported Types ( out of the box )
 * `slice`, `array`
 * `map`
 * `custom types` can override any of the above types
-* many other types may be supported inherently (i.e. bson.ObjectId is type ObjectId string, which will get populated by the string type
+* many other types may be supported inherently (i.e. `bson.ObjectId` is `type ObjectId string`, which will get populated by the string type
 
 **NOTE**: `map`, `struct` and `slice` nesting are ad infinitum.
 
