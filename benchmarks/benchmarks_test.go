@@ -10,10 +10,10 @@ import (
 // Simple Benchmarks
 
 type User struct {
-	FirstName string `form:"fname"`
-	LastName  string `form:"lname"`
-	Email     string `form:"email"`
-	Age       uint8  `form:"age"`
+	FirstName string `form:"fname" schema:"fname" formam:"fname"`
+	LastName  string `form:"lname" schema:"lname" formam:"lname"`
+	Email     string `form:"email" schema:"email" formam:"email"`
+	Age       uint8  `form:"age"   schema:"age"   formam:"age"`
 }
 
 func getUserStructValues() url.Values {
@@ -90,7 +90,7 @@ func getPrimitivesStructValues() url.Values {
 		"Uint64":  []string{"5"},
 		"Float32": []string{"1.1"},
 		"Float64": []string{"5.0"},
-		"Bool":    []string{"t"},
+		"Bool":    []string{"true"},
 	}
 }
 
@@ -144,9 +144,9 @@ type ComplexArrayStruct struct {
 	Uint8        []uint8
 	Uint8Ptr     []*uint8
 	Uint16       []uint16
-	UInt16Ptr    []*uint16
-	UInt32       []uint32
-	Uint31Ptr    []*uint32
+	Uint16Ptr    []*uint16
+	Uint32       []uint32
+	Uint32Ptr    []*uint32
 	Uint64       []uint64
 	Uint64Ptr    []*uint64
 	NestedInt    [][]int
@@ -236,9 +236,9 @@ type ComplexMapStruct struct {
 	Uint8        map[uint8]uint8
 	Uint8Ptr     map[*uint8]*uint8
 	Uint16       map[uint16]uint16
-	UInt16Ptr    map[*uint16]*uint16
-	UInt32       map[*uint32]*uint32
-	Uint31Ptr    map[*uint32]*uint32
+	Uint16Ptr    map[*uint16]*uint16
+	Uint32       map[*uint32]*uint32
+	Uint32Ptr    map[*uint32]*uint32
 	Uint64       map[*uint64]*uint64
 	Uint64Ptr    map[*uint64]*uint64
 	NestedInt    map[int]map[int]int
@@ -330,8 +330,8 @@ func getNestedStructValues() url.Values {
 		"NestedArray[0].Value": []string{"value"},
 		"NestedArray[1].Value": []string{"value"},
 		// Nested Array Ptr
-		"NestedArrayPtr[0].Value": []string{"value"},
-		"NestedArrayPtr[1].Value": []string{"value"},
+		"NestedPtrArray[0].Value": []string{"value"},
+		"NestedPtrArray[1].Value": []string{"value"},
 		// Nested 2
 		"Nested2.Value":         []string{"value"},
 		"Nested2.Nested2.Value": []string{"value"},

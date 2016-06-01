@@ -152,6 +152,15 @@ decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
 	}, time.Time{})
 ```
 
+Ignoring Fields
+--------------
+you can tell form to ignore fields using `-` in the tag
+```go
+type MyStruct struct {
+    Field string `form:"-"`
+}
+```
+
 Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go version go1.6.2 darwin/amd64
@@ -162,18 +171,19 @@ NOTE: the 1 allocation and B/op in the first 4 is actually the struct allocating
 go test -bench=. -benchmem=true
 
 PASS
-BenchmarkSimpleUserStruct-8                          	 5000000	       320 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserStructParallel-8                  	20000000	       110 ns/op	      64 B/op	       1 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypes-8        	 1000000	      1075 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypesParallel-8	 5000000	       285 ns/op	      96 B/op	       1 allocs/op
-BenchmarkComplexArrayStructAllTypes-8                	  100000	     19748 ns/op	    6600 B/op	     143 allocs/op
-BenchmarkComplexArrayStructAllTypesParallel-8        	  300000	      5844 ns/op	    6600 B/op	     143 allocs/op
-BenchmarkComplexMapStructAllTypes-8                  	   50000	     33943 ns/op	   20276 B/op	     224 allocs/op
-BenchmarkComplexMapStructAllTypesParallel-8          	  200000	     12228 ns/op	   20277 B/op	     224 allocs/op
-BenchmarkArrayMapNestedStruct-8                      	  300000	      4658 ns/op	    1840 B/op	      27 allocs/op
-BenchmarkArrayMapNestedStructParallel-8              	 1000000	      1498 ns/op	    1840 B/op	      27 allocs/op
+BenchmarkSimpleUserStruct-8                                 	 5000000	       299 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserStructParallel-8                         	20000000	       110 ns/op	      64 B/op	       1 allocs/op
+BenchmarkPrimitivesStructAllPrimitivesTypes-8               	 2000000	       956 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesStructAllPrimitivesTypesParallel-8       	 5000000	       285 ns/op	      96 B/op	       1 allocs/op
+BenchmarkComplexArrayStructAllTypes-8                       	  100000	     20706 ns/op	    6776 B/op	     159 allocs/op
+BenchmarkComplexArrayStructAllTypesParallel-8               	  200000	      6158 ns/op	    6776 B/op	     159 allocs/op
+BenchmarkComplexMapStructAllTypes-8                         	   50000	     35548 ns/op	   20966 B/op	     245 allocs/op
+BenchmarkComplexMapStructAllTypesParallel-8                 	  200000	     11984 ns/op	   20966 B/op	     245 allocs/op
+BenchmarkArrayMapNestedStruct-8                             	  200000	      5617 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkArrayMapNestedStructParallel-8                     	 1000000	      2032 ns/op	    2064 B/op	      37 allocs/op
 ```
 
+Competitor benchmarks can be found [here](https://github.com/go-playground/form/blob/master/benchmarks/benchmarks.md)
 
 Complimentary Software
 ----------------------

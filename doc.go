@@ -143,5 +143,15 @@ can easily register custom types.
     decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
             return time.Parse("2006-01-02", vals[0])
         }, time.Time{})
+
+
+Ignoring Fields
+
+you can tell form to ignore fields using `-` in the tag
+
+    type MyStruct struct {
+        Field string `form:"-"`
+    }
+
 */
 package form
