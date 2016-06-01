@@ -1,6 +1,7 @@
 ## Benchmarks
 
 ### go-playground/form
+```go
 BenchmarkSimpleUserStruct-8                                 	 5000000	       299 ns/op	      64 B/op	       1 allocs/op
 BenchmarkSimpleUserStructParallel-8                         	20000000	       110 ns/op	      64 B/op	       1 allocs/op
 BenchmarkPrimitivesStructAllPrimitivesTypes-8               	 2000000	       956 ns/op	      96 B/op	       1 allocs/op
@@ -11,8 +12,10 @@ BenchmarkComplexMapStructAllTypes-8                         	   50000	     35548
 BenchmarkComplexMapStructAllTypesParallel-8                 	  200000	     11984 ns/op	   20966 B/op	     245 allocs/op
 BenchmarkArrayMapNestedStruct-8                             	  200000	      5617 ns/op	    2064 B/op	      37 allocs/op
 BenchmarkArrayMapNestedStructParallel-8                     	 1000000	      2032 ns/op	    2064 B/op	      37 allocs/op
+```
 
 ### gorilla/schema
+```go
 BenchmarkSimpleUserStructGorilla-8                          	  500000	      3063 ns/op	     520 B/op	      23 allocs/op
 BenchmarkSimpleUserStructGorillaParallel-8                  	 1000000	      1026 ns/op	     520 B/op	      23 allocs/op
 BenchmarkPrimitivesStructAllPrimitivesTypesGorilla-8        	  200000	     11136 ns/op	    1536 B/op	      84 allocs/op
@@ -27,8 +30,10 @@ BenchmarkComplexMapStructAllTypesGorillaParallel-8          	       0	         0
 	gorilla_scheme_test.go:121: Gorilla does not support map parsing at this time
 BenchmarkArrayMapNestedStructGorilla-8                      	  200000	     10393 ns/op	    2269 B/op	      73 allocs/op
 BenchmarkArrayMapNestedStructGorillaParallel-8              	  500000	      3484 ns/op	    2269 B/op	      73 allocs/op
+```
 
 ### monoculum/formam
+```go
 BenchmarkSimpleUserStructFormam-8                           	  500000	      3713 ns/op	     264 B/op	      19 allocs/op
 BenchmarkSimpleUserStructFormamParallel-8                   	 1000000	      1017 ns/op	     264 B/op	      19 allocs/op
 BenchmarkPrimitivesStructAllPrimitivesFormamTypes-8         	  100000	     12197 ns/op	    1280 B/op	     134 allocs/op
@@ -43,3 +48,4 @@ BenchmarkArrayMapNestedStructFormam-8                       	--- FAIL: Benchmark
 	formam_test.go:174: formam: not supported type for field "Value" in path "NestedPtrArray[1].Value"
 BenchmarkArrayMapNestedStructFormamParallel-8               	--- FAIL: BenchmarkArrayMapNestedStructFormamParallel-8
 	formam_test.go:189: formam: not supported type for field "Value" in path "NestedPtrArray[0].Value"
+```
