@@ -422,15 +422,15 @@ func TestBool(t *testing.T) {
 	values := url.Values{
 		"Bool":                    []string{"true"},
 		"BoolPtr":                 []string{"true"},
-		"BoolArray":               []string{"true", "t", "1"},
+		"BoolArray":               []string{"off", "t", "on"},
 		"BoolPtrArray[0]":         []string{"true"},
 		"BoolPtrArray[2]":         []string{"T"},
 		"BoolArrayArray[0][0]":    []string{"TRUE"},
 		"BoolArrayArray[0][2]":    []string{"True"},
 		"BoolArrayArray[2][0]":    []string{"true"},
 		"BoolPtrArrayArray[0][0]": []string{"true"},
-		"BoolPtrArrayArray[0][2]": []string{"true"},
-		"BoolPtrArrayArray[2][0]": []string{"true"},
+		"BoolPtrArrayArray[0][2]": []string{"t"},
+		"BoolPtrArrayArray[2][0]": []string{"1"},
 		"BoolMap[true]":           []string{"true"},
 		"BoolPtrMap[t]":           []string{"true"},
 	}
@@ -448,7 +448,7 @@ func TestBool(t *testing.T) {
 	Equal(t, *test.BoolPtr, true)
 
 	Equal(t, len(test.BoolArray), 4)
-	Equal(t, test.BoolArray[0], true)
+	Equal(t, test.BoolArray[0], false)
 	Equal(t, test.BoolArray[1], true)
 	Equal(t, test.BoolArray[2], true)
 	Equal(t, test.BoolArray[3], false)
@@ -658,18 +658,18 @@ func TestErrors(t *testing.T) {
 	}
 
 	values := url.Values{
-		"bool":                []string{"yes"},
-		"Int":                 []string{"bad"},
-		"Uint":                []string{"bad"},
-		"Float32":             []string{"bad"},
-		"String":              []string{"str bad return val"},
-		"Time":                []string{"bad"},
-		"MapBadIntKey[key]":   []string{"1"},
-		"MapBadUintKey[key]":  []string{"1"},
-		"MapBadFloatKey[key]": []string{"1.1"},
-		"MapBadBoolKey[yes]":  []string{"true"},
-		"MapBadKeyType[1.4]":  []string{"5"},
-		"BadArrayValue[0]":    []string{"badintval"},
+		"bool":                  []string{"uh-huh"},
+		"Int":                   []string{"bad"},
+		"Uint":                  []string{"bad"},
+		"Float32":               []string{"bad"},
+		"String":                []string{"str bad return val"},
+		"Time":                  []string{"bad"},
+		"MapBadIntKey[key]":     []string{"1"},
+		"MapBadUintKey[key]":    []string{"1"},
+		"MapBadFloatKey[key]":   []string{"1.1"},
+		"MapBadBoolKey[uh-huh]": []string{"true"},
+		"MapBadKeyType[1.4]":    []string{"5"},
+		"BadArrayValue[0]":      []string{"badintval"},
 	}
 
 	var test TestError
@@ -686,7 +686,7 @@ func TestErrors(t *testing.T) {
 
 	err := errs.(DecodeErrors)
 	k := err["bool"]
-	Equal(t, k.Error(), "Invalid Boolean Value 'yes' Type 'bool' Namespace 'bool'")
+	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'bool'")
 
 	k = err["Int"]
 	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int' Namespace 'Int'")
@@ -713,7 +713,7 @@ func TestErrors(t *testing.T) {
 	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloatKey'")
 
 	k = err["MapBadBoolKey"]
-	Equal(t, k.Error(), "Invalid Boolean Value 'yes' Type 'bool' Namespace 'MapBadBoolKey'")
+	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'MapBadBoolKey'")
 
 	k = err["MapBadKeyType"]
 	Equal(t, k.Error(), "Unsupported Map Key '1.4', Type 'complex64' Namespace 'MapBadKeyType'")

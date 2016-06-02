@@ -390,8 +390,12 @@ func (d *formDecoder) setFieldByType(current reflect.Value, namespace string, id
 		var b bool
 
 		if b, err = strconv.ParseBool(arr[idx]); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), namespace))
-			return
+			// lets try some fallbacks bool values not supported by strconv.ParseBool(...)
+			var found bool
+			if b, found = fallbackBoolValue(arr[idx]); !found {
+				d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), namespace))
+				return
+			}
 		}
 
 		v.SetBool(b)
@@ -606,8 +610,12 @@ func (d *formDecoder) getMapKey(key string, current reflect.Value, namespace str
 
 		b, e := strconv.ParseBool(key)
 		if e != nil {
-			err = fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", key, v.Type(), namespace)
-			return
+			// lets try some fallbacks bool values not supported by strconv.ParseBool(...)
+			var found bool
+			if b, found = fallbackBoolValue(key); !found {
+				err = fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", key, v.Type(), namespace)
+				return
+			}
 		}
 
 		v.SetBool(b)

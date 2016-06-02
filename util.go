@@ -61,3 +61,15 @@ func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
 
 	return s
 }
+
+func fallbackBoolValue(val string) (value bool, found bool) {
+	switch val {
+	case "on", "yes", "ok":
+		value = true
+		found = true
+	case "off", "no":
+		found = true
+	}
+
+	return
+}
