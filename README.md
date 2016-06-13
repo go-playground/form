@@ -12,7 +12,6 @@ Package form parses url.Values and fills a struct with values, creating objects 
 
 It has the following features:
 
--   Primitives types cause zero allocations.
 -   Supports map of almost all types.  
 -   Supports both Numbered and Normal arrays eg. `"Array[0]"` and just `"Array"` with multiple values passed.
 -   Array honours the specified index. eg. if `"Array[2]"` is the only Array value passed down, it will be put at index 2; if array isn't big enough it will be expanded.
