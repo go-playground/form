@@ -1,7 +1,7 @@
 Package form
 ============
 <img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">
-![Project status](https://img.shields.io/badge/version-1.1.0-green.svg)
+![Project status](https://img.shields.io/badge/version-1.2.0-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
@@ -12,9 +12,11 @@ Package form parses url.Values and fills a struct with values, creating objects 
 
 It has the following features:
 
--   Primitives types cause zero allocations.  
+-   Primitives types cause zero allocations.
 -   Supports map of almost all types.  
--   Supports both Numbered and Normal arrays i.e. "Array[0]" and just "Array" with multiple values passed.
+-   Supports both Numbered and Normal arrays eg. `"Array[0]"` and just `"Array"` with multiple values passed.
+-   Array honours the specified index. eg. if `"Array[2]"` is the only Array value passed down, it will be put at index 2; if array isn't big enough it will be expanded.
+-   Only creates objects as necessary eg. if no `array` or `map` values are passed down, the `array` and `map` are left as their default values in the struct.
 -   Allows for Custom Type registration.
 -   Handles time.Time using RFC3339 time format by default, but can easily be changed by registering a Custom Type, see below.
 
@@ -37,7 +39,7 @@ Supported Types ( out of the box )
 * `slice`, `array`
 * `map`
 * `custom types` can override any of the above types
-* many other types may be supported inherently (i.e. `bson.ObjectId` is `type ObjectId string`, which will get populated by the string type
+* many other types may be supported inherently (eg. `bson.ObjectId` is `type ObjectId string`, which will get populated by the string type
 
 **NOTE**: `map`, `struct` and `slice` nesting are ad infinitum.
 
@@ -55,8 +57,8 @@ Then import the form package into your own code.
 Usage
 -----
 
-- Use symbol `.` for separating fields/structs. (i.e. `structfield.field`)
-- Use `[index or key]` for access to index of a slice/array or key for map. (i.e. `arrayfield[0]`, `mapfield[keyvalue]`)
+- Use symbol `.` for separating fields/structs. (eg. `structfield.field`)
+- Use `[index or key]` for access to index of a slice/array or key for map. (eg. `arrayfield[0]`, `mapfield[keyvalue]`)
 
 ```html
 <form method="POST">

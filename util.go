@@ -1,10 +1,13 @@
 package form
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+)
 
 // ExtractType gets the actual underlying type of field value.
 // it is exposed for use within you Custom Functions
-func (d *Decoder) ExtractType(current reflect.Value) (reflect.Value, reflect.Kind) {
+func ExtractType(current reflect.Value) (reflect.Value, reflect.Kind) {
 
 	switch current.Kind() {
 	case reflect.Ptr:
@@ -13,7 +16,7 @@ func (d *Decoder) ExtractType(current reflect.Value) (reflect.Value, reflect.Kin
 			return current, reflect.Ptr
 		}
 
-		return d.ExtractType(current.Elem())
+		return ExtractType(current.Elem())
 
 	case reflect.Interface:
 
@@ -21,55 +24,23 @@ func (d *Decoder) ExtractType(current reflect.Value) (reflect.Value, reflect.Kin
 			return current, reflect.Interface
 		}
 
-		return d.ExtractType(current.Elem())
+		return ExtractType(current.Elem())
 
 	default:
 		return current, current.Kind()
 	}
 }
 
-func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
+func parseBool(str string) (bool, error) {
 
-	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 1)}
-
-	numFields := current.NumField()
-
-	var fld reflect.StructField
-	var name string
-
-	for i := 0; i < numFields; i++ {
-
-		fld = typ.Field(i)
-
-		if fld.PkgPath != blank && !fld.Anonymous {
-			continue
-		}
-
-		if name = fld.Tag.Get(d.tagName); name == ignore {
-			continue
-		}
-
-		if len(name) == 0 {
-			name = fld.Name
-		}
-
-		s.fields = append(s.fields, cachedField{idx: i, name: name})
+	switch str {
+	case "1", "t", "T", "true", "TRUE", "True", "on", "yes", "ok":
+		return true, nil
+	case "0", "f", "F", "false", "FALSE", "False", "off", "no":
+		return false, nil
 	}
 
-	d.structCache.Set(typ, s)
-
-	return s
-}
-
-func fallbackBoolValue(val string) (value bool, found bool) {
-	switch val {
-	case "on", "yes", "ok":
-		value = true
-		found = true
-	case "off", "no":
-		found = true
-	}
-
-	return
+	// strconv.NumError mimicing exactly the strconv.ParseBool(..) error and type
+	// to ensure compatibility with std library and beyond.
+	return false, &strconv.NumError{"ParseBool", str, strconv.ErrSyntax}
 }

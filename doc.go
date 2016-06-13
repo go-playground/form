@@ -6,8 +6,14 @@ It has the following features:
 
     - Primitives types cause zero allocations.
     - Supports map of almost all types.
-    - Supports both Numbered and Normal arrays i.e. "Array[0]" and just "Array"
+    - Supports both Numbered and Normal arrays eg. "Array[0]" and just "Array"
       with multiple values passed.
+    - Array honours the specified index. eg. if "Array[2]" is the only Array
+      value passed down, it will be put at index 2; if array isn't big enough
+      it will be expanded.
+    - Only creates objects as necessary eg. if no `array` or `map` values are
+      passed down, the `array` and `map` are left as their default values in
+      the struct.
     - Allows for Custom Type registration.
     - Handles time.Time using RFC3339 time format by default,
       but can easily be changed by registering a Custom Type, see below.
@@ -36,7 +42,7 @@ out of the box supported types
     - slice, array
     - map
     - `custom types` can override any of the above types
-    - many other types may be supported inherently (i.e. bson.ObjectId is
+    - many other types may be supported inherently (eg. bson.ObjectId is
       type ObjectId string, which will get populated by the string type
 
     **NOTE**: map, struct and slice nesting are ad infinitum.
@@ -45,9 +51,9 @@ Usage
 
 symbols
 
-    - Use symbol `.` for separating fields/structs. (i.e, `structfield.field`)
+    - Use symbol `.` for separating fields/structs. (eg. `structfield.field`)
     - Use `[index or key]` for access to index of a slice/array or key for map.
-      (i.e, `arrayfield[0]`, `mapfield[keyvalue]`)
+      (eg. `arrayfield[0]`, `mapfield[keyvalue]`)
 
 html
 
