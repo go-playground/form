@@ -152,7 +152,10 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 				nn = namespace + namespaceSeparator + key
 			}
 
-			set = d.setFieldByType(v.Field(i), nn, 0)
+			if d.setFieldByType(v.Field(i), nn, 0) {
+				set = true
+			}
+
 		}
 	} else {
 		s, ok := d.d.structCache.Get(typ)
@@ -168,7 +171,9 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 				nn = namespace + namespaceSeparator + f.name
 			}
 
-			set = d.setFieldByType(v.Field(f.idx), nn, 0)
+			if d.setFieldByType(v.Field(f.idx), nn, 0) {
+				set = true
+			}
 		}
 	}
 

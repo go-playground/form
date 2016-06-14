@@ -797,3 +797,36 @@ func TestStructRecursion(t *testing.T) {
 	Equal(t, test.Nested.Value, "value")
 	Equal(t, test.Nested.Nested, nil)
 }
+
+func TestFormDecode(t *testing.T) {
+
+	type Struct2 struct {
+		Foo string
+		Bar string
+	}
+
+	type Struct2Wrapper struct {
+		InnerSlice []Struct2
+	}
+
+	sliceValues := map[string][]string{
+		"InnerSlice[0].Foo": {"foo-is-set"},
+	}
+
+	singleValues := map[string][]string{
+		"Foo": {"foo-is-set"},
+	}
+
+	fd := NewDecoder()
+
+	dst := Struct2Wrapper{}
+	err := fd.Decode(&dst, sliceValues)
+	Equal(t, err, nil)
+	NotEqual(t, dst.InnerSlice, nil)
+	Equal(t, dst.InnerSlice[0].Foo, "foo-is-set")
+
+	dst2 := Struct2{}
+	err = fd.Decode(&dst2, singleValues)
+	Equal(t, err, nil)
+	Equal(t, dst2.Foo, "foo-is-set")
+}
