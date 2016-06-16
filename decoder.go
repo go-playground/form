@@ -448,6 +448,19 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace string)
 
 	v, kind := ExtractType(current)
 
+	if d.d.customTypeFuncs != nil {
+		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
+			val, er := cf([]string{key})
+			if er != nil {
+				err = er
+				return
+			}
+
+			v.Set(reflect.ValueOf(val))
+			return
+		}
+	}
+
 	switch kind {
 	case reflect.Interface:
 		v.Set(reflect.ValueOf(key))

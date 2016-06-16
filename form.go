@@ -20,8 +20,8 @@ var (
 	timeType = reflect.TypeOf(time.Time{})
 )
 
-// CustomTypeFunc allows for registering/overriding types to be parsed.
-type CustomTypeFunc func([]string) (interface{}, error)
+// DecodeCustomTypeFunc allows for registering/overriding types to be parsed.
+type DecodeCustomTypeFunc func([]string) (interface{}, error)
 
 // DecodeErrors is a map of errors encountered during form decoding
 type DecodeErrors map[string]error
@@ -62,7 +62,7 @@ type dataMap map[string]*recursiveData
 type Decoder struct {
 	tagName         string
 	structCache     structCacheMap
-	customTypeFuncs map[reflect.Type]CustomTypeFunc
+	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
@@ -79,12 +79,13 @@ func (d *Decoder) SetTagName(tagName string) {
 	d.tagName = tagName
 }
 
-// RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
+// RegisterCustomTypeFunc registers a DecodeCustomTypeFunc against a number of types; the function
+// will also be used within the map key section.
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
-func (d *Decoder) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...interface{}) {
 
 	if d.customTypeFuncs == nil {
-		d.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
+		d.customTypeFuncs = map[reflect.Type]DecodeCustomTypeFunc{}
 	}
 
 	for _, t := range types {

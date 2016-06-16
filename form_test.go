@@ -518,6 +518,7 @@ func TestStruct(t *testing.T) {
 		BigEnoughNumberedArray     []string
 		IfaceNonNil                interface{}
 		IfaceInvalid               interface{}
+		TimeMapKey                 map[time.Time]string
 	}
 
 	values := url.Values{
@@ -539,6 +540,7 @@ func TestStruct(t *testing.T) {
 		"TooSmallNumberedArray[2]":      []string{"2"},
 		"TooSmallCapOKNumberedArray[2]": []string{"2"},
 		"BigEnoughNumberedArray[2]":     []string{"1"},
+		"TimeMapKey[2016-01-02]":        []string{"time"},
 	}
 
 	var test TestStruct
@@ -604,6 +606,12 @@ func TestStruct(t *testing.T) {
 	Equal(t, test.Time.Equal(tm), true)
 	Equal(t, (*test.TimePtr).Equal(tm), true)
 
+	NotEqual(t, test.TimeMapKey, nil)
+	Equal(t, len(test.TimeMapKey), 1)
+
+	_, ok := test.TimeMapKey[tm]
+	Equal(t, ok, true)
+
 	s := struct {
 		Value     string
 		Ignore    string `form:"-"`
@@ -655,6 +663,7 @@ func TestErrors(t *testing.T) {
 		MapBadBoolKey  map[bool]bool
 		MapBadKeyType  map[complex64]int
 		BadArrayValue  []int
+		BadMapKey      map[time.Time]string
 	}
 
 	values := url.Values{
@@ -670,6 +679,7 @@ func TestErrors(t *testing.T) {
 		"MapBadBoolKey[uh-huh]": []string{"true"},
 		"MapBadKeyType[1.4]":    []string{"5"},
 		"BadArrayValue[0]":      []string{"badintval"},
+		"BadMapKey[badtime]":    []string{"badtime"},
 	}
 
 	var test TestError
@@ -678,6 +688,7 @@ func TestErrors(t *testing.T) {
 	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
 		return nil, errors.New("Bad Type Conversion")
 	}, "")
+
 	errs := decoder.Decode(&test, values)
 	NotEqual(t, errs, nil)
 
@@ -720,6 +731,29 @@ func TestErrors(t *testing.T) {
 
 	k = err["BadArrayValue[0]"]
 	Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
+
+	type TestError2 struct {
+		BadMapKey map[time.Time]string
+	}
+
+	values2 := url.Values{
+		"BadMapKey[badtime]": []string{"badtime"},
+	}
+
+	var test2 TestError2
+	decoder2 := NewDecoder()
+	decoder2.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		return time.Parse("2006-01-02", vals[0])
+	}, time.Time{})
+
+	errs = decoder2.Decode(&test2, values2)
+	NotEqual(t, errs, nil)
+
+	e = errs.Error()
+	NotEqual(t, e, "")
+
+	k = err["BadMapKey"]
+	Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
 }
 
 func TestPanics(t *testing.T) {
