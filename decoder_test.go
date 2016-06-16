@@ -27,7 +27,7 @@ import (
 //
 // go test -memprofile mem.out
 
-func TestInt(t *testing.T) {
+func TestDecoderInt(t *testing.T) {
 
 	type TestInt struct {
 		Int              int
@@ -132,7 +132,7 @@ func TestInt(t *testing.T) {
 	Equal(t, test.NoURLValue, int(0))
 }
 
-func TestUint(t *testing.T) {
+func TestDecoderUint(t *testing.T) {
 
 	type TestUint struct {
 		Uint              uint
@@ -237,7 +237,7 @@ func TestUint(t *testing.T) {
 	Equal(t, test.NoURLValue, uint(0))
 }
 
-func TestString(t *testing.T) {
+func TestDecoderString(t *testing.T) {
 
 	type TestString struct {
 		String              string
@@ -318,7 +318,7 @@ func TestString(t *testing.T) {
 	Equal(t, test.NoURLValue, "")
 }
 
-func TestFloat(t *testing.T) {
+func TestDecoderFloat(t *testing.T) {
 
 	type TestFloat struct {
 		Float32              float32
@@ -405,7 +405,7 @@ func TestFloat(t *testing.T) {
 	Equal(t, test.NoURLValue, float32(0.0))
 }
 
-func TestBool(t *testing.T) {
+func TestDecoderBool(t *testing.T) {
 
 	type TestBool struct {
 		Bool              bool
@@ -486,7 +486,7 @@ func TestBool(t *testing.T) {
 	Equal(t, test.NoURLValue, false)
 }
 
-func TestStruct(t *testing.T) {
+func TestDecoderStruct(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -518,6 +518,7 @@ func TestStruct(t *testing.T) {
 		BigEnoughNumberedArray     []string
 		IfaceNonNil                interface{}
 		IfaceInvalid               interface{}
+		TimeMapKey                 map[time.Time]string
 	}
 
 	values := url.Values{
@@ -539,6 +540,7 @@ func TestStruct(t *testing.T) {
 		"TooSmallNumberedArray[2]":      []string{"2"},
 		"TooSmallCapOKNumberedArray[2]": []string{"2"},
 		"BigEnoughNumberedArray[2]":     []string{"1"},
+		"TimeMapKey[2016-01-02]":        []string{"time"},
 	}
 
 	var test TestStruct
@@ -604,6 +606,12 @@ func TestStruct(t *testing.T) {
 	Equal(t, test.Time.Equal(tm), true)
 	Equal(t, (*test.TimePtr).Equal(tm), true)
 
+	NotEqual(t, test.TimeMapKey, nil)
+	Equal(t, len(test.TimeMapKey), 1)
+
+	_, ok := test.TimeMapKey[tm]
+	Equal(t, ok, true)
+
 	s := struct {
 		Value     string
 		Ignore    string `form:"-"`
@@ -617,7 +625,7 @@ func TestStruct(t *testing.T) {
 	Equal(t, s.unexposed, "")
 }
 
-func TestNativeTime(t *testing.T) {
+func TestDecoderNativeTime(t *testing.T) {
 
 	type TestError struct {
 		Time        time.Time
@@ -640,7 +648,7 @@ func TestNativeTime(t *testing.T) {
 	Equal(t, test.TimeNoValue.Equal(tm), false)
 }
 
-func TestErrors(t *testing.T) {
+func TestDecoderErrors(t *testing.T) {
 
 	type TestError struct {
 		Bool           bool `form:"bool"`
@@ -655,6 +663,7 @@ func TestErrors(t *testing.T) {
 		MapBadBoolKey  map[bool]bool
 		MapBadKeyType  map[complex64]int
 		BadArrayValue  []int
+		BadMapKey      map[time.Time]string
 	}
 
 	values := url.Values{
@@ -670,6 +679,7 @@ func TestErrors(t *testing.T) {
 		"MapBadBoolKey[uh-huh]": []string{"true"},
 		"MapBadKeyType[1.4]":    []string{"5"},
 		"BadArrayValue[0]":      []string{"badintval"},
+		"BadMapKey[badtime]":    []string{"badtime"},
 	}
 
 	var test TestError
@@ -678,6 +688,7 @@ func TestErrors(t *testing.T) {
 	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
 		return nil, errors.New("Bad Type Conversion")
 	}, "")
+
 	errs := decoder.Decode(&test, values)
 	NotEqual(t, errs, nil)
 
@@ -720,9 +731,32 @@ func TestErrors(t *testing.T) {
 
 	k = err["BadArrayValue[0]"]
 	Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
+
+	type TestError2 struct {
+		BadMapKey map[time.Time]string
+	}
+
+	values2 := url.Values{
+		"BadMapKey[badtime]": []string{"badtime"},
+	}
+
+	var test2 TestError2
+	decoder2 := NewDecoder()
+	decoder2.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		return time.Parse("2006-01-02", vals[0])
+	}, time.Time{})
+
+	errs = decoder2.Decode(&test2, values2)
+	NotEqual(t, errs, nil)
+
+	e = errs.Error()
+	NotEqual(t, e, "")
+
+	k = err["BadMapKey"]
+	Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
 }
 
-func TestPanics(t *testing.T) {
+func TestDecoderPanics(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -746,7 +780,7 @@ func TestPanics(t *testing.T) {
 	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
 }
 
-func TestMapKeys(t *testing.T) {
+func TestDecoderMapKeys(t *testing.T) {
 
 	type TestMapKeys struct {
 		MapIfaceKey  map[interface{}]string
@@ -773,7 +807,7 @@ func TestMapKeys(t *testing.T) {
 	Equal(t, test.MapNestedInt[1][2], 3)
 }
 
-func TestStructRecursion(t *testing.T) {
+func TestDecoderStructRecursion(t *testing.T) {
 
 	type Nested struct {
 		Value  string
@@ -798,7 +832,7 @@ func TestStructRecursion(t *testing.T) {
 	Equal(t, test.Nested.Nested, nil)
 }
 
-func TestFormDecode(t *testing.T) {
+func TestDecoderFormDecode(t *testing.T) {
 
 	type Struct2 struct {
 		Foo string

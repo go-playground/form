@@ -448,6 +448,19 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace string)
 
 	v, kind := ExtractType(current)
 
+	if d.d.customTypeFuncs != nil {
+		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
+			val, er := cf([]string{key})
+			if er != nil {
+				err = er
+				return
+			}
+
+			v.Set(reflect.ValueOf(val))
+			return
+		}
+	}
+
 	switch kind {
 	case reflect.Interface:
 		v.Set(reflect.ValueOf(key))
@@ -503,8 +516,6 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace string)
 		v.SetBool(b)
 
 	default:
-		// look for custom type? or should it be done before this switch, must check out bson.ObjectId because is of typee
-		// string but requires a specific method to ensure that it's valid
 		err = fmt.Errorf("Unsupported Map Key '%s', Type '%v' Namespace '%s'", key, v.Type(), namespace)
 	}
 
