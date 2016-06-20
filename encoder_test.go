@@ -701,3 +701,117 @@ func TestEncoderFloat(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "0")
 }
+
+func TestEncoderBool(t *testing.T) {
+
+	type TestBool struct {
+		Bool              bool
+		BoolPtr           *bool
+		BoolArray         []bool
+		BoolPtrArray      []*bool
+		BoolArrayArray    [][]bool
+		BoolPtrArrayArray [][]*bool
+		BoolMap           map[bool]bool
+		BoolPtrMap        map[*bool]*bool
+		NoValue           bool
+	}
+
+	tr := true
+	fa := false
+
+	test := TestBool{
+		Bool:              tr,
+		BoolPtr:           &tr,
+		BoolArray:         []bool{fa, tr, tr},
+		BoolPtrArray:      []*bool{&fa, nil, &tr},
+		BoolArrayArray:    [][]bool{{tr, fa, tr}, nil, {tr}},
+		BoolPtrArrayArray: [][]*bool{{&tr, nil, &tr}, nil, {&tr}},
+		BoolMap:           map[bool]bool{tr: fa, fa: true},
+		BoolPtrMap:        map[*bool]*bool{&tr: &fa, &fa: &tr},
+	}
+
+	encoder := NewEncoder()
+	values, errs := encoder.Encode(test)
+
+	Equal(t, errs, nil)
+	Equal(t, len(values), 17)
+
+	val, ok := values["Bool"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolPtr"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolArray"]
+	Equal(t, ok, true)
+	Equal(t, len(val), 3)
+	Equal(t, val[0], "false")
+	Equal(t, val[1], "true")
+	Equal(t, val[2], "true")
+
+	val, ok = values["BoolPtrArray[0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "false")
+
+	val, ok = values["BoolPtrArray[1]"]
+	Equal(t, ok, false)
+
+	val, ok = values["BoolPtrArray[2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolArrayArray[0][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolArrayArray[0][1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "false")
+
+	val, ok = values["BoolArrayArray[0][2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolArrayArray[1][0]"]
+	Equal(t, ok, false)
+
+	val, ok = values["BoolArrayArray[2][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolPtrArrayArray[0][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolPtrArrayArray[0][1]"]
+	Equal(t, ok, false)
+
+	val, ok = values["BoolPtrArrayArray[0][2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolPtrArrayArray[1][0]"]
+	Equal(t, ok, false)
+
+	val, ok = values["BoolPtrArrayArray[2][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolMap[true]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "false")
+
+	val, ok = values["BoolMap[false]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+
+	val, ok = values["BoolPtrMap[true]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "false")
+
+	val, ok = values["BoolPtrMap[false]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "true")
+}
