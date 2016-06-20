@@ -75,7 +75,7 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 		panic("interface must be a struct, pointer to a struct or interface containing one of the aforementioned")
 	}
 
-	enc.traverseStruct(val, "")
+	enc.traverseStruct(val, "", -1)
 
 	if len(enc.errs) == 0 {
 		return enc.values, nil

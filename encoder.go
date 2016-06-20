@@ -22,7 +22,19 @@ func (e *encoder) setError(namespace string, err error) {
 	e.errs[namespace] = err
 }
 
-func (e *encoder) traverseStruct(v reflect.Value, namespace string) {
+func (e *encoder) setVal(namespace string, idx int, vals ...string) {
+
+	arr, ok := e.values[namespace]
+	if ok {
+		arr = append(arr, vals...)
+	} else {
+		arr = vals
+	}
+
+	e.values[namespace] = arr
+}
+
+func (e *encoder) traverseStruct(v reflect.Value, namespace string, idx int) {
 
 	typ := v.Type()
 	var nn string // new namespace
@@ -58,7 +70,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace string) {
 				nn = namespace + namespaceSeparator + key
 			}
 
-			e.setFieldByType(v.Field(i), nn)
+			e.setFieldByType(v.Field(i), nn, idx)
 
 		}
 	} else {
@@ -75,83 +87,121 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace string) {
 				nn = namespace + namespaceSeparator + f.name
 			}
 
-			e.setFieldByType(v.Field(f.idx), nn)
+			e.setFieldByType(v.Field(f.idx), nn, idx)
 		}
 	}
 
 	return
 }
 
-func (e *encoder) setFieldByType(current reflect.Value, namespace string) {
+func (e *encoder) setFieldByType(current reflect.Value, namespace string, idx int) {
+
+	if idx > -1 && current.Kind() == reflect.Ptr {
+		namespace += "[" + strconv.Itoa(idx) + "]"
+		idx = -2
+	}
 
 	v, kind := ExtractType(current)
 
 	if e.e.customTypeFuncs != nil {
 
 		if cf, ok := e.e.customTypeFuncs[v.Type()]; ok {
+
 			arr, err := cf(v.Interface())
 			if err != nil {
 				e.setError(namespace, err)
 				return
 			}
 
-			e.values[namespace] = arr
+			if idx > -1 {
+				namespace += "[" + strconv.Itoa(idx) + "]"
+			}
+
+			e.setVal(namespace, idx, arr...)
 			return
 		}
 	}
 
 	switch kind {
-	case reflect.Interface, reflect.Invalid:
+	case reflect.Ptr, reflect.Interface, reflect.Invalid:
 		return
-	case reflect.Ptr:
-
-		e.setFieldByType(v.Elem(), namespace)
 
 	case reflect.String:
 
-		e.values[namespace] = []string{v.String()}
+		e.setVal(namespace, idx, v.String())
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 
-		e.values[namespace] = []string{strconv.FormatUint(v.Uint(), 10)}
+		e.setVal(namespace, idx, strconv.FormatUint(v.Uint(), 10))
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		e.values[namespace] = []string{strconv.FormatInt(v.Int(), 10)}
+		e.setVal(namespace, idx, strconv.FormatInt(v.Int(), 10))
 
 	case reflect.Float32:
 
-		e.values[namespace] = []string{strconv.FormatFloat(v.Float(), 'f', -1, 32)}
+		e.setVal(namespace, idx, strconv.FormatFloat(v.Float(), 'f', -1, 32))
 
 	case reflect.Float64:
 
-		e.values[namespace] = []string{strconv.FormatFloat(v.Float(), 'f', -1, 64)}
+		e.setVal(namespace, idx, strconv.FormatFloat(v.Float(), 'f', -1, 64))
 
 	case reflect.Bool:
 
-		e.values[namespace] = []string{strconv.FormatBool(v.Bool())}
+		e.setVal(namespace, idx, strconv.FormatBool(v.Bool()))
 
 	case reflect.Slice, reflect.Array:
 
+		if idx == -1 {
+
+			for i := 0; i < v.Len(); i++ {
+				e.setFieldByType(v.Index(i), namespace, i)
+			}
+
+			return
+		}
+
+		if idx > -1 {
+			namespace += "[" + strconv.Itoa(idx) + "]"
+		}
+
 		for i := 0; i < v.Len(); i++ {
-			e.setFieldByType(v.Index(i), namespace+"["+strconv.Itoa(i)+"]")
+			e.setFieldByType(v.Index(i), namespace+"["+strconv.Itoa(i)+"]", -2)
 		}
 
 	case reflect.Map:
 
+		if idx > -1 {
+			namespace += "[" + strconv.Itoa(idx) + "]"
+		}
+
 		for _, key := range v.MapKeys() {
-			e.setFieldByType(current.MapIndex(key), namespace+"["+e.getMapKey(key, namespace)+"]")
+			e.setFieldByType(current.MapIndex(key), namespace+"["+e.getMapKey(key, namespace)+"]", -2)
 		}
 
 	case reflect.Struct:
 
 		// if we get here then no custom time function declared so use RFC3339 by default
 		if v.Type() == timeType {
-			e.values[namespace] = []string{v.Interface().(time.Time).Format(time.RFC3339)}
+
+			if idx > -1 {
+				namespace += "[" + strconv.Itoa(idx) + "]"
+			}
+
+			e.setVal(namespace, idx, v.Interface().(time.Time).Format(time.RFC3339))
 			return
 		}
 
-		e.traverseStruct(v, namespace)
+		if idx == -1 {
+			e.traverseStruct(v, namespace, idx)
+			return
+		}
+
+		if idx > -1 {
+			namespace += "[" + strconv.Itoa(idx) + "]"
+		}
+
+		e.traverseStruct(v, namespace, -2)
 	}
 
 	return
