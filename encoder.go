@@ -137,55 +137,11 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace string) {
 			e.setFieldByType(v.Index(i), namespace+"["+strconv.Itoa(i)+"]")
 		}
 
-		return
-
 	case reflect.Map:
 
-		// for _, key := range v.MapKeys() {
-		// 	e.setFieldByType(current.MapIndex(key), namespace+"["+strconv.Itoa(i)+"]")
-		// 	// v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, nsPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()), fmt.Sprintf(mapIndexFieldName, customName, key.Interface()), partial, exclude, includeExclude, cTag)
-		// }
-
-		// var rd *recursiveData
-
-		// d.parseMapData()
-
-		// // no natural map support so skip directly to dm lookup
-		// if rd = d.dm[namespace]; rd == nil {
-		// 	return
-		// }
-
-		// var existing bool
-		// var mp reflect.Value
-		// typ := v.Type()
-
-		// if v.IsNil() {
-		// 	mp = reflect.MakeMap(typ)
-		// } else {
-		// 	existing = true
-		// 	mp = v
-		// }
-
-		// for i := 0; i < len(rd.keys); i++ {
-		// 	newVal := reflect.New(typ.Elem()).Elem()
-		// 	kv := reflect.New(typ.Key()).Elem()
-
-		// 	if err := d.getMapKey(rd.keys[i].value, kv, namespace); err != nil {
-		// 		d.setError(namespace, err)
-		// 		continue
-		// 	}
-
-		// 	if d.setFieldByType(newVal, namespace+rd.keys[i].searchValue, 0) {
-		// 		set = true
-		// 		mp.SetMapIndex(kv, newVal)
-		// 	}
-		// }
-
-		// if !set || existing {
-		// 	return
-		// }
-
-		// v.Set(mp)
+		for _, key := range v.MapKeys() {
+			e.setFieldByType(current.MapIndex(key), namespace+"["+e.getMapKey(key, namespace)+"]")
+		}
 
 	case reflect.Struct:
 
