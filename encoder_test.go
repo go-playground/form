@@ -482,3 +482,222 @@ func TestEncoderString(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "")
 }
+
+func TestEncoderFloat(t *testing.T) {
+
+	type TestFloat struct {
+		Float32              float32
+		Float32Ptr           *float32
+		Float64              float64
+		Float64Ptr           *float64
+		Float32Array         []float32
+		Float64Array         []float64
+		Float32PtrArray      []*float32
+		Float64PtrArray      []*float64
+		Float32ArrayArray    [][]float32
+		Float64ArrayArray    [][]float64
+		Float32PtrArrayArray [][]*float32
+		Float64PtrArrayArray [][]*float64
+		Float32Map           map[float32]float32
+		Float64Map           map[float64]float64
+		Float32PtrMap        map[*float32]*float32
+		Float64PtrMap        map[*float64]*float64
+		NoValue              float32
+	}
+
+	one32 := float32(1.1)
+	two32 := float32(2.2)
+	three32 := float32(3.3)
+	one64 := float64(1.1)
+	two64 := float64(2.2)
+	three64 := float64(3.3)
+
+	test := TestFloat{
+		Float32:              three32,
+		Float32Ptr:           &three32,
+		Float64:              three64,
+		Float64Ptr:           &three64,
+		Float32Array:         []float32{one32, two32, three32},
+		Float64Array:         []float64{one64, two64, three64},
+		Float32PtrArray:      []*float32{&one32, &two32, &three32},
+		Float64PtrArray:      []*float64{&one64, &two64, &three64},
+		Float32ArrayArray:    [][]float32{{one32, 0, three32}, nil, {one32}},
+		Float64ArrayArray:    [][]float64{{one64, 0, three64}, nil, {one64}},
+		Float32PtrArrayArray: [][]*float32{{&one32, nil, &three32}, nil, {&one32}},
+		Float64PtrArrayArray: [][]*float64{{&one64, nil, &three64}, nil, {&one64}},
+		Float32Map:           map[float32]float32{one32: three32, three32: two32},
+		Float64Map:           map[float64]float64{one64: three64, three64: two64},
+		Float32PtrMap:        map[*float32]*float32{&one32: &three32, &three32: &two32},
+		Float64PtrMap:        map[*float64]*float64{&one64: &three64, &three64: &two64},
+	}
+
+	encoder := NewEncoder()
+	values, errs := encoder.Encode(test)
+
+	Equal(t, errs, nil)
+	Equal(t, len(values), 35)
+
+	val, ok := values["Float32"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32Ptr"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64Ptr"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32Array"]
+	Equal(t, ok, true)
+	Equal(t, len(val), 3)
+	Equal(t, val[0], "1.1")
+	Equal(t, val[1], "2.2")
+	Equal(t, val[2], "3.3")
+
+	val, ok = values["Float64Array"]
+	Equal(t, ok, true)
+	Equal(t, len(val), 3)
+	Equal(t, val[0], "1.1")
+	Equal(t, val[1], "2.2")
+	Equal(t, val[2], "3.3")
+
+	val, ok = values["Float32PtrArray[0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float32PtrArray[1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "2.2")
+
+	val, ok = values["Float32PtrArray[2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64PtrArray[0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float64PtrArray[1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "2.2")
+
+	val, ok = values["Float64PtrArray[2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32ArrayArray[0][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float32ArrayArray[0][1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "0")
+
+	val, ok = values["Float32ArrayArray[0][2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32ArrayArray[1][0]"]
+	Equal(t, ok, false)
+
+	val, ok = values["Float32ArrayArray[2][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float64ArrayArray[0][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float64ArrayArray[0][1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "0")
+
+	val, ok = values["Float64ArrayArray[0][2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64ArrayArray[1][0]"]
+	Equal(t, ok, false)
+
+	val, ok = values["Float64ArrayArray[2][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float32PtrArrayArray[0][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float32PtrArrayArray[0][1]"]
+	Equal(t, ok, false)
+
+	val, ok = values["Float32PtrArrayArray[0][2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32PtrArrayArray[1][0]"]
+	Equal(t, ok, false)
+
+	val, ok = values["Float32PtrArrayArray[2][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float64PtrArrayArray[0][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float64PtrArrayArray[0][1]"]
+	Equal(t, ok, false)
+
+	val, ok = values["Float64PtrArrayArray[0][2]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64PtrArrayArray[1][0]"]
+	Equal(t, ok, false)
+
+	val, ok = values["Float64PtrArrayArray[2][0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1.1")
+
+	val, ok = values["Float32Map[1.1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32Map[3.3]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "2.2")
+
+	val, ok = values["Float64Map[1.1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64Map[3.3]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "2.2")
+
+	val, ok = values["Float32PtrMap[1.1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float32PtrMap[3.3]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "2.2")
+
+	val, ok = values["Float64PtrMap[1.1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3.3")
+
+	val, ok = values["Float64PtrMap[3.3]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "2.2")
+
+	val, ok = values["NoValue"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "0")
+}
