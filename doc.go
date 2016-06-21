@@ -1,5 +1,5 @@
 /*
-Package form Decodes url.Values into struct values and Encodes strut values into url.Values.
+Package form Decodes url.Values into struct values and Encodes struct values into url.Values.
 
 
 It has the following features:

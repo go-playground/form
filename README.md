@@ -8,7 +8,7 @@ Package form
 [![GoDoc](https://godoc.org/github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
-Package form Decodes url.Values into struct values and Encodes strut values into url.Values.
+Package form Decodes url.Values into struct values and Encodes struct values into url.Values.
 
 It has the following features:
 
