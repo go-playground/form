@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+const (
+	errArraySize = "Array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
+)
+
 type decoder struct {
 	d                   *Decoder
 	errs                DecodeErrors
@@ -293,22 +297,42 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 
 			d.parseMapData()
 
-			// maybe it's an numbered array i.e. Pnone[0].Number
+			// maybe it's an numbered array i.e. Phone[0].Number
 			if rd := d.dm[namespace]; rd != nil {
 
 				var varr reflect.Value
 
 				sl := rd.sliceLen + 1
 
+				// checking below for maxArraySize, but if array exists and already
+				// has sufficient capacity allocated then we do not check as the code
+				// obviously allows that capacity.
+
 				if v.IsNil() {
+
+					if sl > d.d.maxArraySize {
+						d.setError(namespace, fmt.Errorf(errArraySize, sl, d.d.maxArraySize))
+						return
+					}
+
 					varr = reflect.MakeSlice(v.Type(), sl, sl)
+
 				} else if v.Len() < sl {
+
 					if v.Cap() <= sl {
+
+						if sl > d.d.maxArraySize {
+							d.setError(namespace, fmt.Errorf(errArraySize, sl, d.d.maxArraySize))
+							return
+						}
+
 						varr = reflect.MakeSlice(v.Type(), sl, sl)
 					} else {
 						varr = reflect.MakeSlice(v.Type(), sl, v.Cap())
 					}
+
 					reflect.Copy(varr, v)
+
 				} else {
 					varr = v
 				}

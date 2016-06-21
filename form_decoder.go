@@ -50,13 +50,15 @@ type Decoder struct {
 	tagName         string
 	structCache     structCacheMap
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
+	maxArraySize    int
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
 func NewDecoder() *Decoder {
 	return &Decoder{
-		tagName:     "form",
-		structCache: structCacheMap{m: map[reflect.Type]cachedStruct{}},
+		tagName:      "form",
+		structCache:  structCacheMap{m: map[reflect.Type]cachedStruct{}},
+		maxArraySize: 10000,
 	}
 }
 
@@ -64,6 +66,15 @@ func NewDecoder() *Decoder {
 // Default is "form"
 func (d *Decoder) SetTagName(tagName string) {
 	d.tagName = tagName
+}
+
+// SetMaxArraySize sets maximum array size that can be created.
+// This limit is for the array indexing this library supports to
+// avoid potential DOS or man-in-the-middle attacks using an unusually
+// high number.
+// DEFAULT: 10000
+func (d *Decoder) SetMaxArraySize(size uint) {
+	d.maxArraySize = int(size)
 }
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types

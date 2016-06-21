@@ -651,40 +651,47 @@ func TestDecoderNativeTime(t *testing.T) {
 func TestDecoderErrors(t *testing.T) {
 
 	type TestError struct {
-		Bool           bool `form:"bool"`
-		Int            int
-		Uint           uint
-		Float32        float32
-		String         string
-		Time           time.Time
-		MapBadIntKey   map[int]int
-		MapBadUintKey  map[uint]uint
-		MapBadFloatKey map[float32]float32
-		MapBadBoolKey  map[bool]bool
-		MapBadKeyType  map[complex64]int
-		BadArrayValue  []int
-		BadMapKey      map[time.Time]string
+		Bool                  bool `form:"bool"`
+		Int                   int
+		Uint                  uint
+		Float32               float32
+		String                string
+		Time                  time.Time
+		MapBadIntKey          map[int]int
+		MapBadUintKey         map[uint]uint
+		MapBadFloatKey        map[float32]float32
+		MapBadBoolKey         map[bool]bool
+		MapBadKeyType         map[complex64]int
+		BadArrayValue         []int
+		BadMapKey             map[time.Time]string
+		OverflowNilArray      []int
+		OverFlowExistingArray []int
 	}
 
 	values := url.Values{
-		"bool":                  []string{"uh-huh"},
-		"Int":                   []string{"bad"},
-		"Uint":                  []string{"bad"},
-		"Float32":               []string{"bad"},
-		"String":                []string{"str bad return val"},
-		"Time":                  []string{"bad"},
-		"MapBadIntKey[key]":     []string{"1"},
-		"MapBadUintKey[key]":    []string{"1"},
-		"MapBadFloatKey[key]":   []string{"1.1"},
-		"MapBadBoolKey[uh-huh]": []string{"true"},
-		"MapBadKeyType[1.4]":    []string{"5"},
-		"BadArrayValue[0]":      []string{"badintval"},
-		"BadMapKey[badtime]":    []string{"badtime"},
+		"bool":                       []string{"uh-huh"},
+		"Int":                        []string{"bad"},
+		"Uint":                       []string{"bad"},
+		"Float32":                    []string{"bad"},
+		"String":                     []string{"str bad return val"},
+		"Time":                       []string{"bad"},
+		"MapBadIntKey[key]":          []string{"1"},
+		"MapBadUintKey[key]":         []string{"1"},
+		"MapBadFloatKey[key]":        []string{"1.1"},
+		"MapBadBoolKey[uh-huh]":      []string{"true"},
+		"MapBadKeyType[1.4]":         []string{"5"},
+		"BadArrayValue[0]":           []string{"badintval"},
+		"BadMapKey[badtime]":         []string{"badtime"},
+		"OverflowNilArray[999]":      []string{"idx 1000"},
+		"OverFlowExistingArray[999]": []string{"idx 1000"},
 	}
 
-	var test TestError
+	test := TestError{
+		OverFlowExistingArray: make([]int, 2, 2),
+	}
 
 	decoder := NewDecoder()
+	decoder.SetMaxArraySize(4)
 	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
 		return nil, errors.New("Bad Type Conversion")
 	}, "")
@@ -696,6 +703,8 @@ func TestDecoderErrors(t *testing.T) {
 	NotEqual(t, e, "")
 
 	err := errs.(DecodeErrors)
+	Equal(t, len(err), 15)
+
 	k := err["bool"]
 	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'bool'")
 
@@ -731,6 +740,12 @@ func TestDecoderErrors(t *testing.T) {
 
 	k = err["BadArrayValue[0]"]
 	Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
+
+	k = err["OverflowNilArray"]
+	Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
+
+	k = err["OverFlowExistingArray"]
+	Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
 
 	type TestError2 struct {
 		BadMapKey map[time.Time]string
