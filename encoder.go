@@ -175,8 +175,15 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace string, idx in
 			namespace += "[" + strconv.Itoa(idx) + "]"
 		}
 
+		var valid bool
+		var s string
+
 		for _, key := range v.MapKeys() {
-			e.setFieldByType(current.MapIndex(key), namespace+"["+e.getMapKey(key, namespace)+"]", -2)
+			if s, valid = e.getMapKey(key, namespace); !valid {
+				continue
+			}
+
+			e.setFieldByType(current.MapIndex(key), namespace+"["+s+"]", -2)
 		}
 
 	case reflect.Struct:
@@ -207,7 +214,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace string, idx in
 	return
 }
 
-func (e *encoder) getMapKey(key reflect.Value, namespace string) string {
+func (e *encoder) getMapKey(key reflect.Value, namespace string) (string, bool) {
 
 	v, kind := ExtractType(key)
 
@@ -217,37 +224,37 @@ func (e *encoder) getMapKey(key reflect.Value, namespace string) string {
 			arr, err := cf(v.Interface())
 			if err != nil {
 				e.setError(namespace, err)
-				return ""
+				return "", false
 			}
 
-			return arr[0]
+			return arr[0], true
 		}
 	}
 
 	switch kind {
 	case reflect.Interface, reflect.Ptr:
-		return ""
+		return "", false
 
 	case reflect.String:
-		return v.String()
+		return v.String(), true
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return strconv.FormatUint(v.Uint(), 10)
+		return strconv.FormatUint(v.Uint(), 10), true
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.FormatInt(v.Int(), 10)
+		return strconv.FormatInt(v.Int(), 10), true
 
 	case reflect.Float32:
-		return strconv.FormatFloat(v.Float(), 'f', -1, 32)
+		return strconv.FormatFloat(v.Float(), 'f', -1, 32), true
 
 	case reflect.Float64:
-		return strconv.FormatFloat(v.Float(), 'f', -1, 64)
+		return strconv.FormatFloat(v.Float(), 'f', -1, 64), true
 
 	case reflect.Bool:
-		return strconv.FormatBool(v.Bool())
+		return strconv.FormatBool(v.Bool()), true
 
 	default:
 		e.setError(namespace, fmt.Errorf("Unsupported Map Key '%v' Namespace '%s'", v.String(), namespace))
-		return ""
+		return "", false
 	}
 }
