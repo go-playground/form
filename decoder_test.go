@@ -27,7 +27,7 @@ import (
 //
 // go test -memprofile mem.out
 
-func TestInt(t *testing.T) {
+func TestDecoderInt(t *testing.T) {
 
 	type TestInt struct {
 		Int              int
@@ -132,7 +132,7 @@ func TestInt(t *testing.T) {
 	Equal(t, test.NoURLValue, int(0))
 }
 
-func TestUint(t *testing.T) {
+func TestDecoderUint(t *testing.T) {
 
 	type TestUint struct {
 		Uint              uint
@@ -237,7 +237,7 @@ func TestUint(t *testing.T) {
 	Equal(t, test.NoURLValue, uint(0))
 }
 
-func TestString(t *testing.T) {
+func TestDecoderString(t *testing.T) {
 
 	type TestString struct {
 		String              string
@@ -318,7 +318,7 @@ func TestString(t *testing.T) {
 	Equal(t, test.NoURLValue, "")
 }
 
-func TestFloat(t *testing.T) {
+func TestDecoderFloat(t *testing.T) {
 
 	type TestFloat struct {
 		Float32              float32
@@ -405,7 +405,7 @@ func TestFloat(t *testing.T) {
 	Equal(t, test.NoURLValue, float32(0.0))
 }
 
-func TestBool(t *testing.T) {
+func TestDecoderBool(t *testing.T) {
 
 	type TestBool struct {
 		Bool              bool
@@ -486,7 +486,7 @@ func TestBool(t *testing.T) {
 	Equal(t, test.NoURLValue, false)
 }
 
-func TestStruct(t *testing.T) {
+func TestDecoderStruct(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -625,7 +625,7 @@ func TestStruct(t *testing.T) {
 	Equal(t, s.unexposed, "")
 }
 
-func TestNativeTime(t *testing.T) {
+func TestDecoderNativeTime(t *testing.T) {
 
 	type TestError struct {
 		Time        time.Time
@@ -648,7 +648,7 @@ func TestNativeTime(t *testing.T) {
 	Equal(t, test.TimeNoValue.Equal(tm), false)
 }
 
-func TestErrors(t *testing.T) {
+func TestDecoderErrors(t *testing.T) {
 
 	type TestError struct {
 		Bool           bool `form:"bool"`
@@ -756,7 +756,7 @@ func TestErrors(t *testing.T) {
 	Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
 }
 
-func TestPanics(t *testing.T) {
+func TestDecoderPanics(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -780,7 +780,7 @@ func TestPanics(t *testing.T) {
 	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
 }
 
-func TestMapKeys(t *testing.T) {
+func TestDecoderMapKeys(t *testing.T) {
 
 	type TestMapKeys struct {
 		MapIfaceKey  map[interface{}]string
@@ -807,7 +807,7 @@ func TestMapKeys(t *testing.T) {
 	Equal(t, test.MapNestedInt[1][2], 3)
 }
 
-func TestStructRecursion(t *testing.T) {
+func TestDecoderStructRecursion(t *testing.T) {
 
 	type Nested struct {
 		Value  string
@@ -832,7 +832,7 @@ func TestStructRecursion(t *testing.T) {
 	Equal(t, test.Nested.Nested, nil)
 }
 
-func TestFormDecode(t *testing.T) {
+func TestDecoderFormDecode(t *testing.T) {
 
 	type Struct2 struct {
 		Foo string

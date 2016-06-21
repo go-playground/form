@@ -2,16 +2,26 @@
 
 ### go-playground/form
 ```go
-BenchmarkSimpleUserStruct-8                                 	 5000000	       299 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserStructParallel-8                         	20000000	       110 ns/op	      64 B/op	       1 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypes-8               	 2000000	       956 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypesParallel-8       	 5000000	       285 ns/op	      96 B/op	       1 allocs/op
-BenchmarkComplexArrayStructAllTypes-8                       	  100000	     20706 ns/op	    6776 B/op	     159 allocs/op
-BenchmarkComplexArrayStructAllTypesParallel-8               	  200000	      6158 ns/op	    6776 B/op	     159 allocs/op
-BenchmarkComplexMapStructAllTypes-8                         	   50000	     35548 ns/op	   20966 B/op	     245 allocs/op
-BenchmarkComplexMapStructAllTypesParallel-8                 	  200000	     11984 ns/op	   20966 B/op	     245 allocs/op
-BenchmarkArrayMapNestedStruct-8                             	  200000	      5617 ns/op	    2064 B/op	      37 allocs/op
-BenchmarkArrayMapNestedStructParallel-8                     	 1000000	      2032 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkSimpleUserDecodeStruct-8                           	 5000000	       293 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserDecodeStructParallel-8                   	20000000	       112 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserEncodeStruct-8                           	 2000000	       808 ns/op	     466 B/op	       7 allocs/op
+BenchmarkSimpleUserEncodeStructParallel-8                   	 5000000	       278 ns/op	     466 B/op	       7 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8         	 2000000	       965 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8 	 5000000	       284 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8         	  300000	      4349 ns/op	    2913 B/op	      32 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8 	 1000000	      1469 ns/op	    2913 B/op	      32 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypes-8                 	  100000	     20608 ns/op	    6776 B/op	     159 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesParallel-8         	  200000	      6265 ns/op	    6776 B/op	     159 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypes-8                 	  100000	     17198 ns/op	    7192 B/op	     154 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallel-8         	  300000	      5157 ns/op	    7191 B/op	     154 allocs/op
+BenchmarkComplexMapDecodeStructAllTypes-8                   	   50000	     34637 ns/op	   20869 B/op	     241 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallel-8           	  100000	     12095 ns/op	   20870 B/op	     241 allocs/op
+BenchmarkComplexMapEncodeStructAllTypes-8                   	  100000	     18193 ns/op	    7095 B/op	     177 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallel-8           	  300000	      5651 ns/op	    7096 B/op	     177 allocs/op
+BenchmarkDecodeNestedStruct-8                               	  300000	      5537 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkDecodeNestedStructParallel-8                       	 1000000	      1932 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkEncodeNestedStruct-8                               	  500000	      2956 ns/op	     848 B/op	      26 allocs/op
+BenchmarkEncodeNestedStructParallel-8                       	 1000000	      1168 ns/op	     848 B/op	      26 allocs/op
 ```
 
 ### gorilla/schema
@@ -30,6 +40,7 @@ BenchmarkComplexMapStructAllTypesGorillaParallel-8          	       0	         0
 	gorilla_scheme_test.go:121: Gorilla does not support map parsing at this time
 BenchmarkArrayMapNestedStructGorilla-8                      	  200000	     10393 ns/op	    2269 B/op	      73 allocs/op
 BenchmarkArrayMapNestedStructGorillaParallel-8              	  500000	      3484 ns/op	    2269 B/op	      73 allocs/op
+No Encoder Support At This Time
 ```
 
 ### monoculum/formam
@@ -48,4 +59,5 @@ BenchmarkArrayMapNestedStructFormam-8                       	--- FAIL: Benchmark
 	formam_test.go:174: formam: not supported type for field "Value" in path "NestedPtrArray[1].Value"
 BenchmarkArrayMapNestedStructFormamParallel-8               	--- FAIL: BenchmarkArrayMapNestedStructFormamParallel-8
 	formam_test.go:189: formam: not supported type for field "Value" in path "NestedPtrArray[0].Value"
+No Encoder Support At This Time
 ```

@@ -1,14 +1,14 @@
 Package form
 ============
 <img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">
-![Project status](https://img.shields.io/badge/version-1.3.0-green.svg)
+![Project status](https://img.shields.io/badge/version-1.4.0-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
 [![GoDoc](https://godoc.org/github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
-Package form parses url.Values and fills a struct with values, creating objects as necessary.
+Package form Decodes url.Values into struct values and Encodes strut values into url.Values.
 
 It has the following features:
 
@@ -76,8 +76,10 @@ Usage
 </form>
 ```
 
-Example
+Examples
 -------
+
+Decoding
 ```go
 package main
 
@@ -145,11 +147,79 @@ func parseForm() url.Values {
 }
 ```
 
+Encoding
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/go-playground/form"
+)
+
+// Address contains address information
+type Address struct {
+	Name  string
+	Phone string
+}
+
+// User contains user information
+type User struct {
+	Name        string
+	Age         uint8
+	Gender      string
+	Address     []Address
+	Active      bool `form:"active"`
+	MapExample  map[string]string
+	NestedMap   map[string]map[string]string
+	NestedArray [][]string
+}
+
+// use a single instance of Encoder, it caches struct info
+var encoder *form.Encoder
+
+func main() {
+	encoder = form.NewEncoder()
+
+	user := User{
+		Name:   "joeybloggs",
+		Age:    3,
+		Gender: "Male",
+		Address: []Address{
+			{Name: "26 Here Blvd.", Phone: "9(999)999-9999"},
+			{Name: "26 There Blvd.", Phone: "1(111)111-1111"},
+		},
+		Active:      true,
+		MapExample:  map[string]string{"key": "value"},
+		NestedMap:   map[string]map[string]string{"key": {"key": "value"}},
+		NestedArray: [][]string{{"value"}},
+	}
+
+	// must pass a pointer
+	values, err := encoder.Encode(&user)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	fmt.Printf("%#v\n", values)
+}
+```
+
 Registering Custom Types
 --------------
+
+Decoder
 ```go
 decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
 		return time.Parse("2006-01-02", vals[0])
+	}, time.Time{})
+```
+
+Encoder
+```go
+encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
+		return []string{x.(time.Time).Format("2006-01-02")}, nil
 	}, time.Time{})
 ```
 
@@ -162,26 +232,62 @@ type MyStruct struct {
 }
 ```
 
+Notes
+------
+To maximize compatibility with other systems the Encoder attempts 
+to avoid using array indexes in url.Values if at all possible.
+
+eg.
+```go
+// A struct field of
+Field []string{"1", "2", "3"}
+
+// will be output a url.Value as
+"Field": []string{"1", "2", "3"}
+
+and not
+"Field[0]": []string{"1"}
+"Field[1]": []string{"2"}
+"Field[2]": []string{"3"}
+
+// however there are times where it is unavoidable, like with pointers
+i := int(1)
+Field []*string{nil, nil, &i}
+
+// to avoid index 1 and 2 must use index
+"Field[2]": []string{"1"}
+```
+
 Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go version go1.6.2 darwin/amd64
 
-NOTE: the 1 allocation and B/op in the first 4 is actually the struct allocating when passing it in, so primitives are actually zero allocation.
+NOTE: the 1 allocation and B/op in the first 4 decodes is actually the struct allocating when passing it in, so primitives are actually zero allocation.
 
 ```go
 go test -bench=. -benchmem=true
 
 PASS
-BenchmarkSimpleUserStruct-8                                 	 5000000	       299 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserStructParallel-8                         	20000000	       110 ns/op	      64 B/op	       1 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypes-8               	 2000000	       956 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypesParallel-8       	 5000000	       285 ns/op	      96 B/op	       1 allocs/op
-BenchmarkComplexArrayStructAllTypes-8                       	  100000	     20706 ns/op	    6776 B/op	     159 allocs/op
-BenchmarkComplexArrayStructAllTypesParallel-8               	  200000	      6158 ns/op	    6776 B/op	     159 allocs/op
-BenchmarkComplexMapStructAllTypes-8                         	   50000	     35548 ns/op	   20966 B/op	     245 allocs/op
-BenchmarkComplexMapStructAllTypesParallel-8                 	  200000	     11984 ns/op	   20966 B/op	     245 allocs/op
-BenchmarkArrayMapNestedStruct-8                             	  200000	      5617 ns/op	    2064 B/op	      37 allocs/op
-BenchmarkArrayMapNestedStructParallel-8                     	 1000000	      2032 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkSimpleUserDecodeStruct-8                           	 5000000	       293 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserDecodeStructParallel-8                   	20000000	       112 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserEncodeStruct-8                           	 2000000	       808 ns/op	     466 B/op	       7 allocs/op
+BenchmarkSimpleUserEncodeStructParallel-8                   	 5000000	       278 ns/op	     466 B/op	       7 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8         	 2000000	       965 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8 	 5000000	       284 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8         	  300000	      4349 ns/op	    2913 B/op	      32 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8 	 1000000	      1469 ns/op	    2913 B/op	      32 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypes-8                 	  100000	     20608 ns/op	    6776 B/op	     159 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesParallel-8         	  200000	      6265 ns/op	    6776 B/op	     159 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypes-8                 	  100000	     17198 ns/op	    7192 B/op	     154 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallel-8         	  300000	      5157 ns/op	    7191 B/op	     154 allocs/op
+BenchmarkComplexMapDecodeStructAllTypes-8                   	   50000	     34637 ns/op	   20869 B/op	     241 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallel-8           	  100000	     12095 ns/op	   20870 B/op	     241 allocs/op
+BenchmarkComplexMapEncodeStructAllTypes-8                   	  100000	     18193 ns/op	    7095 B/op	     177 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallel-8           	  300000	      5651 ns/op	    7096 B/op	     177 allocs/op
+BenchmarkDecodeNestedStruct-8                               	  300000	      5537 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkDecodeNestedStructParallel-8                       	 1000000	      1932 ns/op	    2064 B/op	      37 allocs/op
+BenchmarkEncodeNestedStruct-8                               	  500000	      2956 ns/op	     848 B/op	      26 allocs/op
+BenchmarkEncodeNestedStructParallel-8                       	 1000000	      1168 ns/op	     848 B/op	      26 allocs/op
 ```
 
 Competitor benchmarks can be found [here](https://github.com/go-playground/form/blob/master/benchmarks/benchmarks.md)
