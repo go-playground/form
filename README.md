@@ -232,6 +232,32 @@ type MyStruct struct {
 }
 ```
 
+Notes
+------
+To maximize compatibility with other systems the Encoder attempts 
+to avoid using array indexes in url.Values if at all possible.
+
+eg.
+```go
+// A struct field of
+Field []string{"1", "2", "3"}
+
+// will be output a url.Value as
+"Field": []string{"1", "2", "3"}
+
+and not
+"Field[0]": []string{"1"}
+"Field[1]": []string{"2"}
+"Field[2]": []string{"3"}
+
+// however there are times where it is unavoidable, like with pointers
+i := int(1)
+Field []*string{nil, nil, &i}
+
+// to avoid index 1 and 2 must use index
+"Field[2]": []string{"1"}
+```
+
 Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go version go1.6.2 darwin/amd64
