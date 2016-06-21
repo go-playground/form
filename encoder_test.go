@@ -189,7 +189,7 @@ func TestEncoderInt(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "0")
 
-	val, ok = values["NoPtrValue"]
+	_, ok = values["NoPtrValue"]
 	Equal(t, ok, false)
 }
 
@@ -355,7 +355,7 @@ func TestEncoderUint(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "0")
 
-	val, ok = values["NoPtrValue"]
+	_, ok = values["NoPtrValue"]
 	Equal(t, ok, false)
 }
 
