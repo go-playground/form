@@ -12,11 +12,11 @@ import (
 func BenchmarkSimpleUserStructFormam(b *testing.B) {
 
 	values := getUserStructValues()
-	var err error
+
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test User
-		if err = formam.Decode(values, &test); err != nil {
+		if err := formam.Decode(values, &test); err != nil {
 			b.Error(err)
 		}
 	}
@@ -25,13 +25,12 @@ func BenchmarkSimpleUserStructFormam(b *testing.B) {
 func BenchmarkSimpleUserStructFormamParallel(b *testing.B) {
 
 	values := getUserStructValues()
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test User
-			if err = formam.Decode(values, &test); err != nil {
+			if err := formam.Decode(values, &test); err != nil {
 				b.Error(err)
 			}
 		}
@@ -42,12 +41,11 @@ func BenchmarkSimpleUserStructFormamParallel(b *testing.B) {
 
 func BenchmarkPrimitivesStructAllPrimitivesFormamTypes(b *testing.B) {
 	values := getPrimitivesStructValues()
-	var err error
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test PrimitivesStruct
-		if err = formam.Decode(values, &test); err != nil {
+		if err := formam.Decode(values, &test); err != nil {
 			b.Error(err)
 		}
 	}
@@ -55,13 +53,12 @@ func BenchmarkPrimitivesStructAllPrimitivesFormamTypes(b *testing.B) {
 
 func BenchmarkPrimitivesStructAllPrimitivesTypesFormamParallel(b *testing.B) {
 	values := getPrimitivesStructValues()
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test PrimitivesStruct
-			if err = formam.Decode(values, &test); err != nil {
+			if err := formam.Decode(values, &test); err != nil {
 				b.Error(err)
 			}
 		}
@@ -72,12 +69,11 @@ func BenchmarkPrimitivesStructAllPrimitivesTypesFormamParallel(b *testing.B) {
 
 func BenchmarkComplexArrayStructAllTypesFormam(b *testing.B) {
 	values := getComplexArrayStructValues()
-	var err error
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test ComplexArrayStruct
-		if err = formam.Decode(values, &test); err != nil {
+		if err := formam.Decode(values, &test); err != nil {
 			b.Error(err)
 		}
 	}
@@ -85,13 +81,12 @@ func BenchmarkComplexArrayStructAllTypesFormam(b *testing.B) {
 
 func BenchmarkComplexArrayStructAllTypesFormamParallel(b *testing.B) {
 	values := getComplexArrayStructValues()
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test ComplexArrayStruct
-			if err = formam.Decode(values, &test); err != nil {
+			if err := formam.Decode(values, &test); err != nil {
 				b.Error(err)
 			}
 		}
@@ -133,12 +128,11 @@ func BenchmarkComplexMapStructAllTypesFormam(b *testing.B) {
 	// b.Log("Formam only supports map key of string at this time")
 	// b.SkipNow()
 	values := getComplexMapStructValuesFormam()
-	var err error
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test ComplexMapStruct
-		if err = formam.Decode(values, &test); err != nil {
+		if err := formam.Decode(values, &test); err != nil {
 			b.Error(err)
 		}
 	}
@@ -148,13 +142,12 @@ func BenchmarkComplexMapStructAllTypesFormamParallel(b *testing.B) {
 	// b.Log("Formam only supports map key of string at this time")
 	// b.SkipNow()
 	values := getComplexMapStructValuesFormam()
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test ComplexMapStruct
-			if err = formam.Decode(values, &test); err != nil {
+			if err := formam.Decode(values, &test); err != nil {
 				b.Error(err)
 			}
 		}
@@ -166,11 +159,11 @@ func BenchmarkComplexMapStructAllTypesFormamParallel(b *testing.B) {
 func BenchmarkArrayMapNestedStructFormam(b *testing.B) {
 
 	values := getNestedStructValues()
-	var err error
+
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test NestedStruct
-		if err = formam.Decode(values, &test); err != nil {
+		if err := formam.Decode(values, &test); err != nil {
 			b.Error(err)
 		}
 	}
@@ -179,13 +172,12 @@ func BenchmarkArrayMapNestedStructFormam(b *testing.B) {
 func BenchmarkArrayMapNestedStructFormamParallel(b *testing.B) {
 
 	values := getNestedStructValues()
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test NestedStruct
-			if err = formam.Decode(values, &test); err != nil {
+			if err := formam.Decode(values, &test); err != nil {
 				b.Error(err)
 			}
 		}

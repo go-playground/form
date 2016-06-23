@@ -61,3 +61,31 @@ BenchmarkArrayMapNestedStructFormamParallel-8               	--- FAIL: Benchmark
 	formam_test.go:189: formam: not supported type for field "Value" in path "NestedPtrArray[0].Value"
 No Encoder Support At This Time
 ```
+
+### ajg/form
+```go
+BenchmarkSimpleUserDecodeStructAGJForm-8                          	  200000	      6104 ns/op	    1320 B/op	      34 allocs/op
+BenchmarkSimpleUserDecodeStructParallelAGJFrom-8                  	 1000000	      1748 ns/op	    1320 B/op	      34 allocs/op
+BenchmarkSimpleUserEncodeStructAGJForm-8                          	  300000	      5076 ns/op	    1272 B/op	      29 allocs/op
+BenchmarkSimpleUserEncodeStructParallelAGJForm-8                  	 1000000	      1440 ns/op	    1272 B/op	      29 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesAGJForm-8        	  100000	     19713 ns/op	    5661 B/op	     143 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallelAGJForm-8	  300000	      5618 ns/op	    5663 B/op	     143 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesAGJForm-8        	  100000	     15097 ns/op	    5792 B/op	      82 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallelAGJForm-8	  300000	      4340 ns/op	    5792 B/op	      82 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesAGJForm-8                	--- FAIL: BenchmarkComplexArrayDecodeStructAllTypesAGJForm-8
+	agj_form_test.go:127:  is not a valid index for type []uint16
+BenchmarkComplexArrayDecodeStructAllTypesParallelAGJForm-8        	--- FAIL: BenchmarkComplexArrayDecodeStructAllTypesParallelAGJForm-8
+	agj_form_test.go:140:  is not a valid index for type []int32
+BenchmarkComplexArrayEncodeStructAllTypesAGJForm-8                	   20000	     66822 ns/op	   21684 B/op	     400 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallelAGJForm-8        	  100000	     20173 ns/op	   21681 B/op	     400 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesAGJForm-8                  	   20000	     86037 ns/op	   22295 B/op	     592 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallelAGJForm-8          	   50000	     25491 ns/op	   22297 B/op	     592 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesAGJForm-8                  	   30000	     44735 ns/op	   17959 B/op	     323 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallelAGJForm-8          	  100000	     13961 ns/op	   17958 B/op	     323 allocs/op
+BenchmarkDecodeNestedStructAGJForm-8                              	--- FAIL: BenchmarkDecodeNestedStructAGJForm-8
+	agj_form_test.go:261: NestedArray[1] doesn't exist in benchmarks.NestedStruct
+BenchmarkDecodeNestedStructParallelAGJForm-8                      	--- FAIL: BenchmarkDecodeNestedStructParallelAGJForm-8
+	agj_form_test.go:275: NestedArray[0] doesn't exist in benchmarks.NestedStruct
+BenchmarkEncodeNestedStructAGJForm-8                              	  100000	     17904 ns/op	    5704 B/op	     113 allocs/op
+BenchmarkEncodeNestedStructParallelAGJForm-8                      	  300000	      5502 ns/op	    5704 B/op	     113 allocs/op
+```

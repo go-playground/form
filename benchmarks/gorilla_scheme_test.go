@@ -14,11 +14,11 @@ func BenchmarkSimpleUserStructGorilla(b *testing.B) {
 	values := getUserStructValues()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
+
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test User
-		if err = decoder.Decode(&test, values); err != nil {
+		if err := decoder.Decode(&test, values); err != nil {
 			b.Error(err)
 		}
 	}
@@ -29,13 +29,12 @@ func BenchmarkSimpleUserStructGorillaParallel(b *testing.B) {
 	values := getUserStructValues()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test User
-			if err = decoder.Decode(&test, values); err != nil {
+			if err := decoder.Decode(&test, values); err != nil {
 				b.Error(err)
 			}
 		}
@@ -48,12 +47,11 @@ func BenchmarkPrimitivesStructAllPrimitivesTypesGorilla(b *testing.B) {
 	values := getPrimitivesStructValues()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test PrimitivesStruct
-		if err = decoder.Decode(&test, values); err != nil {
+		if err := decoder.Decode(&test, values); err != nil {
 			b.Error(err)
 		}
 	}
@@ -63,13 +61,12 @@ func BenchmarkPrimitivesStructAllPrimitivesTypesGorillaParallel(b *testing.B) {
 	values := getPrimitivesStructValues()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test PrimitivesStruct
-			if err = decoder.Decode(&test, values); err != nil {
+			if err := decoder.Decode(&test, values); err != nil {
 				b.Error(err)
 			}
 		}
@@ -82,12 +79,11 @@ func BenchmarkComplexArrayStructAllTypesGorilla(b *testing.B) {
 	values := getComplexArrayStructValues()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test ComplexArrayStruct
-		if err = decoder.Decode(&test, values); err != nil {
+		if err := decoder.Decode(&test, values); err != nil {
 			b.Error(err)
 		}
 	}
@@ -97,13 +93,12 @@ func BenchmarkComplexArrayStructAllTypesGorillaParallel(b *testing.B) {
 	values := getComplexArrayStructValues()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test ComplexArrayStruct
-			if err = decoder.Decode(&test, values); err != nil {
+			if err := decoder.Decode(&test, values); err != nil {
 				b.Error(err)
 			}
 		}
@@ -145,11 +140,11 @@ func BenchmarkArrayMapNestedStructGorilla(b *testing.B) {
 	values := getNestedStructValuesGorilla()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
+
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		var test NestedStruct
-		if err = decoder.Decode(&test, values); err != nil {
+		if err := decoder.Decode(&test, values); err != nil {
 			b.Error(err)
 		}
 	}
@@ -160,13 +155,12 @@ func BenchmarkArrayMapNestedStructGorillaParallel(b *testing.B) {
 	values := getNestedStructValuesGorilla()
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	var err error
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var test NestedStruct
-			if err = decoder.Decode(&test, values); err != nil {
+			if err := decoder.Decode(&test, values); err != nil {
 				b.Error(err)
 			}
 		}
