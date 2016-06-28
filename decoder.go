@@ -208,7 +208,14 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 	}
 
 	switch kind {
-	case reflect.Interface, reflect.Invalid:
+	case reflect.Interface:
+
+		if !ok || len(arr[idx]) == 0 {
+			return
+		}
+
+		v.Set(reflect.ValueOf(arr[idx]))
+	case reflect.Invalid:
 		return
 	case reflect.Ptr:
 
@@ -602,10 +609,11 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace string)
 
 	switch kind {
 	case reflect.Interface:
+		// If interface would have been set on the struct before decoding,
+		// say to a struct value we would not get here but kind would be struct.
 		v.Set(reflect.ValueOf(key))
 		return
 	case reflect.Ptr:
-
 		newVal := reflect.New(v.Type().Elem())
 		if err = d.getMapKey(key, newVal.Elem(), namespace); err == nil {
 			v.Set(newVal)
