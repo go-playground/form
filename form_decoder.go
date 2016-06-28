@@ -28,19 +28,14 @@ func (d DecodeErrors) Error() string {
 }
 
 type key struct {
+	ivalue      int
 	value       string
-	searchValue string
-}
-
-type index struct {
-	value       int
 	searchValue string
 }
 
 type recursiveData struct {
 	sliceLen int
 	keys     []key
-	indicies []index
 }
 
 type dataMap map[string]*recursiveData
