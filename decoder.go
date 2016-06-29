@@ -15,12 +15,11 @@ const (
 )
 
 type decoder struct {
-	d                   *Decoder
-	errs                DecodeErrors
-	dm                  dataMap
-	values              url.Values
-	maxKeyLen           int
-	maxKeyLenCalculated bool
+	d         *Decoder
+	errs      DecodeErrors
+	dm        dataMap
+	values    url.Values
+	maxKeyLen int
 }
 
 func (d *decoder) setError(namespace string, err error) {
@@ -29,18 +28,6 @@ func (d *decoder) setError(namespace string, err error) {
 	}
 
 	d.errs[namespace] = err
-}
-
-func (d *decoder) parseMaxKeyLen() {
-
-	for k := range d.values {
-
-		if len(k) > d.maxKeyLen {
-			d.maxKeyLen = len(k)
-		}
-	}
-
-	d.maxKeyLenCalculated = true
 }
 
 func (d *decoder) parseMapData() {
@@ -113,8 +100,6 @@ func (d *decoder) parseMapData() {
 			cum += idx2 + 1
 		}
 	}
-
-	d.maxKeyLenCalculated = true
 }
 
 func (d *decoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
@@ -208,14 +193,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 	}
 
 	switch kind {
-	case reflect.Interface:
-
-		if !ok || len(arr[idx]) == 0 {
-			return
-		}
-
-		v.Set(reflect.ValueOf(arr[idx]))
-	case reflect.Invalid:
+	case reflect.Interface, reflect.Invalid:
 		return
 	case reflect.Ptr:
 
@@ -575,9 +553,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 			return
 		}
 
-		if !d.maxKeyLenCalculated {
-			d.parseMaxKeyLen()
-		}
+		d.parseMapData()
 
 		// we must be recursing infinitly...but that's ok we caught it on the very first overun.
 		if len(namespace) > d.maxKeyLen {
