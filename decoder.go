@@ -433,7 +433,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 				for i := 0; i < len(rd.keys); i++ {
 
 					kv = rd.keys[i]
-					newVal := reflect.New(v.Type().Elem()).Elem()
+					newVal := reflect.New(varr.Type().Elem()).Elem()
 
 					if kv.ivalue == -1 {
 						d.setError(namespace, fmt.Errorf("Invalid Array index '%s'", kv.value))
@@ -504,7 +504,10 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 		}
 
 		var existing bool
+		var kv key
 		var mp reflect.Value
+		var mk reflect.Value
+
 		typ := v.Type()
 
 		if v.IsNil() {
@@ -516,16 +519,17 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 
 		for i := 0; i < len(rd.keys); i++ {
 			newVal := reflect.New(typ.Elem()).Elem()
-			kv := reflect.New(typ.Key()).Elem()
+			mk = reflect.New(typ.Key()).Elem()
+			kv = rd.keys[i]
 
-			if err := d.getMapKey(rd.keys[i].value, kv, namespace); err != nil {
+			if err := d.getMapKey(kv.value, mk, namespace); err != nil {
 				d.setError(namespace, err)
 				continue
 			}
 
-			if d.setFieldByType(newVal, namespace+rd.keys[i].searchValue, 0) {
+			if d.setFieldByType(newVal, namespace+kv.searchValue, 0) {
 				set = true
-				mp.SetMapIndex(kv, newVal)
+				mp.SetMapIndex(mk, newVal)
 			}
 		}
 
