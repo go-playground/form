@@ -38,6 +38,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace string, idx int) {
 
 	typ := v.Type()
 	var nn string // new namespace
+	first := len(namespace) == 0
 
 	// is anonymous struct, cannot parse or cache as
 	// it has no name to index by and potentially a
@@ -64,7 +65,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace string, idx int) {
 				key = fld.Name
 			}
 
-			if len(namespace) == 0 {
+			if first {
 				nn = key
 			} else {
 				nn = namespace + namespaceSeparator + key
@@ -81,7 +82,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace string, idx int) {
 
 		for _, f := range s.fields {
 
-			if len(namespace) == 0 {
+			if first {
 				nn = f.name
 			} else {
 				nn = namespace + namespaceSeparator + f.name
