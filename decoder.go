@@ -554,6 +554,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 			}
 
 			v.Set(reflect.ValueOf(t))
+			set = true
 			return
 		}
 

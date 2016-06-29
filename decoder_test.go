@@ -2,6 +2,7 @@ package form
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"testing"
 	"time"
@@ -654,22 +655,29 @@ func TestDecoderNativeTime(t *testing.T) {
 	type TestError struct {
 		Time        time.Time
 		TimeNoValue time.Time
+		TimePtr     *time.Time
 	}
 
 	values := url.Values{
 		"Time":        []string{"2006-01-02T15:04:05Z"},
 		"TimeNoValue": []string{""},
+		"TimePtr":     []string{"2006-01-02T15:04:05Z"},
 	}
 
 	var test TestError
 
 	decoder := NewDecoder()
+
+	fmt.Println("decoding")
 	errs := decoder.Decode(&test, values)
 	Equal(t, errs, nil)
 
 	tm, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 	Equal(t, test.Time.Equal(tm), true)
 	Equal(t, test.TimeNoValue.Equal(tm), false)
+
+	NotEqual(t, test.TimePtr, nil)
+	Equal(t, (*test.TimePtr).Equal(tm), true)
 }
 
 func TestDecoderErrors(t *testing.T) {
