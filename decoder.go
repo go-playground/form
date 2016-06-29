@@ -68,9 +68,8 @@ func (d *decoder) parseMapData() {
 			cidx2 = cum + idx2
 
 			if rd, ok = d.dm[k[:cidx]]; !ok {
-				rd = &recursiveData{
-					keys: make([]key, 0, 8), // initializing with initial capacity of 8 to avoid too many reallocations of the underlying array
-				}
+				rd = d.d.keyPool.Get().(*recursiveData)
+				rd.keys = rd.keys[0:0]
 				d.dm[k[:cidx]] = rd
 			}
 
@@ -106,6 +105,7 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 
 	typ := v.Type()
 	var nn string // new namespace
+	first := len(namespace) == 0
 
 	// is anonymous struct, cannot parse or cache as
 	// it has no name to index by and potentially a
@@ -132,7 +132,7 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 				key = fld.Name
 			}
 
-			if len(namespace) == 0 {
+			if first {
 				nn = key
 			} else {
 				nn = namespace + namespaceSeparator + key
@@ -151,7 +151,7 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace string) (set bool) {
 
 		for _, f := range s.fields {
 
-			if len(namespace) == 0 {
+			if first {
 				nn = f.name
 			} else {
 				nn = namespace + namespaceSeparator + f.name
