@@ -1,7 +1,6 @@
 package benchmarks
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/monoculum/formam"
@@ -95,39 +94,10 @@ func BenchmarkComplexArrayStructAllTypesFormamParallel(b *testing.B) {
 
 // Complex Map ALL types
 
-func getComplexMapStructValuesFormam() url.Values {
-	return url.Values{
-		"String.key":       []string{"value"},
-		"StringPtr.key":    []string{"value"},
-		"Int.0":            []string{"1"},
-		"IntPtr.0":         []string{"1"},
-		"Int8.0":           []string{"1"},
-		"Int8Ptr.0":        []string{"1"},
-		"Int16.0":          []string{"1"},
-		"Int16Ptr.0":       []string{"1"},
-		"Int32.0":          []string{"1"},
-		"Int32Ptr.0":       []string{"1"},
-		"Int64.0":          []string{"1"},
-		"Int64Ptr.0":       []string{"1"},
-		"Uint.0":           []string{"1"},
-		"UintPtr.0":        []string{"1"},
-		"Uint8.0":          []string{"1"},
-		"Uint8Ptr.0":       []string{"1"},
-		"Uint16.0":         []string{"1"},
-		"Uint16Ptr.0":      []string{"1"},
-		"Uint32.0":         []string{"1"},
-		"Uint32Ptr.0":      []string{"1"},
-		"Uint64.0":         []string{"1"},
-		"Uint64Ptr.0":      []string{"1"},
-		"NestedInt.1.2":    []string{"3"},
-		"NestedIntPtr.1.2": []string{"3"},
-	}
-}
-
 func BenchmarkComplexMapStructAllTypesFormam(b *testing.B) {
 	// b.Log("Formam only supports map key of string at this time")
 	// b.SkipNow()
-	values := getComplexMapStructValuesFormam()
+	values := getComplexMapStructValues()
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
@@ -141,7 +111,7 @@ func BenchmarkComplexMapStructAllTypesFormam(b *testing.B) {
 func BenchmarkComplexMapStructAllTypesFormamParallel(b *testing.B) {
 	// b.Log("Formam only supports map key of string at this time")
 	// b.SkipNow()
-	values := getComplexMapStructValuesFormam()
+	values := getComplexMapStructValues()
 
 	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {

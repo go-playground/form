@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 // DecodeCustomTypeFunc allows for registering/overriding types to be parsed.
@@ -28,19 +29,14 @@ func (d DecodeErrors) Error() string {
 }
 
 type key struct {
+	ivalue      int
 	value       string
-	searchValue string
-}
-
-type index struct {
-	value       int
 	searchValue string
 }
 
 type recursiveData struct {
 	sliceLen int
 	keys     []key
-	indicies []index
 }
 
 type dataMap map[string]*recursiveData
@@ -51,6 +47,7 @@ type Decoder struct {
 	structCache     structCacheMap
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 	maxArraySize    int
+	keyPool         *sync.Pool
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
@@ -59,6 +56,11 @@ func NewDecoder() *Decoder {
 		tagName:      "form",
 		structCache:  structCacheMap{m: map[reflect.Type]cachedStruct{}},
 		maxArraySize: 10000,
+		keyPool: &sync.Pool{New: func() interface{} {
+			return &recursiveData{
+				keys: make([]key, 0, 8), // initializing with initial capacity of 8 to avoid too many reallocations of the underlying array
+			}
+		}},
 	}
 }
 
@@ -145,6 +147,10 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 	}
 
 	dec.traverseStruct(val, "")
+
+	for _, v := range dec.dm {
+		d.keyPool.Put(v)
+	}
 
 	if len(dec.errs) == 0 {
 		return nil

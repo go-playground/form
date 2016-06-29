@@ -47,6 +47,11 @@ func TestDecoderInt(t *testing.T) {
 		IntMap           map[int]int
 		IntPtrMap        map[*int]*int
 		NoURLValue       int
+		IntNoValues      int
+		Int8NoValues     int8
+		Int16NoValues    int16
+		Int32NoValues    int32
+		Int64NoValues    int64
 	}
 
 	values := url.Values{
@@ -130,6 +135,12 @@ func TestDecoderInt(t *testing.T) {
 	Equal(t, v, int(3))
 
 	Equal(t, test.NoURLValue, int(0))
+
+	Equal(t, test.IntNoValues, int(0))
+	Equal(t, test.Int8NoValues, int8(0))
+	Equal(t, test.Int16NoValues, int16(0))
+	Equal(t, test.Int32NoValues, int32(0))
+	Equal(t, test.Int64NoValues, int64(0))
 }
 
 func TestDecoderUint(t *testing.T) {
@@ -152,6 +163,11 @@ func TestDecoderUint(t *testing.T) {
 		UintMap           map[uint]uint
 		UintPtrMap        map[*uint]*uint
 		NoURLValue        uint
+		UintNoValues      uint
+		Uint8NoValues     uint8
+		Uint16NoValues    uint16
+		Uint32NoValues    uint32
+		Uint64NoValues    uint64
 	}
 
 	values := url.Values{
@@ -235,6 +251,12 @@ func TestDecoderUint(t *testing.T) {
 	Equal(t, v, uint(3))
 
 	Equal(t, test.NoURLValue, uint(0))
+
+	Equal(t, test.UintNoValues, uint(0))
+	Equal(t, test.Uint8NoValues, uint8(0))
+	Equal(t, test.Uint16NoValues, uint16(0))
+	Equal(t, test.Uint32NoValues, uint32(0))
+	Equal(t, test.Uint64NoValues, uint64(0))
 }
 
 func TestDecoderString(t *testing.T) {
@@ -331,7 +353,8 @@ func TestDecoderFloat(t *testing.T) {
 		Float32PtrArrayArray [][]*float32
 		Float32Map           map[float32]float32
 		Float32PtrMap        map[*float32]*float32
-		NoURLValue           float32
+		Float32NoValue       float32
+		Float64NoValue       float64
 	}
 
 	values := url.Values{
@@ -402,7 +425,8 @@ func TestDecoderFloat(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, v, float32(3.3))
 
-	Equal(t, test.NoURLValue, float32(0.0))
+	Equal(t, test.Float32NoValue, float32(0.0))
+	Equal(t, test.Float64NoValue, float64(0.0))
 }
 
 func TestDecoderBool(t *testing.T) {
@@ -653,37 +677,67 @@ func TestDecoderErrors(t *testing.T) {
 	type TestError struct {
 		Bool                  bool `form:"bool"`
 		Int                   int
+		Int8                  int8
+		Int16                 int16
+		Int32                 int32
 		Uint                  uint
+		Uint8                 uint8
+		Uint16                uint16
+		Uint32                uint32
 		Float32               float32
+		Float64               float64
 		String                string
 		Time                  time.Time
 		MapBadIntKey          map[int]int
+		MapBadInt8Key         map[int8]int8
+		MapBadInt16Key        map[int16]int16
+		MapBadInt32Key        map[int32]int32
 		MapBadUintKey         map[uint]uint
-		MapBadFloatKey        map[float32]float32
+		MapBadUint8Key        map[uint8]uint8
+		MapBadUint16Key       map[uint16]uint16
+		MapBadUint32Key       map[uint32]uint32
+		MapBadFloat32Key      map[float32]float32
+		MapBadFloat64Key      map[float64]float64
 		MapBadBoolKey         map[bool]bool
 		MapBadKeyType         map[complex64]int
 		BadArrayValue         []int
 		BadMapKey             map[time.Time]string
 		OverflowNilArray      []int
 		OverFlowExistingArray []int
+		BadArrayIndex         []int
 	}
 
 	values := url.Values{
 		"bool":                       []string{"uh-huh"},
 		"Int":                        []string{"bad"},
+		"Int8":                       []string{"bad"},
+		"Int16":                      []string{"bad"},
+		"Int32":                      []string{"bad"},
 		"Uint":                       []string{"bad"},
+		"Uint8":                      []string{"bad"},
+		"Uint16":                     []string{"bad"},
+		"Uint32":                     []string{"bad"},
 		"Float32":                    []string{"bad"},
+		"Float64":                    []string{"bad"},
 		"String":                     []string{"str bad return val"},
 		"Time":                       []string{"bad"},
 		"MapBadIntKey[key]":          []string{"1"},
+		"MapBadInt8Key[key]":         []string{"1"},
+		"MapBadInt16Key[key]":        []string{"1"},
+		"MapBadInt32Key[key]":        []string{"1"},
 		"MapBadUintKey[key]":         []string{"1"},
-		"MapBadFloatKey[key]":        []string{"1.1"},
+		"MapBadUint8Key[key]":        []string{"1"},
+		"MapBadUint16Key[key]":       []string{"1"},
+		"MapBadUint32Key[key]":       []string{"1"},
+		"MapBadFloat32Key[key]":      []string{"1.1"},
+		"MapBadFloat64Key[key]":      []string{"1.1"},
 		"MapBadBoolKey[uh-huh]":      []string{"true"},
 		"MapBadKeyType[1.4]":         []string{"5"},
 		"BadArrayValue[0]":           []string{"badintval"},
 		"BadMapKey[badtime]":         []string{"badtime"},
 		"OverflowNilArray[999]":      []string{"idx 1000"},
 		"OverFlowExistingArray[999]": []string{"idx 1000"},
+		"BadArrayIndex[bad index]":   []string{"bad idx"},
 	}
 
 	test := TestError{
@@ -703,7 +757,7 @@ func TestDecoderErrors(t *testing.T) {
 	NotEqual(t, e, "")
 
 	err := errs.(DecodeErrors)
-	Equal(t, len(err), 15)
+	Equal(t, len(err), 30)
 
 	k := err["bool"]
 	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'bool'")
@@ -711,11 +765,32 @@ func TestDecoderErrors(t *testing.T) {
 	k = err["Int"]
 	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int' Namespace 'Int'")
 
+	k = err["Int8"]
+	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int8' Namespace 'Int8'")
+
+	k = err["Int16"]
+	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int16' Namespace 'Int16'")
+
+	k = err["Int32"]
+	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int32' Namespace 'Int32'")
+
 	k = err["Uint"]
 	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint' Namespace 'Uint'")
 
+	k = err["Uint8"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint8' Namespace 'Uint8'")
+
+	k = err["Uint16"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint16' Namespace 'Uint16'")
+
+	k = err["Uint32"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint32' Namespace 'Uint32'")
+
 	k = err["Float32"]
 	Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float32' Namespace 'Float32'")
+
+	k = err["Float64"]
+	Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float64' Namespace 'Float64'")
 
 	k = err["String"]
 	Equal(t, k.Error(), "Bad Type Conversion")
@@ -726,11 +801,32 @@ func TestDecoderErrors(t *testing.T) {
 	k = err["MapBadIntKey"]
 	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int' Namespace 'MapBadIntKey'")
 
+	k = err["MapBadInt8Key"]
+	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int8' Namespace 'MapBadInt8Key'")
+
+	k = err["MapBadInt16Key"]
+	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int16' Namespace 'MapBadInt16Key'")
+
+	k = err["MapBadInt32Key"]
+	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int32' Namespace 'MapBadInt32Key'")
+
 	k = err["MapBadUintKey"]
 	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint' Namespace 'MapBadUintKey'")
 
-	k = err["MapBadFloatKey"]
-	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloatKey'")
+	k = err["MapBadUint8Key"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint8' Namespace 'MapBadUint8Key'")
+
+	k = err["MapBadUint16Key"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint16' Namespace 'MapBadUint16Key'")
+
+	k = err["MapBadUint32Key"]
+	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint32' Namespace 'MapBadUint32Key'")
+
+	k = err["MapBadFloat32Key"]
+	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloat32Key'")
+
+	k = err["MapBadFloat64Key"]
+	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float64' Namespace 'MapBadFloat64Key'")
 
 	k = err["MapBadBoolKey"]
 	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'MapBadBoolKey'")
@@ -746,6 +842,9 @@ func TestDecoderErrors(t *testing.T) {
 
 	k = err["OverFlowExistingArray"]
 	Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
+
+	k = err["BadArrayIndex"]
+	Equal(t, k.Error(), "Invalid Array index 'bad index'")
 
 	type TestError2 struct {
 		BadMapKey map[time.Time]string
@@ -798,15 +897,29 @@ func TestDecoderPanics(t *testing.T) {
 func TestDecoderMapKeys(t *testing.T) {
 
 	type TestMapKeys struct {
-		MapIfaceKey  map[interface{}]string
-		MapFloatKey  map[float32]float32
-		MapNestedInt map[int]map[int]int
+		MapIfaceKey   map[interface{}]string
+		MapFloat32Key map[float32]float32
+		MapFloat64Key map[float64]float64
+		MapNestedInt  map[int]map[int]int
+		MapInt8       map[int8]int8
+		MapInt16      map[int16]int16
+		MapInt32      map[int32]int32
+		MapUint8      map[uint8]uint8
+		MapUint16     map[uint16]uint16
+		MapUint32     map[uint32]uint32
 	}
 
 	values := url.Values{
 		"MapIfaceKey[key]":   []string{"3"},
-		"MapFloatKey[0.0]":   []string{"3.3"},
+		"MapFloat32Key[0.0]": []string{"3.3"},
+		"MapFloat64Key[0.0]": []string{"3.3"},
 		"MapNestedInt[1][2]": []string{"3"},
+		"MapInt8[0]":         []string{"3"},
+		"MapInt16[0]":        []string{"3"},
+		"MapInt32[0]":        []string{"3"},
+		"MapUint8[0]":        []string{"3"},
+		"MapUint16[0]":       []string{"3"},
+		"MapUint32[0]":       []string{"3"},
 	}
 
 	var test TestMapKeys
@@ -815,7 +928,16 @@ func TestDecoderMapKeys(t *testing.T) {
 	errs := decoder.Decode(&test, values)
 	Equal(t, errs, nil)
 	Equal(t, test.MapIfaceKey["key"], "3")
-	Equal(t, test.MapFloatKey[float32(0.0)], float32(3.3))
+	Equal(t, test.MapFloat32Key[float32(0.0)], float32(3.3))
+	Equal(t, test.MapFloat64Key[float64(0.0)], float64(3.3))
+
+	Equal(t, test.MapInt8[int8(0)], int8(3))
+	Equal(t, test.MapInt16[int16(0)], int16(3))
+	Equal(t, test.MapInt32[int32(0)], int32(3))
+
+	Equal(t, test.MapUint8[uint8(0)], uint8(3))
+	Equal(t, test.MapUint16[uint16(0)], uint16(3))
+	Equal(t, test.MapUint32[uint32(0)], uint32(3))
 
 	Equal(t, len(test.MapNestedInt), 1)
 	Equal(t, len(test.MapNestedInt[1]), 1)
