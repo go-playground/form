@@ -61,11 +61,6 @@ func (d *decoder) parseMapData() {
 
 			switch k[i] {
 			case '[':
-
-				if insideBracket {
-					log.Panicf(errMissingEndBracket, k)
-				}
-
 				idx = i
 				insideBracket = true
 			case ']':
