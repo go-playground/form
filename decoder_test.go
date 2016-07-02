@@ -885,7 +885,9 @@ func TestDecoderPanics(t *testing.T) {
 	}
 
 	type TestError struct {
-		Phone []Phone
+		Phone  []Phone
+		Phone2 []Phone
+		Phone3 []Phone
 	}
 
 	values := url.Values{
@@ -896,10 +898,28 @@ func TestDecoderPanics(t *testing.T) {
 
 	decoder := NewDecoder()
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing bracket")
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
 
 	i := 1
 	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
+
+	values = url.Values{
+		"Phone0].Number": []string{"1(111)111-1111"},
+	}
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0].Number' missing '[' bracket")
+
+	values = url.Values{
+		"Phone[[0.Number": []string{"1(111)111-1111"},
+	}
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket")
+
+	values = url.Values{
+		"Phone0]].Number": []string{"1(111)111-1111"},
+	}
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket")
 }
 
 func TestDecoderMapKeys(t *testing.T) {

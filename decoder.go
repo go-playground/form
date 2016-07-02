@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	errArraySize = "Array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
+	errArraySize           = "Array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
+	errMissingStartBracket = "Invalid formatting for key '%s' missing '[' bracket"
+	errMissingEndBracket   = "Invalid formatting for key '%s' missing ']' bracket"
 )
 
 // TODO: test namespace as []byte, except when passing error to reduce allocations.
@@ -61,7 +63,7 @@ func (d *decoder) parseMapData() {
 			case '[':
 
 				if insideBracket {
-					log.Panicf("Invalid formatting for key '%s' missing bracket", k)
+					log.Panicf(errMissingEndBracket, k)
 				}
 
 				idx = i
@@ -69,7 +71,7 @@ func (d *decoder) parseMapData() {
 			case ']':
 
 				if !insideBracket {
-					log.Panicf("Invalid formatting for key '%s' missing bracket", k)
+					log.Panicf(errMissingStartBracket, k)
 				}
 
 				if rd, ok = d.dm[k[:idx]]; !ok {
@@ -107,7 +109,7 @@ func (d *decoder) parseMapData() {
 
 		// if still inside bracket, that means no ending bracket was ever specified
 		if insideBracket {
-			log.Panicf("Invalid formatting for key '%s' missing bracket", k)
+			log.Panicf(errMissingEndBracket, k)
 		}
 	}
 }
