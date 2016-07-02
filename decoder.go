@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -42,11 +41,13 @@ func (d *decoder) parseMapData() {
 	}
 
 	d.dm = make(dataMap)
+	var i int
 	var idx int
-	var idx2 int
-	var cum int
-	var cidx int
-	var cidx2 int
+	var idxP1 int
+	var insideBracket bool
+	var rd *recursiveData
+	var ok bool
+	var err error
 
 	for k := range d.values {
 
@@ -54,53 +55,59 @@ func (d *decoder) parseMapData() {
 			d.maxKeyLen = len(k)
 		}
 
-		idx, idx2, cum = 0, 0, 0
+		for i = 0; i < len(k); i++ {
 
-		for {
-			if idx = strings.Index(k[cum:], "["); idx == -1 {
-				break
-			}
+			switch k[i] {
+			case '[':
 
-			if idx2 = strings.Index(k[cum:], "]"); idx2 == -1 {
-				log.Panicf("Invalid formatting for key '%s' missing bracket", k)
-			}
-
-			var rd *recursiveData
-			var ok bool
-
-			cidx = cum + idx
-			cidx2 = cum + idx2
-
-			if rd, ok = d.dm[k[:cidx]]; !ok {
-				rd = d.d.keyPool.Get().(*recursiveData)
-				rd.keys = rd.keys[0:0]
-				d.dm[k[:cidx]] = rd
-			}
-
-			j, err := strconv.Atoi(k[cidx+1 : cidx2])
-
-			// is map + key
-			ke := key{
-				ivalue:      j,
-				value:       k[cidx+1 : cidx2],
-				searchValue: k[cidx : cidx2+1],
-			}
-
-			// only if no error otherwise not an index
-			if err == nil {
-
-				// may be slice
-
-				if j > rd.sliceLen {
-					rd.sliceLen = j
+				if insideBracket {
+					log.Panicf("Invalid formatting for key '%s' missing bracket", k)
 				}
-			} else {
-				ke.ivalue = -1
+
+				idx = i
+				insideBracket = true
+			case ']':
+
+				if !insideBracket {
+					log.Panicf("Invalid formatting for key '%s' missing bracket", k)
+				}
+
+				if rd, ok = d.dm[k[:idx]]; !ok {
+					rd = d.d.keyPool.Get().(*recursiveData)
+					rd.keys = rd.keys[0:0]
+					d.dm[k[:idx]] = rd
+				}
+
+				idxP1 = idx + 1
+
+				// is map + key
+				ke := key{
+					value:       k[idxP1:i],
+					searchValue: k[idx : i+1],
+				}
+
+				ke.ivalue, err = strconv.Atoi(k[idxP1:i])
+				// only if no error otherwise not an index
+				if err == nil {
+
+					// may be slice
+
+					if ke.ivalue > rd.sliceLen {
+						rd.sliceLen = ke.ivalue
+					}
+				} else {
+					ke.ivalue = -1
+				}
+
+				rd.keys = append(rd.keys, ke)
+
+				insideBracket = false
 			}
+		}
 
-			rd.keys = append(rd.keys, ke)
-
-			cum += idx2 + 1
+		// if still inside bracket, that means no ending bracket was ever specified
+		if insideBracket {
+			log.Panicf("Invalid formatting for key '%s' missing bracket", k)
 		}
 	}
 }
