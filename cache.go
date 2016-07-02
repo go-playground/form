@@ -19,11 +19,11 @@ type structCacheMap struct {
 	m    map[reflect.Type]cachedStruct
 }
 
-func (s *structCacheMap) Get(key reflect.Type) (cachedStruct, bool) {
+func (s *structCacheMap) Get(key reflect.Type) (value cachedStruct, ok bool) {
 	s.lock.RLock()
-	value, ok := s.m[key]
+	value, ok = s.m[key]
 	s.lock.RUnlock()
-	return value, ok
+	return
 }
 
 func (s *structCacheMap) Set(key reflect.Type, value cachedStruct) {

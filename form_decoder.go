@@ -95,7 +95,7 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
 
 	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 1)}
+	s := cachedStruct{fields: make([]cachedField, 0, 4)} // init 4, betting most structs decoding into have at aleast 4 fields.
 
 	numFields := current.NumField()
 

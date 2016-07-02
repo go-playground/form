@@ -14,6 +14,10 @@ const (
 	errArraySize = "Array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
 )
 
+// TODO: test namespace as []byte, except when passing error to reduce allocations.
+
+// TODO: try non pointer methods on decoder...it is a small struct and may be more efficient to copy than by ref
+// possibly even remove and pass arount all values as params
 type decoder struct {
 	d         *Decoder
 	errs      DecodeErrors
@@ -577,7 +581,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace string)
 
 	if d.d.customTypeFuncs != nil {
 		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
-			val, er := cf([]string{key})
+			val, er := cf([]string{key}) // TODO: []string escapes to heap, possible reuseable []string
 			if er != nil {
 				err = er
 				return
