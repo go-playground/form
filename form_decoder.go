@@ -146,7 +146,7 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 		panic("interface must be a pointer to a struct")
 	}
 
-	dec.traverseStruct(val, "")
+	dec.traverseStruct(val, make([]byte, 0, 64))
 
 	for _, v := range dec.dm {
 		d.keyPool.Put(v)
