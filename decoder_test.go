@@ -2,7 +2,6 @@ package form
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"testing"
 	"time"
@@ -668,7 +667,6 @@ func TestDecoderNativeTime(t *testing.T) {
 
 	decoder := NewDecoder()
 
-	fmt.Println("decoding")
 	errs := decoder.Decode(&test, values)
 	Equal(t, errs, nil)
 
