@@ -15,8 +15,6 @@ const (
 	errMissingEndBracket   = "Invalid formatting for key '%s' missing ']' bracket"
 )
 
-// TODO: test namespace as []byte, except when passing error to reduce allocations.
-
 type decoder struct {
 	d         *Decoder
 	errs      DecodeErrors
@@ -48,7 +46,6 @@ func (d *decoder) parseMapData() {
 	var rd *recursiveData
 	var ok bool
 	var isNum bool
-	var err error
 
 	for k := range d.values {
 
@@ -88,14 +85,14 @@ func (d *decoder) parseMapData() {
 				// is key is number, most liekely array key, keep track of just in case an array/slice.
 				if isNum {
 
-					if ke.ivalue, err = strconv.Atoi(ke.value); err != nil {
-						ke.ivalue = -1
-					} else {
+					// no need to check for error, it will always pass
+					// as we have done the checking to ensure
+					// the value is a number ahead of time.
+					ke.ivalue, _ = strconv.Atoi(ke.value)
 
-						if ke.ivalue > rd.sliceLen {
-							rd.sliceLen = ke.ivalue
+					if ke.ivalue > rd.sliceLen {
+						rd.sliceLen = ke.ivalue
 
-						}
 					}
 				}
 
@@ -593,7 +590,8 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace string)
 
 	if d.d.customTypeFuncs != nil {
 		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
-			val, er := cf([]string{key}) // TODO: []string escapes to heap, possible reuseable []string
+
+			val, er := cf([]string{key})
 			if er != nil {
 				err = er
 				return
