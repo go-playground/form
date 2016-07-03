@@ -7,7 +7,7 @@ import (
 
 const (
 	blank              = ""
-	namespaceSeparator = "."
+	namespaceSeparator = '.'
 	ignore             = "-"
 	fieldNS            = "Field Namespace:"
 	errorText          = " ERROR:"

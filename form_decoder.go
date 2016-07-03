@@ -95,7 +95,7 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
 
 	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 1)}
+	s := cachedStruct{fields: make([]cachedField, 0, 4)} // init 4, betting most structs decoding into have at aleast 4 fields.
 
 	numFields := current.NumField()
 
@@ -146,7 +146,7 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 		panic("interface must be a pointer to a struct")
 	}
 
-	dec.traverseStruct(val, "")
+	dec.traverseStruct(val, make([]byte, 0, 64))
 
 	for _, v := range dec.dm {
 		d.keyPool.Put(v)

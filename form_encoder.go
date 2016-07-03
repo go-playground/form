@@ -75,7 +75,7 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 		panic("interface must be a struct, pointer to a struct or interface containing one of the aforementioned")
 	}
 
-	enc.traverseStruct(val, "", -1)
+	enc.traverseStruct(val, make([]byte, 0, 64), -1)
 
 	if len(enc.errs) == 0 {
 		return enc.values, nil
@@ -87,7 +87,7 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 func (e *Encoder) parseStruct(current reflect.Value) cachedStruct {
 
 	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 1)}
+	s := cachedStruct{fields: make([]cachedField, 0, 4)}
 
 	numFields := current.NumField()
 

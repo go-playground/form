@@ -2,7 +2,6 @@ package form
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"testing"
 	"time"
@@ -668,7 +667,6 @@ func TestDecoderNativeTime(t *testing.T) {
 
 	decoder := NewDecoder()
 
-	fmt.Println("decoding")
 	errs := decoder.Decode(&test, values)
 	Equal(t, errs, nil)
 
@@ -885,7 +883,9 @@ func TestDecoderPanics(t *testing.T) {
 	}
 
 	type TestError struct {
-		Phone []Phone
+		Phone  []Phone
+		Phone2 []Phone
+		Phone3 []Phone
 	}
 
 	values := url.Values{
@@ -896,10 +896,28 @@ func TestDecoderPanics(t *testing.T) {
 
 	decoder := NewDecoder()
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing bracket")
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
 
 	i := 1
 	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
+
+	values = url.Values{
+		"Phone0].Number": []string{"1(111)111-1111"},
+	}
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0].Number' missing '[' bracket")
+
+	values = url.Values{
+		"Phone[[0.Number": []string{"1(111)111-1111"},
+	}
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket")
+
+	values = url.Values{
+		"Phone0]].Number": []string{"1(111)111-1111"},
+	}
+
+	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket")
 }
 
 func TestDecoderMapKeys(t *testing.T) {
@@ -1008,4 +1026,28 @@ func TestDecoderFormDecode(t *testing.T) {
 	err = fd.Decode(&dst2, singleValues)
 	Equal(t, err, nil)
 	Equal(t, dst2.Foo, "foo-is-set")
+}
+
+func TestDecoderArrayKeysSort(t *testing.T) {
+
+	type Struct struct {
+		Array []int
+	}
+
+	values := map[string][]string{
+
+		"Array[2]":  {"2"},
+		"Array[10]": {"10"},
+	}
+
+	var test Struct
+
+	d := NewDecoder()
+
+	err := d.Decode(&test, values)
+	Equal(t, err, nil)
+
+	Equal(t, len(test.Array), 11)
+	Equal(t, test.Array[2], int(2))
+	Equal(t, test.Array[10], int(10))
 }
