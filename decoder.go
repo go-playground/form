@@ -38,7 +38,7 @@ func (d *decoder) parseMapData() {
 		return
 	}
 
-	d.dm = make(dataMap)
+	d.dm = dataMap{}
 	var i int
 	var idx int
 	var idxP1 int
@@ -117,7 +117,6 @@ func (d *decoder) parseMapData() {
 func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 
 	typ := v.Type()
-	// var nn []byte // new namespace
 	l := len(namespace)
 	first := l == 0
 

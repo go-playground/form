@@ -37,7 +37,6 @@ func (e *encoder) setVal(namespace []byte, idx int, vals ...string) {
 func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 
 	typ := v.Type()
-	// var nn []byte // new namespace
 	l := len(namespace)
 	first := l == 0
 
@@ -72,7 +71,6 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 			} else {
 				namespace = append(namespace, namespaceSeparator)
 				namespace = append(namespace, key...)
-				// nn = namespace + namespaceSeparator + key
 			}
 
 			e.setFieldByType(v.Field(i), namespace, idx)
@@ -93,7 +91,6 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 			} else {
 				namespace = append(namespace, namespaceSeparator)
 				namespace = append(namespace, f.name...)
-				// nn = namespace + namespaceSeparator + f.name
 			}
 
 			e.setFieldByType(v.Field(f.idx), namespace, idx)
@@ -109,7 +106,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		namespace = append(namespace, '[')
 		namespace = strconv.AppendInt(namespace, int64(idx), 10)
 		namespace = append(namespace, ']')
-		// namespace += "[" + strconv.Itoa(idx) + "]"
 		idx = -2
 	}
 
@@ -129,7 +125,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				namespace = append(namespace, '[')
 				namespace = strconv.AppendInt(namespace, int64(idx), 10)
 				namespace = append(namespace, ']')
-				// namespace += "[" + strconv.Itoa(idx) + "]"
 			}
 
 			e.setVal(namespace, idx, arr...)
@@ -180,7 +175,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = append(namespace, '[')
 			namespace = strconv.AppendInt(namespace, int64(idx), 10)
 			namespace = append(namespace, ']')
-			// namespace += "[" + strconv.Itoa(idx) + "]"
 		}
 
 		namespace = append(namespace, '[')
@@ -199,7 +193,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = append(namespace, '[')
 			namespace = strconv.AppendInt(namespace, int64(idx), 10)
 			namespace = append(namespace, ']')
-			// namespace += "[" + strconv.Itoa(idx) + "]"
 		}
 
 		var valid bool
@@ -217,7 +210,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = append(namespace, '[')
 			namespace = append(namespace, s...)
 			namespace = append(namespace, ']')
-			// nn=strconv.AppendInt(namespace, int64(idx), 10)
 
 			e.setFieldByType(current.MapIndex(key), namespace, -2)
 		}
@@ -231,7 +223,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				namespace = append(namespace, '[')
 				namespace = strconv.AppendInt(namespace, int64(idx), 10)
 				namespace = append(namespace, ']')
-				// namespace += "[" + strconv.Itoa(idx) + "]"
 			}
 
 			e.setVal(namespace, idx, v.Interface().(time.Time).Format(time.RFC3339))
@@ -247,7 +238,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = append(namespace, '[')
 			namespace = strconv.AppendInt(namespace, int64(idx), 10)
 			namespace = append(namespace, ']')
-			// namespace += "[" + strconv.Itoa(idx) + "]"
 		}
 
 		e.traverseStruct(v, namespace, -2)

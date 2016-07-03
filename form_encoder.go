@@ -87,7 +87,7 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 func (e *Encoder) parseStruct(current reflect.Value) cachedStruct {
 
 	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 1)}
+	s := cachedStruct{fields: make([]cachedField, 0, 4)}
 
 	numFields := current.NumField()
 
