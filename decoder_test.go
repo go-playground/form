@@ -1029,3 +1029,27 @@ func TestDecoderFormDecode(t *testing.T) {
 	Equal(t, err, nil)
 	Equal(t, dst2.Foo, "foo-is-set")
 }
+
+func TestDecoderArrayKeysSort(t *testing.T) {
+
+	type Struct struct {
+		Array []int
+	}
+
+	values := map[string][]string{
+
+		"Array[2]":  {"2"},
+		"Array[10]": {"10"},
+	}
+
+	var test Struct
+
+	d := NewDecoder()
+
+	err := d.Decode(&test, values)
+	Equal(t, err, nil)
+
+	Equal(t, len(test.Array), 11)
+	Equal(t, test.Array[2], int(2))
+	Equal(t, test.Array[10], int(10))
+}

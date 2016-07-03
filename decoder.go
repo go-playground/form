@@ -17,8 +17,6 @@ const (
 
 // TODO: test namespace as []byte, except when passing error to reduce allocations.
 
-// TODO: try non pointer methods on decoder...it is a small struct and may be more efficient to copy than by ref
-// possibly even remove and pass arount all values as params
 type decoder struct {
 	d         *Decoder
 	errs      DecodeErrors
@@ -49,6 +47,7 @@ func (d *decoder) parseMapData() {
 	var insideBracket bool
 	var rd *recursiveData
 	var ok bool
+	var isNum bool
 	var err error
 
 	for k := range d.values {
@@ -63,6 +62,7 @@ func (d *decoder) parseMapData() {
 			case '[':
 				idx = i
 				insideBracket = true
+				isNum = true
 			case ']':
 
 				if !insideBracket {
@@ -71,6 +71,7 @@ func (d *decoder) parseMapData() {
 
 				if rd, ok = d.dm[k[:idx]]; !ok {
 					rd = d.d.keyPool.Get().(*recursiveData)
+					rd.sliceLen = 0
 					rd.keys = rd.keys[0:0]
 					d.dm[k[:idx]] = rd
 				}
@@ -79,26 +80,33 @@ func (d *decoder) parseMapData() {
 
 				// is map + key
 				ke := key{
+					ivalue:      -1,
 					value:       k[idxP1:i],
 					searchValue: k[idx : i+1],
 				}
 
-				ke.ivalue, err = strconv.Atoi(k[idxP1:i])
-				// only if no error otherwise not an index
-				if err == nil {
+				// is key is number, most liekely array key, keep track of just in case an array/slice.
+				if isNum {
 
-					// may be slice
+					if ke.ivalue, err = strconv.Atoi(ke.value); err != nil {
+						ke.ivalue = -1
+					} else {
 
-					if ke.ivalue > rd.sliceLen {
-						rd.sliceLen = ke.ivalue
+						if ke.ivalue > rd.sliceLen {
+							rd.sliceLen = ke.ivalue
+
+						}
 					}
-				} else {
-					ke.ivalue = -1
 				}
 
 				rd.keys = append(rd.keys, ke)
 
 				insideBracket = false
+			default:
+				// checking if not a number, 0-9 is 48-57 in byte, see for yourself fmt.Println('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+				if insideBracket && (k[i] > 57 || k[i] < 48) {
+					isNum = false
+				}
 			}
 		}
 
@@ -407,7 +415,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace string, idx in
 
 				// checking below for maxArraySize, but if array exists and already
 				// has sufficient capacity allocated then we do not check as the code
-				// obviously allows that capacity.
+				// obviously allows a capacity greater than the maxArraySize.
 
 				if v.IsNil() {
 
