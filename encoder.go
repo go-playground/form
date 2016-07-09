@@ -79,7 +79,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 	} else {
 		s, ok := e.e.structCache.Get(typ)
 		if !ok {
-			s = e.e.parseStruct(v, typ)
+			s = e.e.structCache.parseStruct(v, typ, e.e.tagName)
 		}
 
 		for _, f := range s.fields {

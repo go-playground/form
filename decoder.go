@@ -162,7 +162,7 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 
 		s, ok := d.d.structCache.Get(typ)
 		if !ok {
-			s = d.d.parseStruct(v, typ)
+			s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
 		}
 
 		for _, f := range s.fields {

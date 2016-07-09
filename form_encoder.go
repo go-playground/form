@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
-	"sync"
 )
 
 // EncodeCustomTypeFunc allows for registering/overriding types to be parsed.
@@ -31,20 +30,16 @@ func (e EncodeErrors) Error() string {
 // Encoder is the main encode instance
 type Encoder struct {
 	tagName         string
-	structCache     structCacheMap
+	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
-	cacheLock       sync.Mutex
 }
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
 
-	sc := structCacheMap{}
-	sc.m.Store(map[reflect.Type]*cachedStruct{})
-
 	return &Encoder{
 		tagName:     "form",
-		structCache: sc,
+		structCache: newStructCacheMap(),
 	}
 }
 
@@ -88,50 +83,4 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 	}
 
 	return enc.values, enc.errs
-}
-
-func (e *Encoder) parseStruct(current reflect.Value, key reflect.Type) *cachedStruct {
-
-	e.cacheLock.Lock()
-
-	// could have been multiple trying to access, but once first is done this ensures struct
-	// isn;t parsed again.
-	s, ok := e.structCache.Get(key)
-	if ok {
-		e.cacheLock.Unlock()
-		return s
-	}
-
-	typ := current.Type()
-	s = &cachedStruct{fields: make([]cachedField, 0, 4)}
-
-	numFields := current.NumField()
-
-	var fld reflect.StructField
-	var name string
-
-	for i := 0; i < numFields; i++ {
-
-		fld = typ.Field(i)
-
-		if fld.PkgPath != blank && !fld.Anonymous {
-			continue
-		}
-
-		if name = fld.Tag.Get(e.tagName); name == ignore {
-			continue
-		}
-
-		if len(name) == 0 {
-			name = fld.Name
-		}
-
-		s.fields = append(s.fields, cachedField{idx: i, name: name})
-	}
-
-	e.structCache.Set(typ, s)
-
-	e.cacheLock.Unlock()
-
-	return s
 }
