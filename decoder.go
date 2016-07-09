@@ -134,7 +134,8 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 			namespace = namespace[:l]
 			fld = typ.Field(i)
 
-			if fld.PkgPath != blank && !fld.Anonymous {
+			// if unexposed field
+			if !fld.Anonymous && fld.PkgPath != blank {
 				continue
 			}
 
