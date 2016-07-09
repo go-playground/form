@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 // EncodeCustomTypeFunc allows for registering/overriding types to be parsed.
@@ -32,13 +33,18 @@ type Encoder struct {
 	tagName         string
 	structCache     structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
+	cacheLock       sync.Mutex
 }
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
+
+	sc := structCacheMap{}
+	sc.m.Store(map[reflect.Type]*cachedStruct{})
+
 	return &Encoder{
 		tagName:     "form",
-		structCache: structCacheMap{m: map[reflect.Type]cachedStruct{}},
+		structCache: sc,
 	}
 }
 
@@ -84,10 +90,20 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 	return enc.values, enc.errs
 }
 
-func (e *Encoder) parseStruct(current reflect.Value) cachedStruct {
+func (e *Encoder) parseStruct(current reflect.Value, key reflect.Type) *cachedStruct {
+
+	e.cacheLock.Lock()
+
+	// could have been multiple trying to access, but once first is done this ensures struct
+	// isn;t parsed again.
+	s, ok := e.structCache.Get(key)
+	if ok {
+		e.cacheLock.Unlock()
+		return s
+	}
 
 	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 4)}
+	s = &cachedStruct{fields: make([]cachedField, 0, 4)}
 
 	numFields := current.NumField()
 
@@ -114,6 +130,8 @@ func (e *Encoder) parseStruct(current reflect.Value) cachedStruct {
 	}
 
 	e.structCache.Set(typ, s)
+
+	e.cacheLock.Unlock()
 
 	return s
 }

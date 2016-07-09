@@ -48,13 +48,18 @@ type Decoder struct {
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 	maxArraySize    int
 	keyPool         *sync.Pool
+	cacheLock       sync.Mutex
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
 func NewDecoder() *Decoder {
+
+	sc := structCacheMap{}
+	sc.m.Store(map[reflect.Type]*cachedStruct{})
+
 	return &Decoder{
 		tagName:      "form",
-		structCache:  structCacheMap{m: map[reflect.Type]cachedStruct{}},
+		structCache:  sc,
 		maxArraySize: 10000,
 		keyPool: &sync.Pool{New: func() interface{} {
 			return &recursiveData{
@@ -92,10 +97,20 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 	}
 }
 
-func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
+func (d *Decoder) parseStruct(current reflect.Value, key reflect.Type) *cachedStruct {
+
+	d.cacheLock.Lock()
+
+	// could have been multiple trying to access, but once first is done this ensures struct
+	// isn;t parsed again.
+	s, ok := d.structCache.Get(key)
+	if ok {
+		d.cacheLock.Unlock()
+		return s
+	}
 
 	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 4)} // init 4, betting most structs decoding into have at aleast 4 fields.
+	s = &cachedStruct{fields: make([]cachedField, 0, 4)} // init 4, betting most structs decoding into have at aleast 4 fields.
 
 	numFields := current.NumField()
 
@@ -122,6 +137,8 @@ func (d *Decoder) parseStruct(current reflect.Value) cachedStruct {
 	}
 
 	d.structCache.Set(typ, s)
+
+	d.cacheLock.Unlock()
 
 	return s
 }

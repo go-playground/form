@@ -2,7 +2,7 @@ package form
 
 import (
 	"reflect"
-	"sync"
+	"sync/atomic"
 )
 
 type cachedField struct {
@@ -15,19 +15,22 @@ type cachedStruct struct {
 }
 
 type structCacheMap struct {
-	lock sync.RWMutex
-	m    map[reflect.Type]cachedStruct
+	m atomic.Value // map[reflect.Type]*cachedStruct
 }
 
-func (s *structCacheMap) Get(key reflect.Type) (value cachedStruct, ok bool) {
-	s.lock.RLock()
-	value, ok = s.m[key]
-	s.lock.RUnlock()
+func (s *structCacheMap) Get(key reflect.Type) (value *cachedStruct, ok bool) {
+	value, ok = s.m.Load().(map[reflect.Type]*cachedStruct)[key]
 	return
 }
 
-func (s *structCacheMap) Set(key reflect.Type, value cachedStruct) {
-	s.lock.Lock()
-	s.m[key] = value
-	s.lock.Unlock()
+func (s *structCacheMap) Set(key reflect.Type, value *cachedStruct) {
+
+	m := s.m.Load().(map[reflect.Type]*cachedStruct)
+
+	nm := make(map[reflect.Type]*cachedStruct, len(m)+1)
+	for k, v := range m {
+		nm[k] = v
+	}
+	nm[key] = value
+	s.m.Store(nm)
 }
