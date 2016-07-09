@@ -82,7 +82,7 @@ func (d *decoder) parseMapData() {
 					searchValue: k[idx : i+1],
 				}
 
-				// is key is number, most liekely array key, keep track of just in case an array/slice.
+				// is key is number, most likely array key, keep track of just in case an array/slice.
 				if isNum {
 
 					// no need to check for error, it will always pass
