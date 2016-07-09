@@ -49,7 +49,7 @@ func (s *structCacheMap) parseStruct(current reflect.Value, key reflect.Type, ta
 	s.lock.Lock()
 
 	// could have been multiple trying to access, but once first is done this ensures struct
-	// isn;t parsed again.
+	// isn't parsed again.
 	cs, ok := s.Get(key)
 	if ok {
 		s.lock.Unlock()

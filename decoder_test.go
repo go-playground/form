@@ -1070,7 +1070,7 @@ func TestDecoderMultipleSimultaniousParseStructRequests(t *testing.T) {
 
 	d := NewDecoder()
 
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 1000; i++ {
 		go func() {
 			<-proceed
 			err := d.Decode(&test, values)
