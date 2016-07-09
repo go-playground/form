@@ -30,15 +30,16 @@ func (e EncodeErrors) Error() string {
 // Encoder is the main encode instance
 type Encoder struct {
 	tagName         string
-	structCache     structCacheMap
+	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
 }
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
+
 	return &Encoder{
 		tagName:     "form",
-		structCache: structCacheMap{m: map[reflect.Type]cachedStruct{}},
+		structCache: newStructCacheMap(),
 	}
 }
 
@@ -82,38 +83,4 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 	}
 
 	return enc.values, enc.errs
-}
-
-func (e *Encoder) parseStruct(current reflect.Value) cachedStruct {
-
-	typ := current.Type()
-	s := cachedStruct{fields: make([]cachedField, 0, 4)}
-
-	numFields := current.NumField()
-
-	var fld reflect.StructField
-	var name string
-
-	for i := 0; i < numFields; i++ {
-
-		fld = typ.Field(i)
-
-		if fld.PkgPath != blank && !fld.Anonymous {
-			continue
-		}
-
-		if name = fld.Tag.Get(e.tagName); name == ignore {
-			continue
-		}
-
-		if len(name) == 0 {
-			name = fld.Name
-		}
-
-		s.fields = append(s.fields, cachedField{idx: i, name: name})
-	}
-
-	e.structCache.Set(typ, s)
-
-	return s
 }

@@ -1,7 +1,7 @@
 Package form
 ============
 <img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">
-![Project status](https://img.shields.io/badge/version-1.8.0-green.svg)
+![Project status](https://img.shields.io/badge/version-1.9.0-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
@@ -268,26 +268,26 @@ NOTE: the 1 allocation and B/op in the first 4 decodes is actually the struct al
 go test -bench=. -benchmem=true
 
 PASS
-BenchmarkSimpleUserDecodeStruct-8                                 	 5000000	       319 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserDecodeStructParallel-8                         	20000000	       116 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserEncodeStruct-8                                 	 1000000	      1015 ns/op	     549 B/op	      12 allocs/op
-BenchmarkSimpleUserEncodeStructParallel-8                         	 5000000	       411 ns/op	     549 B/op	      12 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8               	 1000000	      1038 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8       	 5000000	       368 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8               	  200000	      5014 ns/op	    3073 B/op	      47 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8       	 1000000	      1973 ns/op	    3072 B/op	      47 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypes-8                       	  100000	     17656 ns/op	    2515 B/op	     123 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypesParallel-8               	  300000	      5801 ns/op	    2518 B/op	     123 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypes-8                       	  100000	     16318 ns/op	    7351 B/op	     147 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypesParallel-8               	  300000	      5955 ns/op	    7351 B/op	     147 allocs/op
-BenchmarkComplexMapDecodeStructAllTypes-8                         	   50000	     25196 ns/op	    7089 B/op	     135 allocs/op
-BenchmarkComplexMapDecodeStructAllTypesParallel-8                 	  200000	      9443 ns/op	    7123 B/op	     135 allocs/op
-BenchmarkComplexMapEncodeStructAllTypes-8                         	  100000	     17061 ns/op	    7162 B/op	     176 allocs/op
-BenchmarkComplexMapEncodeStructAllTypesParallel-8                 	  300000	      6375 ns/op	    7160 B/op	     176 allocs/op
-BenchmarkDecodeNestedStruct-8                                     	  300000	      4102 ns/op	     640 B/op	      16 allocs/op
-BenchmarkDecodeNestedStructParallel-8                             	 1000000	      1399 ns/op	     640 B/op	      16 allocs/op
-BenchmarkEncodeNestedStruct-8                                     	  500000	      2440 ns/op	     768 B/op	      17 allocs/op
-BenchmarkEncodeNestedStructParallel-8                             	 2000000	      1045 ns/op	     768 B/op	      17 allocs/op
+BenchmarkSimpleUserDecodeStruct-8                          	 5000000	       308 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserDecodeStructParallel-8                  	20000000	        94.8 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserEncodeStruct-8                          	 2000000	       989 ns/op	     549 B/op	      12 allocs/op
+BenchmarkSimpleUserEncodeStructParallel-8                  	 5000000	       332 ns/op	     549 B/op	      12 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8        	 1000000	      1004 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8	 5000000	       291 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8        	  300000	      4771 ns/op	    3073 B/op	      47 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8	 1000000	      1575 ns/op	    3073 B/op	      47 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypes-8                	  100000	     17087 ns/op	    2513 B/op	     123 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesParallel-8        	  300000	      5020 ns/op	    2518 B/op	     123 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypes-8                	  100000	     16219 ns/op	    7350 B/op	     147 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallel-8        	  300000	      4961 ns/op	    7351 B/op	     147 allocs/op
+BenchmarkComplexMapDecodeStructAllTypes-8                  	   50000	     24898 ns/op	    7088 B/op	     135 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallel-8          	  200000	      7771 ns/op	    7121 B/op	     135 allocs/op
+BenchmarkComplexMapEncodeStructAllTypes-8                  	  100000	     16885 ns/op	    7159 B/op	     176 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallel-8          	  300000	      5851 ns/op	    7161 B/op	     176 allocs/op
+BenchmarkDecodeNestedStruct-8                              	  300000	      3848 ns/op	     640 B/op	      16 allocs/op
+BenchmarkDecodeNestedStructParallel-8                      	 1000000	      1325 ns/op	     640 B/op	      16 allocs/op
+BenchmarkEncodeNestedStruct-8                              	  500000	      2319 ns/op	     768 B/op	      17 allocs/op
+BenchmarkEncodeNestedStructParallel-8                      	 2000000	       874 ns/op	     768 B/op	      17 allocs/op
 ```
 
 Competitor benchmarks can be found [here](https://github.com/go-playground/form/blob/master/benchmarks/benchmarks.md)

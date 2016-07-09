@@ -134,7 +134,8 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 			namespace = namespace[:l]
 			fld = typ.Field(i)
 
-			if fld.PkgPath != blank && !fld.Anonymous {
+			// if unexposed field
+			if !fld.Anonymous && fld.PkgPath != blank {
 				continue
 			}
 
@@ -159,9 +160,10 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 
 		}
 	} else {
+
 		s, ok := d.d.structCache.Get(typ)
 		if !ok {
-			s = d.d.parseStruct(v)
+			s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
 		}
 
 		for _, f := range s.fields {
