@@ -1051,3 +1051,35 @@ func TestDecoderArrayKeysSort(t *testing.T) {
 	Equal(t, test.Array[2], int(2))
 	Equal(t, test.Array[10], int(10))
 }
+
+func TestDecoderIncreasingKeys(t *testing.T) {
+
+	type Struct struct {
+		Array []int
+	}
+
+	values := map[string][]string{
+		"Array[2]": {"2"},
+	}
+
+	var test Struct
+
+	d := NewDecoder()
+
+	err := d.Decode(&test, values)
+	Equal(t, err, nil)
+
+	Equal(t, len(test.Array), 3)
+	Equal(t, test.Array[2], int(2))
+
+	values["Array[10]"] = []string{"10"}
+
+	var test2 Struct
+
+	err = d.Decode(&test2, values)
+	Equal(t, err, nil)
+
+	Equal(t, len(test2.Array), 11)
+	Equal(t, test2.Array[2], int(2))
+	Equal(t, test2.Array[10], int(10))
+}
