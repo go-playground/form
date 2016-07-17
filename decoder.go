@@ -34,6 +34,7 @@ func (d *decoder) setError(namespace []byte, err error) {
 func (d *decoder) findAlias(ns string) *recursiveData {
 
 	for i := 0; i < len(d.dm); i++ {
+
 		if d.dm[i].alias == ns {
 			return d.dm[i]
 		}
@@ -49,13 +50,12 @@ func (d *decoder) parseMapData() {
 		return
 	}
 
-	d.dm = d.d.keyPool.Get().(dataMap)[0:0]
+	d.dm = d.d.dataPool.Get().(dataMap)[0:0]
 	var i int
 	var idx int
 	var l int
 	var insideBracket bool
 	var rd *recursiveData
-	// var ok bool
 	var isNum bool
 
 	for k := range d.values {
@@ -77,38 +77,26 @@ func (d *decoder) parseMapData() {
 					log.Panicf(errMissingStartBracket, k)
 				}
 
-				// if rd, ok = d.dm[k[:idx]]; !ok {
 				if rd = d.findAlias(k[:idx]); rd == nil {
 
 					l = len(d.dm) + 1
 
-					// fmt.Println(l, cap(d.dm))
 					if l > cap(d.dm) {
 						dm := make(dataMap, l, l)
 						copy(dm, d.dm)
 						rd = new(recursiveData)
 						dm[len(d.dm)] = rd
 						d.dm = dm
-						// fmt.Println(dm)
 					} else {
 						l = len(d.dm)
 						d.dm = d.dm[:l+1]
-						// fmt.Println(d.dm)
 						rd = d.dm[l]
 						rd.sliceLen = 0
 						rd.keys = rd.keys[0:0]
 					}
 
 					rd.alias = k[:idx]
-					// rd = new(recursiveData)
-					// rd = d.d.keyPool.Get().(*recursiveData)
-					// rd.sliceLen = 0
-					// rd.keys = rd.keys[0:0]
-					// d.dm[k[:idx]] = rd
-					// d.dm = append(d.dm, rd)
 				}
-
-				// idxP1 = idx + 1
 
 				// is map + key
 				ke := key{
@@ -446,7 +434,6 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 			// maybe it's an numbered array i.e. Phone[0].Number
 			if rd := d.findAlias(string(namespace)); rd != nil {
-				// if rd := d.dm[string(namespace)]; rd != nil {
 
 				var varr reflect.Value
 				var kv key
@@ -555,7 +542,6 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		d.parseMapData()
 
 		// no natural map support so skip directly to dm lookup
-		// if rd = d.dm[string(namespace)]; rd == nil {
 		if rd = d.findAlias(string(namespace)); rd == nil {
 			return
 		}
