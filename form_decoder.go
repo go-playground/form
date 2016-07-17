@@ -35,11 +35,12 @@ type key struct {
 }
 
 type recursiveData struct {
+	alias    string
 	sliceLen int
 	keys     []key
 }
 
-type dataMap map[string]*recursiveData
+type dataMap []*recursiveData
 
 // Decoder is the main decode instance
 type Decoder struct {
@@ -47,7 +48,7 @@ type Decoder struct {
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 	maxArraySize    int
-	keyPool         *sync.Pool
+	dataPool        *sync.Pool
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
@@ -57,10 +58,8 @@ func NewDecoder() *Decoder {
 		tagName:      "form",
 		structCache:  newStructCacheMap(),
 		maxArraySize: 10000,
-		keyPool: &sync.Pool{New: func() interface{} {
-			return &recursiveData{
-				keys: make([]key, 0, 8), // initializing with initial capacity of 8 to avoid too many reallocations of the underlying array
-			}
+		dataPool: &sync.Pool{New: func() interface{} {
+			return make(dataMap, 0, 0)
 		}},
 	}
 }
@@ -115,8 +114,8 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	dec.traverseStruct(val, make([]byte, 0, 64))
 
-	for _, v := range dec.dm {
-		d.keyPool.Put(v)
+	if len(dec.dm) > 0 {
+		d.dataPool.Put(dec.dm)
 	}
 
 	if len(dec.errs) == 0 {

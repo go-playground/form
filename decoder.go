@@ -31,20 +31,31 @@ func (d *decoder) setError(namespace []byte, err error) {
 	d.errs[string(namespace)] = err
 }
 
+func (d *decoder) findAlias(ns string) *recursiveData {
+
+	for i := 0; i < len(d.dm); i++ {
+
+		if d.dm[i].alias == ns {
+			return d.dm[i]
+		}
+	}
+
+	return nil
+}
+
 func (d *decoder) parseMapData() {
 
 	// already parsed
-	if d.dm != nil {
+	if len(d.dm) != 0 {
 		return
 	}
 
-	d.dm = dataMap{}
+	d.dm = d.d.dataPool.Get().(dataMap)[0:0]
 	var i int
 	var idx int
-	var idxP1 int
+	var l int
 	var insideBracket bool
 	var rd *recursiveData
-	var ok bool
 	var isNum bool
 
 	for k := range d.values {
@@ -66,19 +77,31 @@ func (d *decoder) parseMapData() {
 					log.Panicf(errMissingStartBracket, k)
 				}
 
-				if rd, ok = d.dm[k[:idx]]; !ok {
-					rd = d.d.keyPool.Get().(*recursiveData)
-					rd.sliceLen = 0
-					rd.keys = rd.keys[0:0]
-					d.dm[k[:idx]] = rd
-				}
+				if rd = d.findAlias(k[:idx]); rd == nil {
 
-				idxP1 = idx + 1
+					l = len(d.dm) + 1
+
+					if l > cap(d.dm) {
+						dm := make(dataMap, l, l)
+						copy(dm, d.dm)
+						rd = new(recursiveData)
+						dm[len(d.dm)] = rd
+						d.dm = dm
+					} else {
+						l = len(d.dm)
+						d.dm = d.dm[:l+1]
+						rd = d.dm[l]
+						rd.sliceLen = 0
+						rd.keys = rd.keys[0:0]
+					}
+
+					rd.alias = k[:idx]
+				}
 
 				// is map + key
 				ke := key{
 					ivalue:      -1,
-					value:       k[idxP1:i],
+					value:       k[idx+1 : i],
 					searchValue: k[idx : i+1],
 				}
 
@@ -120,66 +143,26 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 	l := len(namespace)
 	first := l == 0
 
-	// is anonymous struct, cannot parse or cache as
-	// it has no name to index by and potentially a
-	// dynamic value
-	if len(typ.Name()) == 0 {
+	// anonymous structs will still work for caching as the whole definition is stored
+	// including tags
+	s, ok := d.d.structCache.Get(typ)
+	if !ok {
+		s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
+	}
 
-		numFields := v.NumField()
-		var fld reflect.StructField
-		var key string
+	for _, f := range s.fields {
 
-		for i := 0; i < numFields; i++ {
+		namespace = namespace[:l]
 
-			namespace = namespace[:l]
-			fld = typ.Field(i)
-
-			// if unexposed field
-			if !fld.Anonymous && fld.PkgPath != blank {
-				continue
-			}
-
-			if key = fld.Tag.Get(d.d.tagName); key == ignore {
-				continue
-			}
-
-			if len(key) == 0 {
-				key = fld.Name
-			}
-
-			if first {
-				namespace = append(namespace, key...)
-			} else {
-				namespace = append(namespace, namespaceSeparator)
-				namespace = append(namespace, key...)
-			}
-
-			if d.setFieldByType(v.Field(i), namespace, 0) {
-				set = true
-			}
-
-		}
-	} else {
-
-		s, ok := d.d.structCache.Get(typ)
-		if !ok {
-			s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
+		if first {
+			namespace = append(namespace, f.name...)
+		} else {
+			namespace = append(namespace, namespaceSeparator)
+			namespace = append(namespace, f.name...)
 		}
 
-		for _, f := range s.fields {
-
-			namespace = namespace[:l]
-
-			if first {
-				namespace = append(namespace, f.name...)
-			} else {
-				namespace = append(namespace, namespaceSeparator)
-				namespace = append(namespace, f.name...)
-			}
-
-			if d.setFieldByType(v.Field(f.idx), namespace, 0) {
-				set = true
-			}
+		if d.setFieldByType(v.Field(f.idx), namespace, 0) {
+			set = true
 		}
 	}
 
@@ -410,7 +393,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			d.parseMapData()
 
 			// maybe it's an numbered array i.e. Phone[0].Number
-			if rd := d.dm[string(namespace)]; rd != nil {
+			if rd := d.findAlias(string(namespace)); rd != nil {
 
 				var varr reflect.Value
 				var kv key
@@ -519,7 +502,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		d.parseMapData()
 
 		// no natural map support so skip directly to dm lookup
-		if rd = d.dm[string(namespace)]; rd == nil {
+		if rd = d.findAlias(string(namespace)); rd == nil {
 			return
 		}
 
