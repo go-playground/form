@@ -143,66 +143,26 @@ func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
 	l := len(namespace)
 	first := l == 0
 
-	// is anonymous struct, cannot parse or cache as
-	// it has no name to index by and potentially a
-	// dynamic value
-	if len(typ.Name()) == 0 {
+	// anonymous structs will still work for caching as the whole definition is stored
+	// including tags
+	s, ok := d.d.structCache.Get(typ)
+	if !ok {
+		s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
+	}
 
-		numFields := v.NumField()
-		var fld reflect.StructField
-		var key string
+	for _, f := range s.fields {
 
-		for i := 0; i < numFields; i++ {
+		namespace = namespace[:l]
 
-			namespace = namespace[:l]
-			fld = typ.Field(i)
-
-			// if unexposed field
-			if !fld.Anonymous && fld.PkgPath != blank {
-				continue
-			}
-
-			if key = fld.Tag.Get(d.d.tagName); key == ignore {
-				continue
-			}
-
-			if len(key) == 0 {
-				key = fld.Name
-			}
-
-			if first {
-				namespace = append(namespace, key...)
-			} else {
-				namespace = append(namespace, namespaceSeparator)
-				namespace = append(namespace, key...)
-			}
-
-			if d.setFieldByType(v.Field(i), namespace, 0) {
-				set = true
-			}
-
-		}
-	} else {
-
-		s, ok := d.d.structCache.Get(typ)
-		if !ok {
-			s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
+		if first {
+			namespace = append(namespace, f.name...)
+		} else {
+			namespace = append(namespace, namespaceSeparator)
+			namespace = append(namespace, f.name...)
 		}
 
-		for _, f := range s.fields {
-
-			namespace = namespace[:l]
-
-			if first {
-				namespace = append(namespace, f.name...)
-			} else {
-				namespace = append(namespace, namespaceSeparator)
-				namespace = append(namespace, f.name...)
-			}
-
-			if d.setFieldByType(v.Field(f.idx), namespace, 0) {
-				set = true
-			}
+		if d.setFieldByType(v.Field(f.idx), namespace, 0) {
+			set = true
 		}
 	}
 
