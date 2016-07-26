@@ -1410,3 +1410,21 @@ func TestDecoderInterface(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, err.Error(), "form: Decode(non-pointer form.test)")
 }
+
+func TestDecoderPointerToPointer(t *testing.T) {
+
+	values := map[string][]string{
+		"Value": {"testVal"},
+	}
+
+	type Test struct {
+		Value string
+	}
+
+	var tst *Test
+
+	d := NewDecoder()
+	err := d.Decode(&tst, values)
+	Equal(t, err, nil)
+	Equal(t, tst.Value, "testVal")
+}
