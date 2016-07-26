@@ -35,6 +35,7 @@ type InvalidDecoderError struct {
 }
 
 func (e *InvalidDecoderError) Error() string {
+
 	if e.Type == nil {
 		return "form: Decode(nil)"
 	}
@@ -42,6 +43,7 @@ func (e *InvalidDecoderError) Error() string {
 	if e.Type.Kind() != reflect.Ptr {
 		return "form: Decode(non-pointer " + e.Type.String() + ")"
 	}
+
 	return "form: Decode(nil " + e.Type.String() + ")"
 }
 
@@ -123,7 +125,6 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	if val.Kind() != reflect.Ptr || val.IsNil() {
 		return &InvalidDecoderError{reflect.TypeOf(v)}
-		// panic("interface must be a pointer")
 	}
 
 	val = val.Elem()

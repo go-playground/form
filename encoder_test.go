@@ -1018,6 +1018,120 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, val[0], tm.Format(time.RFC3339))
 }
 
+func TestDecodeAllNonStructTypes(t *testing.T) {
+
+	encoder := NewEncoder()
+
+	// test integers
+
+	i := int(3)
+	i8 := int8(2)
+	i16 := int16(1)
+	i32 := int32(0)
+	i64 := int64(3)
+
+	values, err := encoder.Encode(i)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "3")
+
+	values, err = encoder.Encode(i8)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "2")
+
+	values, err = encoder.Encode(i16)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "1")
+
+	values, err = encoder.Encode(i32)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "0")
+
+	values, err = encoder.Encode(i64)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "3")
+
+	// test unsigned integers
+
+	ui := uint(3)
+	ui8 := uint8(2)
+	ui16 := uint16(1)
+	ui32 := uint32(0)
+	ui64 := uint64(3)
+
+	values, err = encoder.Encode(ui)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "3")
+
+	values, err = encoder.Encode(ui8)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "2")
+
+	values, err = encoder.Encode(ui16)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "1")
+
+	values, err = encoder.Encode(ui32)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "0")
+
+	values, err = encoder.Encode(ui64)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "3")
+
+	// test bool
+
+	ok := true
+	values, err = encoder.Encode(ok)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "true")
+
+	ok = false
+	values, err = encoder.Encode(ok)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "false")
+
+	// test time
+
+	tm, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
+	Equal(t, err, nil)
+
+	values, err = encoder.Encode(tm)
+	Equal(t, err, nil)
+	Equal(t, values[""][0], "2006-01-02T15:04:05Z")
+
+	// test basic array
+
+	arr := []string{"arr1", "arr2"}
+
+	values, err = encoder.Encode(arr)
+	Equal(t, err, nil)
+	Equal(t, len(values), 1)
+	Equal(t, values[""][0], "arr1")
+	Equal(t, values[""][1], "arr2")
+
+	// test ptr array
+
+	s1 := "arr1"
+	s2 := "arr2"
+	arrPtr := []*string{&s1, &s2}
+
+	values, err = encoder.Encode(arrPtr)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, values["[0]"][0], "arr1")
+	Equal(t, values["[1]"][0], "arr2")
+
+	// test map
+
+	m := map[string]string{"key1": "val1", "key2": "val2"}
+
+	values, err = encoder.Encode(m)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, values["[key1]"][0], "val1")
+	Equal(t, values["[key2]"][0], "val2")
+}
+
 func TestEncoderNativeTime(t *testing.T) {
 
 	type TestError struct {
@@ -1094,9 +1208,29 @@ func TestEncoderErrors(t *testing.T) {
 	Equal(t, k.Error(), "Unsupported Map Key '<struct {} Value>' Namespace 'Struct'")
 }
 
-func TestEncoderPanic(t *testing.T) {
+func TestEncoderPanicsAndBadValues(t *testing.T) {
 
 	encoder := NewEncoder()
 
-	PanicMatches(t, func() { encoder.Encode(nil) }, "interface must be a struct, pointer to a struct or interface containing one of the aforementioned")
+	values, err := encoder.Encode(nil)
+	NotEqual(t, err, nil)
+	Equal(t, values, nil)
+
+	_, ok := err.(*InvalidEncodeError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Encode(nil)")
+
+	type TestStruct struct {
+		Value string
+	}
+
+	var tst *TestStruct
+
+	values, err = encoder.Encode(tst)
+	NotEqual(t, err, nil)
+	Equal(t, values, nil)
+
+	_, ok = err.(*InvalidEncodeError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Encode(nil *form.TestStruct)")
 }
