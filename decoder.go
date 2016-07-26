@@ -139,7 +139,6 @@ func (d *decoder) parseMapData() {
 
 func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []byte) (set bool) {
 
-	// typ := v.Type()
 	l := len(namespace)
 	first := l == 0
 
@@ -195,7 +194,6 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 	}
 
-	// fmt.Println("KIND:", kind)
 	switch kind {
 	case reflect.Interface, reflect.Invalid:
 		return
@@ -546,7 +544,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 	case reflect.Struct:
 
 		typ := v.Type()
-		// fmt.Println("Type:", typ)
+
 		// if we get here then no custom time function declared so use RFC3339 by default
 		if typ == timeType {
 

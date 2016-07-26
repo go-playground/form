@@ -1336,3 +1336,46 @@ func TestDecoderIncreasingKeys(t *testing.T) {
 	Equal(t, test2.Array[2], int(2))
 	Equal(t, test2.Array[10], int(10))
 }
+
+func TestDecoderInterface(t *testing.T) {
+
+	var iface interface{}
+
+	d := NewDecoder()
+
+	values := map[string][]string{
+		"": {"2"},
+	}
+
+	var i int
+
+	iface = &i
+
+	err := d.Decode(iface, values)
+	Equal(t, err, nil)
+	Equal(t, i, 2)
+
+	iface = i
+
+	PanicMatches(t, func() { d.Decode(iface, values) }, "interface must be a pointer")
+
+	values = map[string][]string{
+		"Value": {"testVal"},
+	}
+
+	type test struct {
+		Value string
+	}
+
+	var tst test
+
+	iface = &tst
+
+	err = d.Decode(iface, values)
+	Equal(t, err, nil)
+	Equal(t, tst.Value, "testVal")
+
+	iface = tst
+
+	PanicMatches(t, func() { d.Decode(iface, values) }, "interface must be a pointer")
+}
