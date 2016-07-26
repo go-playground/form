@@ -7,6 +7,7 @@ Package form
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
 [![GoDoc](https://godoc.org/github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
+[![Codewake](https://www.codewake.com/badges/codewake2.svg)](https://www.codewake.com/p/form)
 
 Package form Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values.
 
