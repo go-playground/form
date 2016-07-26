@@ -27,6 +27,20 @@ func (e EncodeErrors) Error() string {
 	return strings.TrimSpace(buff.String())
 }
 
+// An InvalidEncodeError describes an invalid argument passed to Encode.
+type InvalidEncodeError struct {
+	Type reflect.Type
+}
+
+func (e *InvalidEncodeError) Error() string {
+
+	if e.Type == nil {
+		return "form: Encode(nil)"
+	}
+
+	return "form: Encode(nil " + e.Type.String() + ")"
+}
+
 // Encoder is the main encode instance
 type Encoder struct {
 	tagName         string
@@ -72,11 +86,15 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 
 	val, kind := ExtractType(reflect.ValueOf(v))
 
-	if kind != reflect.Struct {
-		panic("interface must be a struct, pointer to a struct or interface containing one of the aforementioned")
+	if kind == reflect.Ptr || kind == reflect.Interface || kind == reflect.Invalid {
+		return nil, &InvalidEncodeError{reflect.TypeOf(v)}
 	}
 
-	enc.traverseStruct(val, make([]byte, 0, 64), -1)
+	if kind == reflect.Struct && val.Type() != timeType {
+		enc.traverseStruct(val, make([]byte, 0, 64), -1)
+	} else {
+		enc.setFieldByType(val, make([]byte, 0, 64), -1)
+	}
 
 	if len(enc.errs) == 0 {
 		return enc.values, nil

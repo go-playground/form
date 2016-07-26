@@ -98,11 +98,14 @@ func TestDecoderInt(t *testing.T) {
 	Equal(t, *test.Int32Ptr, int32(3))
 	Equal(t, *test.Int64Ptr, int64(3))
 
-	Equal(t, len(test.IntArray), 4)
-	Equal(t, test.IntArray[0], int(1))
-	Equal(t, test.IntArray[1], int(2))
-	Equal(t, test.IntArray[2], int(3))
+	Equal(t, len(test.IntArray), 7)
+	Equal(t, test.IntArray[0], int(0))
+	Equal(t, test.IntArray[1], int(0))
+	Equal(t, test.IntArray[2], int(0))
 	Equal(t, test.IntArray[3], int(0))
+	Equal(t, test.IntArray[4], int(1))
+	Equal(t, test.IntArray[5], int(2))
+	Equal(t, test.IntArray[6], int(3))
 
 	Equal(t, len(test.IntPtrArray), 3)
 	Equal(t, *test.IntPtrArray[0], int(1))
@@ -214,11 +217,14 @@ func TestDecoderUint(t *testing.T) {
 	Equal(t, *test.Uint32Ptr, uint32(3))
 	Equal(t, *test.Uint64Ptr, uint64(3))
 
-	Equal(t, len(test.UintArray), 4)
-	Equal(t, test.UintArray[0], uint(1))
-	Equal(t, test.UintArray[1], uint(2))
-	Equal(t, test.UintArray[2], uint(3))
+	Equal(t, len(test.UintArray), 7)
+	Equal(t, test.UintArray[0], uint(0))
+	Equal(t, test.UintArray[1], uint(0))
+	Equal(t, test.UintArray[2], uint(0))
 	Equal(t, test.UintArray[3], uint(0))
+	Equal(t, test.UintArray[4], uint(1))
+	Equal(t, test.UintArray[5], uint(2))
+	Equal(t, test.UintArray[6], uint(3))
 
 	Equal(t, len(test.UintPtrArray), 3)
 	Equal(t, *test.UintPtrArray[0], uint(1))
@@ -301,11 +307,14 @@ func TestDecoderString(t *testing.T) {
 
 	Equal(t, *test.StringPtr, "3")
 
-	Equal(t, len(test.StringArray), 4)
-	Equal(t, test.StringArray[0], "1")
-	Equal(t, test.StringArray[1], "2")
-	Equal(t, test.StringArray[2], "3")
+	Equal(t, len(test.StringArray), 7)
+	Equal(t, test.StringArray[0], "")
+	Equal(t, test.StringArray[1], "")
+	Equal(t, test.StringArray[2], "")
 	Equal(t, test.StringArray[3], "")
+	Equal(t, test.StringArray[4], "1")
+	Equal(t, test.StringArray[5], "2")
+	Equal(t, test.StringArray[6], "3")
 
 	Equal(t, len(test.StringPtrArray), 3)
 	Equal(t, *test.StringPtrArray[0], "1")
@@ -389,11 +398,14 @@ func TestDecoderFloat(t *testing.T) {
 	Equal(t, *test.Float32Ptr, float32(3.3))
 	Equal(t, *test.Float64Ptr, float64(3.3))
 
-	Equal(t, len(test.Float32Array), 4)
-	Equal(t, test.Float32Array[0], float32(1.1))
-	Equal(t, test.Float32Array[1], float32(2.2))
-	Equal(t, test.Float32Array[2], float32(3.3))
+	Equal(t, len(test.Float32Array), 7)
+	Equal(t, test.Float32Array[0], float32(0.0))
+	Equal(t, test.Float32Array[1], float32(0.0))
+	Equal(t, test.Float32Array[2], float32(0.0))
 	Equal(t, test.Float32Array[3], float32(0.0))
+	Equal(t, test.Float32Array[4], float32(1.1))
+	Equal(t, test.Float32Array[5], float32(2.2))
+	Equal(t, test.Float32Array[6], float32(3.3))
 
 	Equal(t, len(test.Float32PtrArray), 3)
 	Equal(t, *test.Float32PtrArray[0], float32(1.1))
@@ -471,11 +483,14 @@ func TestDecoderBool(t *testing.T) {
 
 	Equal(t, *test.BoolPtr, true)
 
-	Equal(t, len(test.BoolArray), 4)
+	Equal(t, len(test.BoolArray), 7)
 	Equal(t, test.BoolArray[0], false)
-	Equal(t, test.BoolArray[1], true)
-	Equal(t, test.BoolArray[2], true)
+	Equal(t, test.BoolArray[1], false)
+	Equal(t, test.BoolArray[2], false)
 	Equal(t, test.BoolArray[3], false)
+	Equal(t, test.BoolArray[4], false)
+	Equal(t, test.BoolArray[5], true)
+	Equal(t, test.BoolArray[6], true)
 
 	Equal(t, len(test.BoolPtrArray), 3)
 	Equal(t, *test.BoolPtrArray[0], true)
@@ -543,6 +558,8 @@ func TestDecoderStruct(t *testing.T) {
 		IfaceNonNil                interface{}
 		IfaceInvalid               interface{}
 		TimeMapKey                 map[time.Time]string
+		ExistingArray              []string
+		ExistingArrayIndex         []string
 	}
 
 	values := url.Values{
@@ -565,6 +582,8 @@ func TestDecoderStruct(t *testing.T) {
 		"TooSmallCapOKNumberedArray[2]": []string{"2"},
 		"BigEnoughNumberedArray[2]":     []string{"1"},
 		"TimeMapKey[2016-01-02]":        []string{"time"},
+		"ExistingArray":                 []string{"arr2"},
+		"ExistingArrayIndex[1]":         []string{"arr2"},
 	}
 
 	var test TestStruct
@@ -577,6 +596,8 @@ func TestDecoderStruct(t *testing.T) {
 	test.TooSmallNumberedArray = []string{"0"}
 	test.TooSmallCapOKNumberedArray = make([]string, 0, 10)
 	test.BigEnoughNumberedArray = make([]string, 3, 10)
+	test.ExistingArray = []string{"arr1"}
+	test.ExistingArrayIndex = []string{"arr1"}
 
 	decoder := NewDecoder()
 	decoder.SetTagName("form")
@@ -603,9 +624,10 @@ func TestDecoderStruct(t *testing.T) {
 	Equal(t, len(test.NilArray), 2)
 	Equal(t, test.NilArray[0], "1")
 	Equal(t, test.NilArray[1], "2")
-	Equal(t, len(test.TooSmallArray), 2)
-	Equal(t, test.TooSmallArray[0], "1")
-	Equal(t, test.TooSmallArray[1], "2")
+	Equal(t, len(test.TooSmallArray), 3)
+	Equal(t, test.TooSmallArray[0], "0")
+	Equal(t, test.TooSmallArray[1], "1")
+	Equal(t, test.TooSmallArray[2], "2")
 	Equal(t, len(test.ZeroLengthArray), 0)
 	Equal(t, len(test.TooSmallNumberedArray), 3)
 	Equal(t, test.TooSmallNumberedArray[0], "0")
@@ -625,6 +647,14 @@ func TestDecoderStruct(t *testing.T) {
 	Equal(t, test.TooSmallCapOKNumberedArray[0], "")
 	Equal(t, test.TooSmallCapOKNumberedArray[1], "")
 	Equal(t, test.TooSmallCapOKNumberedArray[2], "2")
+
+	Equal(t, len(test.ExistingArray), 2)
+	Equal(t, test.ExistingArray[0], "arr1")
+	Equal(t, test.ExistingArray[1], "arr2")
+
+	Equal(t, len(test.ExistingArrayIndex), 2)
+	Equal(t, test.ExistingArrayIndex[0], "arr1")
+	Equal(t, test.ExistingArrayIndex[1], "arr2")
 
 	tm, _ := time.Parse("2006-01-02", "2016-01-02")
 	Equal(t, test.Time.Equal(tm), true)
@@ -876,7 +906,230 @@ func TestDecoderErrors(t *testing.T) {
 	Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
 }
 
-func TestDecoderPanics(t *testing.T) {
+func TestDecodeAllTypes(t *testing.T) {
+
+	values := url.Values{
+		"": []string{"3"},
+	}
+
+	decoder := NewDecoder()
+
+	var i int
+
+	errs := decoder.Decode(&i, values)
+	Equal(t, errs, nil)
+	Equal(t, i, 3)
+
+	var i8 int
+
+	errs = decoder.Decode(&i8, values)
+	Equal(t, errs, nil)
+	Equal(t, i8, 3)
+
+	var i16 int
+
+	errs = decoder.Decode(&i16, values)
+	Equal(t, errs, nil)
+	Equal(t, i16, 3)
+
+	var i32 int
+
+	errs = decoder.Decode(&i32, values)
+	Equal(t, errs, nil)
+	Equal(t, i32, 3)
+
+	var i64 int
+
+	errs = decoder.Decode(&i64, values)
+	Equal(t, errs, nil)
+	Equal(t, i64, 3)
+
+	var ui int
+
+	errs = decoder.Decode(&ui, values)
+	Equal(t, errs, nil)
+	Equal(t, ui, 3)
+
+	var ui8 int
+
+	errs = decoder.Decode(&ui8, values)
+	Equal(t, errs, nil)
+	Equal(t, ui8, 3)
+
+	var ui16 int
+
+	errs = decoder.Decode(&ui16, values)
+	Equal(t, errs, nil)
+	Equal(t, ui16, 3)
+
+	var ui32 int
+
+	errs = decoder.Decode(&ui32, values)
+	Equal(t, errs, nil)
+	Equal(t, ui32, 3)
+
+	var ui64 int
+
+	errs = decoder.Decode(&ui64, values)
+	Equal(t, errs, nil)
+	Equal(t, ui64, 3)
+
+	values = url.Values{
+		"": []string{"3.4"},
+	}
+
+	var f32 float32
+
+	errs = decoder.Decode(&f32, values)
+	Equal(t, errs, nil)
+	Equal(t, f32, float32(3.4))
+
+	var f64 float64
+
+	errs = decoder.Decode(&f64, values)
+	Equal(t, errs, nil)
+	Equal(t, f64, float64(3.4))
+
+	values = url.Values{
+		"": []string{"true"},
+	}
+
+	var b bool
+
+	errs = decoder.Decode(&b, values)
+	Equal(t, errs, nil)
+	Equal(t, b, true)
+
+	tm, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
+
+	values = url.Values{
+		"": []string{"2006-01-02T15:04:05Z"},
+	}
+
+	var dt time.Time
+
+	errs = decoder.Decode(&dt, values)
+
+	Equal(t, errs, nil)
+	Equal(t, dt, tm)
+
+	values = url.Values{
+		"": []string{"arr1", "arr2"},
+	}
+
+	// basic array
+	var arr []string
+
+	errs = decoder.Decode(&arr, values)
+	Equal(t, errs, nil)
+	Equal(t, len(arr), 2)
+	Equal(t, arr[0], "arr1")
+	Equal(t, arr[1], "arr2")
+
+	// pre-populated array
+
+	// fmt.Println("Decoding...")
+	errs = decoder.Decode(&arr, values)
+	Equal(t, errs, nil)
+	Equal(t, len(arr), 4)
+	Equal(t, arr[0], "arr1")
+	Equal(t, arr[1], "arr2")
+	Equal(t, arr[2], "arr1")
+	Equal(t, arr[3], "arr2")
+
+	// basic array Ptr
+	var arrPtr []*string
+
+	errs = decoder.Decode(&arrPtr, values)
+	Equal(t, errs, nil)
+	Equal(t, len(arrPtr), 2)
+	Equal(t, *arrPtr[0], "arr1")
+	Equal(t, *arrPtr[1], "arr2")
+
+	// pre-populated array Ptr
+
+	// fmt.Println("Decoding...")
+	errs = decoder.Decode(&arrPtr, values)
+	Equal(t, errs, nil)
+	Equal(t, len(arr), 4)
+	Equal(t, *arrPtr[0], "arr1")
+	Equal(t, *arrPtr[1], "arr2")
+	Equal(t, *arrPtr[2], "arr1")
+	Equal(t, *arrPtr[3], "arr2")
+
+	// indexed array
+
+	values = url.Values{
+		"[0]": []string{"newVal1"},
+		"[1]": []string{"newVal2"},
+	}
+
+	errs = decoder.Decode(&arr, values)
+	Equal(t, errs, nil)
+	Equal(t, len(arr), 4)
+	Equal(t, arr[0], "newVal1")
+	Equal(t, arr[1], "newVal2")
+	Equal(t, arr[2], "arr1")
+	Equal(t, arr[3], "arr2")
+
+	values = url.Values{
+		"[key1]": []string{"val1"},
+		"[key2]": []string{"val2"},
+	}
+
+	// basic map
+	var m map[string]string
+
+	errs = decoder.Decode(&m, values)
+	Equal(t, errs, nil)
+	Equal(t, len(m), 2)
+	Equal(t, m["key1"], "val1")
+	Equal(t, m["key2"], "val2")
+
+	// existing map
+
+	errs = decoder.Decode(&m, values)
+	Equal(t, errs, nil)
+	Equal(t, len(m), 2)
+	Equal(t, m["key1"], "val1")
+	Equal(t, m["key2"], "val2")
+
+	// basic map, adding more keys
+
+	values = url.Values{
+		"[key3]": []string{"val3"},
+	}
+	errs = decoder.Decode(&m, values)
+	Equal(t, errs, nil)
+	Equal(t, len(m), 3)
+	Equal(t, m["key3"], "val3")
+
+	// array of struct
+
+	type Phone struct {
+		Number string
+		Label  string
+	}
+
+	values = url.Values{
+		"[0].Number": []string{"999"},
+		"[1].Label":  []string{"label2"},
+		"[1].Number": []string{"111"},
+		"[0].Label":  []string{"label1"},
+	}
+
+	var phones []Phone
+
+	errs = decoder.Decode(&phones, values)
+	Equal(t, errs, nil)
+	Equal(t, len(phones), 2)
+	Equal(t, phones[0].Number, "999")
+	Equal(t, phones[0].Label, "label1")
+	Equal(t, phones[1].Number, "111")
+	Equal(t, phones[1].Label, "label2")
+}
+
+func TestDecoderPanicsAndBadValues(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -899,7 +1152,28 @@ func TestDecoderPanics(t *testing.T) {
 	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
 
 	i := 1
-	PanicMatches(t, func() { decoder.Decode(&i, values) }, "interface must be a pointer to a struct")
+	err := decoder.Decode(i, values)
+	NotEqual(t, err, nil)
+
+	_, ok := err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(non-pointer int)")
+
+	err = decoder.Decode(nil, values)
+	NotEqual(t, err, nil)
+
+	_, ok = err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(nil)")
+
+	var ts *TestError
+
+	err = decoder.Decode(ts, values)
+	NotEqual(t, err, nil)
+
+	_, ok = err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(nil *form.TestError)")
 
 	values = url.Values{
 		"Phone0].Number": []string{"1(111)111-1111"},
@@ -1082,4 +1356,75 @@ func TestDecoderIncreasingKeys(t *testing.T) {
 	Equal(t, len(test2.Array), 11)
 	Equal(t, test2.Array[2], int(2))
 	Equal(t, test2.Array[10], int(10))
+}
+
+func TestDecoderInterface(t *testing.T) {
+
+	var iface interface{}
+
+	d := NewDecoder()
+
+	values := map[string][]string{
+		"": {"2"},
+	}
+
+	var i int
+
+	iface = &i
+
+	err := d.Decode(iface, values)
+	Equal(t, err, nil)
+	Equal(t, i, 2)
+
+	iface = i
+
+	err = d.Decode(iface, values)
+	NotEqual(t, err, nil)
+
+	_, ok := err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(non-pointer int)")
+
+	values = map[string][]string{
+		"Value": {"testVal"},
+	}
+
+	type test struct {
+		Value string
+	}
+
+	var tst test
+
+	iface = &tst
+
+	err = d.Decode(iface, values)
+	Equal(t, err, nil)
+	Equal(t, tst.Value, "testVal")
+
+	iface = tst
+
+	err = d.Decode(iface, values)
+	NotEqual(t, err, nil)
+
+	_, ok = err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(non-pointer form.test)")
+}
+
+func TestDecoderPointerToPointer(t *testing.T) {
+
+	values := map[string][]string{
+		"Value": {"testVal"},
+	}
+
+	type Test struct {
+		Value string
+	}
+
+	var tst *Test
+
+	d := NewDecoder()
+	err := d.Decode(&tst, values)
+	Equal(t, err, nil)
+	Equal(t, tst.Value, "testVal")
 }
