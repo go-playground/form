@@ -1,5 +1,5 @@
 /*
-Package form Decodes url.Values into struct values and Encodes struct values into url.Values.
+Package form Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values.
 
 
 It has the following features:
@@ -17,6 +17,8 @@ It has the following features:
     - Allows for Custom Type registration.
     - Handles time.Time using RFC3339 time format by default,
       but can easily be changed by registering a Custom Type, see below.
+    - Handles Encoding & Decoding of almost all Go types eg. can Decode into
+      struct, array, map, int... and Encode a struct, array, map, int...
 
 Common Questions
 
