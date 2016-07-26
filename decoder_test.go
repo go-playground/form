@@ -1129,7 +1129,7 @@ func TestDecodeAllTypes(t *testing.T) {
 	Equal(t, phones[1].Label, "label2")
 }
 
-func TestDecoderPanics(t *testing.T) {
+func TestDecoderPanicsAndBadValues(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -1152,7 +1152,28 @@ func TestDecoderPanics(t *testing.T) {
 	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
 
 	i := 1
-	PanicMatches(t, func() { decoder.Decode(i, values) }, "interface must be a pointer")
+	err := decoder.Decode(i, values)
+	NotEqual(t, err, nil)
+
+	_, ok := err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(non-pointer int)")
+
+	err = decoder.Decode(nil, values)
+	NotEqual(t, err, nil)
+
+	_, ok = err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(nil)")
+
+	var ts *TestError
+
+	err = decoder.Decode(ts, values)
+	NotEqual(t, err, nil)
+
+	_, ok = err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(nil *form.TestError)")
 
 	values = url.Values{
 		"Phone0].Number": []string{"1(111)111-1111"},
@@ -1357,7 +1378,12 @@ func TestDecoderInterface(t *testing.T) {
 
 	iface = i
 
-	PanicMatches(t, func() { d.Decode(iface, values) }, "interface must be a pointer")
+	err = d.Decode(iface, values)
+	NotEqual(t, err, nil)
+
+	_, ok := err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(non-pointer int)")
 
 	values = map[string][]string{
 		"Value": {"testVal"},
@@ -1377,5 +1403,10 @@ func TestDecoderInterface(t *testing.T) {
 
 	iface = tst
 
-	PanicMatches(t, func() { d.Decode(iface, values) }, "interface must be a pointer")
+	err = d.Decode(iface, values)
+	NotEqual(t, err, nil)
+
+	_, ok = err.(*InvalidDecoderError)
+	Equal(t, ok, true)
+	Equal(t, err.Error(), "form: Decode(non-pointer form.test)")
 }

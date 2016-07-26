@@ -28,6 +28,23 @@ func (d DecodeErrors) Error() string {
 	return strings.TrimSpace(buff.String())
 }
 
+// An InvalidDecoderError describes an invalid argument passed to Decode.
+// (The argument passed to Decode must be a non-nil pointer.)
+type InvalidDecoderError struct {
+	Type reflect.Type
+}
+
+func (e *InvalidDecoderError) Error() string {
+	if e.Type == nil {
+		return "form: Decode(nil)"
+	}
+
+	if e.Type.Kind() != reflect.Ptr {
+		return "form: Decode(non-pointer " + e.Type.String() + ")"
+	}
+	return "form: Decode(nil " + e.Type.String() + ")"
+}
+
 type key struct {
 	ivalue      int
 	value       string
@@ -92,7 +109,9 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 	}
 }
 
-// Decode decodes the given values and sets the corresponding struct values
+// Decode parses the given values and sets the corresponding struct and/or type values
+//
+// Decode returns an InvalidDecoderError if interface passed is invalid.
 func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	dec := &decoder{
@@ -102,12 +121,12 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	val := reflect.ValueOf(v)
 
-	if val.Kind() != reflect.Ptr {
-		panic("interface must be a pointer")
+	if val.Kind() != reflect.Ptr || val.IsNil() {
+		return &InvalidDecoderError{reflect.TypeOf(v)}
+		// panic("interface must be a pointer")
 	}
 
 	val = val.Elem()
-
 	typ := val.Type()
 
 	if val.Kind() == reflect.Struct && typ != timeType {
