@@ -137,9 +137,9 @@ func (d *decoder) parseMapData() {
 	}
 }
 
-func (d *decoder) traverseStruct(v reflect.Value, namespace []byte) (set bool) {
+func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []byte) (set bool) {
 
-	typ := v.Type()
+	// typ := v.Type()
 	l := len(namespace)
 	first := l == 0
 
@@ -195,6 +195,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 	}
 
+	// fmt.Println("KIND:", kind)
 	switch kind {
 	case reflect.Interface, reflect.Invalid:
 		return
@@ -464,33 +465,33 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 
 		var varr reflect.Value
-		var existing bool
+
+		var ol int
+		l := len(arr)
 
 		if v.IsNil() {
 			varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
-		} else if v.Len() < len(arr) {
-			if v.Cap() <= len(arr) {
-				varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
+		} else {
+
+			ol = v.Len()
+			l += ol
+
+			if v.Cap() <= l {
+				varr = reflect.MakeSlice(v.Type(), l, l)
 			} else {
-				varr = reflect.MakeSlice(v.Type(), len(arr), v.Cap())
+				// preserve predefined capacity, possibly for reuse after decoding
+				varr = reflect.MakeSlice(v.Type(), l, v.Cap())
 			}
 			reflect.Copy(varr, v)
-		} else {
-			existing = true
-			varr = v
 		}
 
-		for i := 0; i < len(arr); i++ {
+		for i := ol; i < l; i++ {
 			newVal := reflect.New(v.Type().Elem()).Elem()
 
-			if d.setFieldByType(newVal, namespace, i) {
+			if d.setFieldByType(newVal, namespace, i-ol) {
 				set = true
 				varr.Index(i).Set(newVal)
 			}
-		}
-
-		if !set || existing {
-			return
 		}
 
 		v.Set(varr)
@@ -544,8 +545,10 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 	case reflect.Struct:
 
+		typ := v.Type()
+		// fmt.Println("Type:", typ)
 		// if we get here then no custom time function declared so use RFC3339 by default
-		if v.Type() == timeType {
+		if typ == timeType {
 
 			if !ok || len(arr[idx]) == 0 {
 				return
@@ -568,7 +571,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			return
 		}
 
-		set = d.traverseStruct(v, namespace)
+		set = d.traverseStruct(v, typ, namespace)
 	}
 
 	return
