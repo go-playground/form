@@ -1,30 +1,30 @@
 ## Benchmarks
 
-Last Run July 26, 2016
+Competitor Benchmarks Last Run July 26, 2016
 
 ### go-playground/form
 ```go
 PASS
-BenchmarkSimpleUserDecodeStruct-8                          	 5000000	       318 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserDecodeStructParallel-8                  	20000000	        95.2 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserEncodeStruct-8                          	 1000000	      1000 ns/op	     549 B/op	      12 allocs/op
-BenchmarkSimpleUserEncodeStructParallel-8                  	 5000000	       325 ns/op	     549 B/op	      12 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8        	 1000000	      1058 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8	 5000000	       324 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8        	  300000	      4823 ns/op	    3073 B/op	      47 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8	 1000000	      1732 ns/op	    3072 B/op	      47 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypes-8                	  100000	     16340 ns/op	    2289 B/op	     122 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypesParallel-8        	  300000	      5105 ns/op	    2291 B/op	     122 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypes-8                	  100000	     16343 ns/op	    7351 B/op	     147 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypesParallel-8        	  300000	      5969 ns/op	    7351 B/op	     147 allocs/op
-BenchmarkComplexMapDecodeStructAllTypes-8                  	  100000	     21259 ns/op	    5338 B/op	     131 allocs/op
-BenchmarkComplexMapDecodeStructAllTypesParallel-8          	  200000	      7493 ns/op	    5342 B/op	     131 allocs/op
-BenchmarkComplexMapEncodeStructAllTypes-8                  	  100000	     17060 ns/op	    7161 B/op	     176 allocs/op
-BenchmarkComplexMapEncodeStructAllTypesParallel-8          	  300000	      6421 ns/op	    7161 B/op	     176 allocs/op
-BenchmarkDecodeNestedStruct-8                              	  300000	      3488 ns/op	     416 B/op	      15 allocs/op
-BenchmarkDecodeNestedStructParallel-8                      	 1000000	      1203 ns/op	     416 B/op	      15 allocs/op
-BenchmarkEncodeNestedStruct-8                              	 1000000	      2286 ns/op	     768 B/op	      17 allocs/op
-BenchmarkEncodeNestedStructParallel-8                      	 2000000	       939 ns/op	     768 B/op	      17 allocs/op
+BenchmarkSimpleUserDecodeStruct-8                          	 5000000	       336 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserDecodeStructParallel-8                  	20000000	        99.5 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserEncodeStruct-8                          	 2000000	       972 ns/op	     485 B/op	      11 allocs/op
+BenchmarkSimpleUserEncodeStructParallel-8                  	 5000000	       329 ns/op	     485 B/op	      11 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8        	 1000000	      1014 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8	 5000000	       294 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8        	  300000	      4799 ns/op	    3009 B/op	      46 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8	 1000000	      1581 ns/op	    3010 B/op	      46 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypes-8                	  100000	     16326 ns/op	    2257 B/op	     121 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesParallel-8        	  300000	      4710 ns/op	    2257 B/op	     121 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypes-8                	  100000	     16303 ns/op	    7288 B/op	     146 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallel-8        	  300000	      4979 ns/op	    7290 B/op	     146 allocs/op
+BenchmarkComplexMapDecodeStructAllTypes-8                  	  100000	     21998 ns/op	    5306 B/op	     130 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallel-8          	  200000	      6542 ns/op	    5308 B/op	     130 allocs/op
+BenchmarkComplexMapEncodeStructAllTypes-8                  	  100000	     17069 ns/op	    7100 B/op	     175 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallel-8          	  300000	      5609 ns/op	    7099 B/op	     175 allocs/op
+BenchmarkDecodeNestedStruct-8                              	  500000	      3366 ns/op	     384 B/op	      14 allocs/op
+BenchmarkDecodeNestedStructParallel-8                      	 2000000	      1096 ns/op	     384 B/op	      14 allocs/op
+BenchmarkEncodeNestedStruct-8                              	 1000000	      2230 ns/op	     704 B/op	      16 allocs/op
+BenchmarkEncodeNestedStructParallel-8                      	 2000000	       780 ns/op	     704 B/op	      16 allocs/op
 ```
 
 ### gorilla/schema
