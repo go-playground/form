@@ -9,9 +9,10 @@ import (
 )
 
 type encoder struct {
-	e      *Encoder
-	errs   EncodeErrors
-	values url.Values
+	e         *Encoder
+	errs      EncodeErrors
+	values    url.Values
+	namespace []byte
 }
 
 func (e *encoder) setError(namespace []byte, err error) {

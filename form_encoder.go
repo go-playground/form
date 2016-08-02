@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 // EncodeCustomTypeFunc allows for registering/overriding types to be parsed.
@@ -46,15 +47,25 @@ type Encoder struct {
 	tagName         string
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
+	dataPool        *sync.Pool
 }
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
 
-	return &Encoder{
+	e := &Encoder{
 		tagName:     "form",
 		structCache: newStructCacheMap(),
 	}
+
+	e.dataPool = &sync.Pool{New: func() interface{} {
+		return &encoder{
+			e:         e,
+			namespace: make([]byte, 0, 64),
+		}
+	}}
+
+	return e
 }
 
 // SetTagName sets the given tag name to be used by the decoder.
@@ -77,12 +88,7 @@ func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...inter
 }
 
 // Encode encodes the given values and sets the corresponding struct values
-func (e *Encoder) Encode(v interface{}) (url.Values, error) {
-
-	enc := &encoder{
-		e:      e,
-		values: make(url.Values),
-	}
+func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
 
 	val, kind := ExtractType(reflect.ValueOf(v))
 
@@ -90,15 +96,23 @@ func (e *Encoder) Encode(v interface{}) (url.Values, error) {
 		return nil, &InvalidEncodeError{reflect.TypeOf(v)}
 	}
 
+	enc := e.dataPool.Get().(*encoder)
+	enc.values = make(url.Values)
+
 	if kind == reflect.Struct && val.Type() != timeType {
-		enc.traverseStruct(val, make([]byte, 0, 64), -1)
+		enc.traverseStruct(val, enc.namespace[0:0], -1)
 	} else {
-		enc.setFieldByType(val, make([]byte, 0, 64), -1)
+		enc.setFieldByType(val, enc.namespace[0:0], -1)
 	}
 
-	if len(enc.errs) == 0 {
-		return enc.values, nil
+	if len(enc.errs) > 0 {
+		err = enc.errs
+		enc.errs = nil
 	}
 
-	return enc.values, enc.errs
+	values = enc.values
+
+	e.dataPool.Put(enc)
+
+	return
 }

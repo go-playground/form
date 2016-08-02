@@ -73,14 +73,20 @@ type Decoder struct {
 // NewDecoder creates a new decoder instance with sane defaults
 func NewDecoder() *Decoder {
 
-	return &Decoder{
+	d := &Decoder{
 		tagName:      "form",
 		structCache:  newStructCacheMap(),
 		maxArraySize: 10000,
-		dataPool: &sync.Pool{New: func() interface{} {
-			return make(dataMap, 0, 0)
-		}},
 	}
+
+	d.dataPool = &sync.Pool{New: func() interface{} {
+		return &decoder{
+			d:         d,
+			namespace: make([]byte, 0, 64),
+		}
+	}}
+
+	return d
 }
 
 // SetTagName sets the given tag name to be used by the decoder.
@@ -116,35 +122,31 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 // Decode returns an InvalidDecoderError if interface passed is invalid.
 func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
-	dec := &decoder{
-		d:      d,
-		values: values,
-	}
-
 	val := reflect.ValueOf(v)
 
 	if val.Kind() != reflect.Ptr || val.IsNil() {
 		return &InvalidDecoderError{reflect.TypeOf(v)}
 	}
 
+	dec := d.dataPool.Get().(*decoder)
+	dec.values = values
+	dec.dm = dec.dm[0:0]
+
 	val = val.Elem()
 	typ := val.Type()
 
 	if val.Kind() == reflect.Struct && typ != timeType {
-		dec.traverseStruct(val, typ, make([]byte, 0, 64))
+		dec.traverseStruct(val, typ, dec.namespace[0:0])
 	} else {
-		dec.setFieldByType(val, make([]byte, 0, 64), 0)
+		dec.setFieldByType(val, dec.namespace[0:0], 0)
 	}
 
-	if len(dec.dm) > 0 {
-		d.dataPool.Put(dec.dm)
+	if len(dec.errs) > 0 {
+		err = dec.errs
+		dec.errs = nil
 	}
 
-	if len(dec.errs) == 0 {
-		return nil
-	}
-
-	err = dec.errs
+	d.dataPool.Put(dec)
 
 	return
 }

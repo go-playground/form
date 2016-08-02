@@ -21,6 +21,7 @@ type decoder struct {
 	dm        dataMap
 	values    url.Values
 	maxKeyLen int
+	namespace []byte
 }
 
 func (d *decoder) setError(namespace []byte, err error) {
@@ -46,11 +47,13 @@ func (d *decoder) findAlias(ns string) *recursiveData {
 func (d *decoder) parseMapData() {
 
 	// already parsed
-	if len(d.dm) != 0 {
+	if len(d.dm) > 0 {
 		return
 	}
 
-	d.dm = d.d.dataPool.Get().(dataMap)[0:0]
+	d.maxKeyLen = 0
+	d.dm = d.dm[0:0]
+
 	var i int
 	var idx int
 	var l int
