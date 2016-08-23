@@ -45,6 +45,7 @@ func (e *InvalidEncodeError) Error() string {
 // Encoder is the main encode instance
 type Encoder struct {
 	tagName         string
+	mode            Mode
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
 	dataPool        *sync.Pool
@@ -55,6 +56,7 @@ func NewEncoder() *Encoder {
 
 	e := &Encoder{
 		tagName:     "form",
+		mode:        ModeImplicit,
 		structCache: newStructCacheMap(),
 	}
 
@@ -68,10 +70,16 @@ func NewEncoder() *Encoder {
 	return e
 }
 
-// SetTagName sets the given tag name to be used by the decoder.
+// SetTagName sets the given tag name to be used by the encoder.
 // Default is "form"
 func (e *Encoder) SetTagName(tagName string) {
 	e.tagName = tagName
+}
+
+// SetMode sets the mode the encoder should run
+// Default is ModeImplicit
+func (e *Encoder) SetMode(mode Mode) {
+	e.mode = mode
 }
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types

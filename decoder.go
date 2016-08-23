@@ -149,7 +149,7 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 	// including tags
 	s, ok := d.d.structCache.Get(typ)
 	if !ok {
-		s = d.d.structCache.parseStruct(v, typ, d.d.tagName)
+		s = d.d.structCache.parseStruct(d.d.mode, v, typ, d.d.tagName)
 	}
 
 	for _, f := range s.fields {

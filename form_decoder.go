@@ -64,6 +64,7 @@ type dataMap []*recursiveData
 // Decoder is the main decode instance
 type Decoder struct {
 	tagName         string
+	mode            Mode
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 	maxArraySize    int
@@ -75,6 +76,7 @@ func NewDecoder() *Decoder {
 
 	d := &Decoder{
 		tagName:      "form",
+		mode:         ModeImplicit,
 		structCache:  newStructCacheMap(),
 		maxArraySize: 10000,
 	}
@@ -93,6 +95,12 @@ func NewDecoder() *Decoder {
 // Default is "form"
 func (d *Decoder) SetTagName(tagName string) {
 	d.tagName = tagName
+}
+
+// SetMode sets the mode the decoder should run
+// Default is ModeImplicit
+func (d *Decoder) SetMode(mode Mode) {
+	d.mode = mode
 }
 
 // SetMaxArraySize sets maximum array size that can be created.

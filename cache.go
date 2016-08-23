@@ -44,7 +44,7 @@ func (s *structCacheMap) Set(key reflect.Type, value *cachedStruct) {
 	s.m.Store(nm)
 }
 
-func (s *structCacheMap) parseStruct(current reflect.Value, key reflect.Type, tagName string) *cachedStruct {
+func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key reflect.Type, tagName string) *cachedStruct {
 
 	s.lock.Lock()
 
@@ -73,6 +73,10 @@ func (s *structCacheMap) parseStruct(current reflect.Value, key reflect.Type, ta
 		}
 
 		if name = fld.Tag.Get(tagName); name == ignore {
+			continue
+		}
+
+		if mode == ModeExplicit && len(name) == 0 {
 			continue
 		}
 

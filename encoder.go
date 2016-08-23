@@ -45,7 +45,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 	// including tags
 	s, ok := e.e.structCache.Get(typ)
 	if !ok {
-		s = e.e.structCache.parseStruct(v, typ, e.e.tagName)
+		s = e.e.structCache.parseStruct(e.e.mode, v, typ, e.e.tagName)
 	}
 
 	for _, f := range s.fields {

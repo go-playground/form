@@ -1428,3 +1428,26 @@ func TestDecoderPointerToPointer(t *testing.T) {
 	Equal(t, err, nil)
 	Equal(t, tst.Value, "testVal")
 }
+
+func TestDecoderExplicit(t *testing.T) {
+
+	type Test struct {
+		Name string `form:"Name"`
+		Age  int
+	}
+
+	values := map[string][]string{
+		"Name": {"Joeybloggs"},
+		"Age":  {"3"},
+	}
+
+	var test Test
+
+	d := NewDecoder()
+	d.SetMode(ModeExplicit)
+
+	err := d.Decode(&test, values)
+	Equal(t, err, nil)
+	Equal(t, test.Name, "Joeybloggs")
+	Equal(t, test.Age, 0)
+}
