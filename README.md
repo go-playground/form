@@ -1,7 +1,7 @@
 Package form
 ============
 <img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">
-![Project status](https://img.shields.io/badge/version-2.2.0-green.svg)
+![Project status](https://img.shields.io/badge/version-2.2.1-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
@@ -217,6 +217,10 @@ decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
 		return time.Parse("2006-01-02", vals[0])
 	}, time.Time{})
 ```
+ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
+the struct and not just the struct fields eg. url.Values{"User":"Name%3Djoeybloggs"} will call the
+custom type function with 'User' as the type, however url.Values{"User.Name":"joeybloggs"} will not.
+
 
 Encoder
 ```go

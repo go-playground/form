@@ -112,8 +112,12 @@ func (d *Decoder) SetMaxArraySize(size uint) {
 	d.maxArraySize = int(size)
 }
 
-// RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
-// NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
+// RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types.
+// NOTE: This method is not thread-safe it is intended that these all be registered prior to any parsing
+//
+// ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
+// the struct and not just the struct fields eg. url.Values{"User":"Name%3Djoeybloggs"} will call the
+// custom type function with `User` as the type, however url.Values{"User.Name":"joeybloggs"} will not.
 func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...interface{}) {
 
 	if d.customTypeFuncs == nil {

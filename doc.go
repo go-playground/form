@@ -210,6 +210,11 @@ Decoder
             return time.Parse("2006-01-02", vals[0])
         }, time.Time{})
 
+    ADDITIONAL: if a struct type is registered, the function will only be called
+    if a url.Value exists for the struct and not just the struct fields
+    eg. url.Values{"User":"Name%3Djoeybloggs"} will call the custom type function
+    with 'User' as the type, however url.Values{"User.Name":"joeybloggs"} will not.
+
 Encoder
 
     encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
