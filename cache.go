@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"sync"
 	"sync/atomic"
+	"strings"
 )
 
 type cachedField struct {
@@ -74,6 +75,10 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 
 		if name = fld.Tag.Get(tagName); name == ignore {
 			continue
+		}
+
+		if commaIndex := strings.Index(name, ","); commaIndex != -1 {
+			name = name[:commaIndex]
 		}
 
 		if mode == ModeExplicit && len(name) == 0 {
