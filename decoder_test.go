@@ -1451,3 +1451,25 @@ func TestDecoderExplicit(t *testing.T) {
 	Equal(t, test.Name, "Joeybloggs")
 	Equal(t, test.Age, 0)
 }
+
+func TestDecoderStructWithJSONTag(t *testing.T) {
+	type Test struct {
+		Name string `json:"name,omitempty"`
+		Age  int    `json:",omitempty"`
+	}
+
+	values := map[string][]string{
+		"name": {"Joeybloggs"},
+		"Age":  {"3"},
+	}
+
+	var test Test
+
+	d := NewDecoder()
+	d.SetTagName("json")
+
+	err := d.Decode(&test, values)
+	Equal(t, err, nil)
+	Equal(t, test.Name, "Joeybloggs")
+	Equal(t, test.Age, int(3))
+}
