@@ -3,6 +3,8 @@ package form
 import (
 	"errors"
 	"net/url"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -1472,4 +1474,35 @@ func TestDecoderStructWithJSONTag(t *testing.T) {
 	Equal(t, err, nil)
 	Equal(t, test.Name, "Joeybloggs")
 	Equal(t, test.Age, int(3))
+}
+
+func TestDecoderRegisterTagNameFunc(t *testing.T) {
+
+	type Test struct {
+		Value  string `json:"val,omitempty"`
+		Ignore string `json:"-"`
+	}
+
+	values := url.Values{
+		"val":    []string{"joeybloggs"},
+		"Ignore": []string{"ignore"},
+	}
+
+	var test Test
+
+	decoder := NewDecoder()
+	decoder.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := fld.Tag.Get("json")
+
+		if commaIndex := strings.Index(name, ","); commaIndex != -1 {
+			name = name[:commaIndex]
+		}
+
+		return name
+	})
+
+	err := decoder.Decode(&test, values)
+	Equal(t, err, nil)
+	Equal(t, test.Value, "joeybloggs")
+	Equal(t, test.Ignore, "")
 }
