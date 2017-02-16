@@ -2,9 +2,9 @@ package form
 
 import (
 	"reflect"
+	"strings"
 	"sync"
 	"sync/atomic"
-	"strings"
 )
 
 type cachedField struct {
@@ -17,13 +17,18 @@ type cachedStruct struct {
 }
 
 type structCacheMap struct {
-	m    atomic.Value // map[reflect.Type]*cachedStruct
-	lock sync.Mutex
+	m     atomic.Value // map[reflect.Type]*cachedStruct
+	lock  sync.Mutex
+	tagFn TagNameFunc
 }
 
+// TagNameFunc allows for adding of a custom tag name parser
+type TagNameFunc func(field reflect.StructField) string
+
 func newStructCacheMap() *structCacheMap {
+
 	sc := new(structCacheMap)
-	sc.m.Store(map[reflect.Type]*cachedStruct{})
+	sc.m.Store(make(map[reflect.Type]*cachedStruct))
 
 	return sc
 }
@@ -73,12 +78,18 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			continue
 		}
 
-		if name = fld.Tag.Get(tagName); name == ignore {
-			continue
+		if s.tagFn != nil {
+			name = s.tagFn(fld)
+		} else {
+			name = fld.Tag.Get(tagName)
+
+			if commaIndex := strings.Index(name, ","); commaIndex != -1 {
+				name = name[:commaIndex]
+			}
 		}
 
-		if commaIndex := strings.Index(name, ","); commaIndex != -1 {
-			name = name[:commaIndex]
+		if name == ignore {
+			continue
 		}
 
 		if mode == ModeExplicit && len(name) == 0 {

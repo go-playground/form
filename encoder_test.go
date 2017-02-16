@@ -3,6 +3,8 @@ package form
 import (
 	"errors"
 	"net/url"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -1254,4 +1256,33 @@ func TestEncoderExplicit(t *testing.T) {
 	Equal(t, err, nil)
 	Equal(t, len(values), 1)
 	Equal(t, values["Name"][0], "Joeybloggs")
+}
+
+func TestEncoderRegisterTagNameFunc(t *testing.T) {
+
+	type Test struct {
+		Name string `json:"name"`
+		Age  int    `json:"-"`
+	}
+
+	test := &Test{
+		Name: "Joeybloggs",
+		Age:  3,
+	}
+
+	encoder := NewEncoder()
+	encoder.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := fld.Tag.Get("json")
+
+		if commaIndex := strings.Index(name, ","); commaIndex != -1 {
+			name = name[:commaIndex]
+		}
+
+		return name
+	})
+
+	values, err := encoder.Encode(test)
+	Equal(t, err, nil)
+	Equal(t, len(values), 1)
+	Equal(t, values["name"][0], "Joeybloggs")
 }

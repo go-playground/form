@@ -82,6 +82,16 @@ func (e *Encoder) SetMode(mode Mode) {
 	e.mode = mode
 }
 
+// RegisterTagNameFunc registers a custom tag name parser function
+// NOTE: This method is not thread-safe it is intended that these all be registered prior to any parsing
+//
+// ADDITIONAL: once a custom function has been registered the default, or custom set, tag name is ignored
+// and relies 100% on the function for the name data. The return value WILL BE CACHED and so return value
+// must be consistent.
+func (e *Encoder) RegisterTagNameFunc(fn TagNameFunc) {
+	e.structCache.tagFn = fn
+}
+
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
 func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...interface{}) {
