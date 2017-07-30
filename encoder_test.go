@@ -1286,3 +1286,37 @@ func TestEncoderRegisterTagNameFunc(t *testing.T) {
 	Equal(t, len(values), 1)
 	Equal(t, values["name"][0], "Joeybloggs")
 }
+
+func TestEncoderEmbedModes(t *testing.T) {
+
+	type A struct {
+		Field string
+	}
+
+	type B struct {
+		A
+		Field string
+	}
+
+	b := B{
+		A: A{
+			Field: "A Val",
+		},
+		Field: "B Val",
+	}
+
+	encoder := NewEncoder()
+
+	values, err := encoder.Encode(b)
+	Equal(t, err, nil)
+	Equal(t, len(values), 1)
+	Equal(t, values["Field"][0], "B Val")
+	Equal(t, values["Field"][1], "A Val")
+
+	encoder.SetAnonymousMode(AnonymousSeparate)
+	values, err = encoder.Encode(b)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, values["Field"][0], "B Val")
+	Equal(t, values["A.Field"][0], "A Val")
+}

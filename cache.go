@@ -2,18 +2,34 @@ package form
 
 import (
 	"reflect"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
 )
 
+type cacheFields []cachedField
+
+func (s cacheFields) Len() int {
+	return len(s)
+}
+
+func (s cacheFields) Less(i, j int) bool {
+	return !s[i].isAnonymous
+}
+
+func (s cacheFields) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 type cachedField struct {
-	idx  int
-	name string
+	idx         int
+	name        string
+	isAnonymous bool
 }
 
 type cachedStruct struct {
-	fields []cachedField
+	fields cacheFields
 }
 
 type structCacheMap struct {
@@ -74,6 +90,7 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 
 		fld = typ.Field(i)
 
+		// fmt.Println("PkgPath:", fld.PkgPath, " Anonymous:", fld.Anonymous, " Name:", fld.Name)
 		if fld.PkgPath != blank && !fld.Anonymous {
 			continue
 		}
@@ -88,6 +105,7 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			}
 		}
 
+		// fmt.Println("Ignore:", name == ignore)
 		if name == ignore {
 			continue
 		}
@@ -100,9 +118,10 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			name = fld.Name
 		}
 
-		cs.fields = append(cs.fields, cachedField{idx: i, name: name})
+		cs.fields = append(cs.fields, cachedField{idx: i, name: name, isAnonymous: fld.Anonymous})
 	}
 
+	sort.Sort(cs.fields)
 	s.Set(typ, cs)
 
 	s.lock.Unlock()

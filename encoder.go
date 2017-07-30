@@ -49,8 +49,12 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 	}
 
 	for _, f := range s.fields {
-
 		namespace = namespace[:l]
+
+		if f.isAnonymous && e.e.embedAnonymous {
+			e.setFieldByType(v.Field(f.idx), namespace, idx)
+			continue
+		}
 
 		if first {
 			namespace = append(namespace, f.name...)

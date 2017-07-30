@@ -156,6 +156,12 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 
 		namespace = namespace[:l]
 
+		if f.isAnonymous {
+			if d.setFieldByType(v.Field(f.idx), namespace, 0) {
+				set = true
+			}
+		}
+
 		if first {
 			namespace = append(namespace, f.name...)
 		} else {
