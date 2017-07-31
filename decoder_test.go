@@ -1506,3 +1506,38 @@ func TestDecoderRegisterTagNameFunc(t *testing.T) {
 	Equal(t, test.Value, "joeybloggs")
 	Equal(t, test.Ignore, "")
 }
+
+func TestDecoderEmbedModes(t *testing.T) {
+
+	type A struct {
+		Field string
+	}
+
+	type B struct {
+		A
+		Field string
+	}
+
+	var b B
+
+	decoder := NewDecoder()
+
+	values := url.Values{
+		"Field": []string{"Value"},
+	}
+
+	err := decoder.Decode(&b, values)
+	Equal(t, err, nil)
+	Equal(t, b.Field, "Value")
+	Equal(t, b.A.Field, "Value")
+
+	values = url.Values{
+		"Field":   []string{"B Val"},
+		"A.Field": []string{"A Val"},
+	}
+
+	err = decoder.Decode(&b, values)
+	Equal(t, err, nil)
+	Equal(t, b.Field, "B Val")
+	Equal(t, b.A.Field, "A Val")
+}

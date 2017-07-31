@@ -1,6 +1,6 @@
 Package form
 ============
-<img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">![Project status](https://img.shields.io/badge/version-2.3.0-green.svg)
+<img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">![Project status](https://img.shields.io/badge/version-3.0.0-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
@@ -39,7 +39,7 @@ Supported Types ( out of the box )
 * `slice`, `array`
 * `map`
 * `custom types` can override any of the above types
-* many other types may be supported inherently (eg. `bson.ObjectId` is `type ObjectId string`, which will get populated by the string type
+* many other types may be supported inherently
 
 **NOTE**: `map`, `struct` and `slice` nesting are ad infinitum.
 
@@ -234,6 +234,16 @@ you can tell form to ignore fields using `-` in the tag
 ```go
 type MyStruct struct {
     Field string `form:"-"`
+}
+```
+
+Omitempty
+--------------
+you can tell form to omit empty fields using `,omitempty` or `FieldName,omitempty` in the tag
+```go
+type MyStruct struct {
+    Field  string `form:",omitempty"`
+	Field2 string `form:"CustomFieldName,omitempty"`
 }
 ```
 

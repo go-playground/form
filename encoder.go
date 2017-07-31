@@ -49,8 +49,12 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 	}
 
 	for _, f := range s.fields {
-
 		namespace = namespace[:l]
+
+		if f.isAnonymous && e.e.embedAnonymous {
+			e.setFieldByType(v.Field(f.idx), namespace, idx, f.isOmitEmpty)
+			continue
+		}
 
 		if first {
 			namespace = append(namespace, f.name...)
@@ -59,13 +63,13 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 			namespace = append(namespace, f.name...)
 		}
 
-		e.setFieldByType(v.Field(f.idx), namespace, idx)
+		e.setFieldByType(v.Field(f.idx), namespace, idx, f.isOmitEmpty)
 	}
 
 	return
 }
 
-func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx int) {
+func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx int, isOmitEmpty bool) {
 
 	if idx > -1 && current.Kind() == reflect.Ptr {
 		namespace = append(namespace, '[')
@@ -75,6 +79,9 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 	}
 
 	v, kind := ExtractType(current)
+	if isOmitEmpty && !hasValue(v) {
+		return
+	}
 
 	if e.e.customTypeFuncs != nil {
 
@@ -130,7 +137,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		if idx == -1 {
 
 			for i := 0; i < v.Len(); i++ {
-				e.setFieldByType(v.Index(i), namespace, i)
+				e.setFieldByType(v.Index(i), namespace, i, false)
 			}
 
 			return
@@ -149,7 +156,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = namespace[:l]
 			namespace = strconv.AppendInt(namespace, int64(i), 10)
 			namespace = append(namespace, ']')
-			e.setFieldByType(v.Index(i), namespace, -2)
+			e.setFieldByType(v.Index(i), namespace, -2, false)
 		}
 
 	case reflect.Map:
@@ -176,7 +183,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = append(namespace, s...)
 			namespace = append(namespace, ']')
 
-			e.setFieldByType(current.MapIndex(key), namespace, -2)
+			e.setFieldByType(current.MapIndex(key), namespace, -2, false)
 		}
 
 	case reflect.Struct:

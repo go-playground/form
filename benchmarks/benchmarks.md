@@ -1,56 +1,56 @@
 ## Benchmarks
 
-Competitor Benchmarks Last Run Feb 15, 2017
+All Benchmarks Last Run July 30, 2017
 
-Run on i5-7600 16 GB DDR4-2400 using Go version go1.7.5 linux/amd64
+Run on Dell XPS 15 i7-7700HQ 32GB using Go version go1.8.3 linux/amd64
+go test -run=NONE -bench=. -benchmem=true
 
 ### go-playground/form
 ```go
-PASS
-BenchmarkSimpleUserDecodeStruct-4                                    	 5000000	       252 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserDecodeStructParallel-4                            	20000000	        74.1 ns/op	      64 B/op	       1 allocs/op
-BenchmarkSimpleUserEncodeStruct-4                                    	 2000000	       800 ns/op	     485 B/op	      11 allocs/op
-BenchmarkSimpleUserEncodeStructParallel-4                            	10000000	       220 ns/op	     485 B/op	      11 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-4                  	 2000000	       773 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-4          	10000000	       225 ns/op	      96 B/op	       1 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-4                  	  300000	      4330 ns/op	    3009 B/op	      46 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-4          	 1000000	      1131 ns/op	    3009 B/op	      46 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypes-4                          	  100000	     13316 ns/op	    2256 B/op	     121 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypesParallel-4                  	  300000	      3980 ns/op	    2256 B/op	     121 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypes-4                          	  100000	     14038 ns/op	    7287 B/op	     146 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypesParallel-4                  	  300000	      3646 ns/op	    7288 B/op	     146 allocs/op
-BenchmarkComplexMapDecodeStructAllTypes-4                            	  100000	     18042 ns/op	    5305 B/op	     130 allocs/op
-BenchmarkComplexMapDecodeStructAllTypesParallel-4                    	  300000	      5051 ns/op	    5306 B/op	     130 allocs/op
-BenchmarkComplexMapEncodeStructAllTypes-4                            	  100000	     14177 ns/op	    7098 B/op	     175 allocs/op
-BenchmarkComplexMapEncodeStructAllTypesParallel-4                    	  300000	      3693 ns/op	    7098 B/op	     175 allocs/op
-BenchmarkDecodeNestedStruct-4                                        	  500000	      2762 ns/op	     384 B/op	      14 allocs/op
-BenchmarkDecodeNestedStructParallel-4                                	 2000000	       785 ns/op	     384 B/op	      14 allocs/op
-BenchmarkEncodeNestedStruct-4                                        	 1000000	      1779 ns/op	     704 B/op	      16 allocs/op
-BenchmarkEncodeNestedStructParallel-4                                	 3000000	       493 ns/op	     704 B/op	      16 allocs/op
+BenchmarkSimpleUserDecodeStruct-8                                    	 5000000	       264 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserDecodeStructParallel-8                            	20000000	        80.7 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserEncodeStruct-8                                    	 1000000	      1097 ns/op	     485 B/op	      11 allocs/op
+BenchmarkSimpleUserEncodeStructParallel-8                            	 5000000	       239 ns/op	     485 B/op	      11 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8                  	 2000000	       799 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8          	 5000000	       237 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8                  	  300000	      6672 ns/op	    3010 B/op	      46 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8          	 1000000	      1207 ns/op	    3010 B/op	      46 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypes-8                          	  100000	     14374 ns/op	    2249 B/op	     121 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesParallel-8                  	  300000	      3867 ns/op	    2249 B/op	     121 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypes-8                          	  100000	     20531 ns/op	    7161 B/op	     146 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallel-8                  	  300000	      3839 ns/op	    7162 B/op	     146 allocs/op
+BenchmarkComplexMapDecodeStructAllTypes-8                            	  100000	     20745 ns/op	    5306 B/op	     130 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallel-8                    	  300000	      5164 ns/op	    5312 B/op	     130 allocs/op
+BenchmarkComplexMapEncodeStructAllTypes-8                            	  100000	     18658 ns/op	    7066 B/op	     175 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallel-8                    	  300000	      4019 ns/op	    7068 B/op	     175 allocs/op
+BenchmarkDecodeNestedStruct-8                                        	  500000	      3039 ns/op	     384 B/op	      14 allocs/op
+BenchmarkDecodeNestedStructParallel-8                                	 2000000	       832 ns/op	     384 B/op	      14 allocs/op
+BenchmarkEncodeNestedStruct-8                                        	 1000000	      2005 ns/op	     693 B/op	      16 allocs/op
+BenchmarkEncodeNestedStructParallel-8                                	 3000000	       534 ns/op	     693 B/op	      16 allocs/op
 ```
 
 ### gorilla/schema
 ```go
-BenchmarkSimpleUserStructGorilla-4                                   	 1000000	      2077 ns/op	     520 B/op	      23 allocs/op
-BenchmarkSimpleUserStructGorillaParallel-4                           	 2000000	       667 ns/op	     520 B/op	      23 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypesGorilla-4                 	  200000	      7997 ns/op	    1536 B/op	      84 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypesGorillaParallel-4         	  500000	      2429 ns/op	    1536 B/op	      84 allocs/op
-BenchmarkComplexArrayStructAllTypesGorilla-4                         	   50000	     23286 ns/op	    5416 B/op	     223 allocs/op
-BenchmarkComplexArrayStructAllTypesGorillaParallel-4                 	  200000	      6773 ns/op	    5416 B/op	     223 allocs/op
-BenchmarkArrayMapNestedStructGorilla-4                               	  200000	      7745 ns/op	    2285 B/op	      75 allocs/op
-BenchmarkArrayMapNestedStructGorillaParallel-4                       	  500000	      2421 ns/op	    2285 B/op	      75 allocs/op
+BenchmarkSimpleUserStructGorilla-8                                   	  500000	      2968 ns/op	     568 B/op	      27 allocs/op
+BenchmarkSimpleUserStructGorillaParallel-8                           	 2000000	       798 ns/op	     568 B/op	      27 allocs/op
+BenchmarkPrimitivesStructAllPrimitivesTypesGorilla-8                 	  200000	     10666 ns/op	    1616 B/op	      98 allocs/op
+BenchmarkPrimitivesStructAllPrimitivesTypesGorillaParallel-8         	  500000	      2814 ns/op	    1616 B/op	      98 allocs/op
+BenchmarkComplexArrayStructAllTypesGorilla-8                         	   50000	     29731 ns/op	    5528 B/op	     240 allocs/op
+BenchmarkComplexArrayStructAllTypesGorillaParallel-8                 	  200000	      7657 ns/op	    5528 B/op	     240 allocs/op
+BenchmarkArrayMapNestedStructGorilla-8                               	  200000	      9546 ns/op	    2397 B/op	      82 allocs/op
+BenchmarkArrayMapNestedStructGorillaParallel-8                       	  500000	      2623 ns/op	    2397 B/op	      82 allocs/op
 ```
 
 ### monoculum/formam
 ```go
-BenchmarkSimpleUserStructFormam-4                                    	 1000000	      1927 ns/op	     232 B/op	      16 allocs/op
-BenchmarkSimpleUserStructFormamParallel-4                            	 3000000	       514 ns/op	     232 B/op	      16 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesFormamTypes-4                  	  200000	      7135 ns/op	    1088 B/op	     121 allocs/op
-BenchmarkPrimitivesStructAllPrimitivesTypesFormamParallel-4          	 1000000	      1870 ns/op	    1088 B/op	     121 allocs/op
-BenchmarkComplexArrayStructAllTypesFormam-4                          	   50000	     30957 ns/op	    5608 B/op	     485 allocs/op
-BenchmarkComplexArrayStructAllTypesFormamParallel-4                  	  200000	      8848 ns/op	    5594 B/op	     484 allocs/op
-BenchmarkComplexMapStructAllTypesFormam-4                            	   50000	     37984 ns/op	   14647 B/op	     534 allocs/op
-BenchmarkComplexMapStructAllTypesFormamParallel-4                    	  200000	      9795 ns/op	   14658 B/op	     534 allocs/op
+BenchmarkSimpleUserStructFormam-8                                    	  500000	      2888 ns/op	     232 B/op	      16 allocs/op
+BenchmarkSimpleUserStructFormamParallel-8                            	 2000000	       766 ns/op	     232 B/op	      16 allocs/op
+BenchmarkPrimitivesStructAllPrimitivesFormamTypes-8                  	  200000	      8179 ns/op	    1088 B/op	     121 allocs/op
+BenchmarkPrimitivesStructAllPrimitivesTypesFormamParallel-8          	 1000000	      2235 ns/op	    1088 B/op	     121 allocs/op
+BenchmarkComplexArrayStructAllTypesFormam-8                          	   50000	     36620 ns/op	    5561 B/op	     482 allocs/op
+BenchmarkComplexArrayStructAllTypesFormamParallel-8                  	  200000	      9460 ns/op	    5560 B/op	     482 allocs/op
+BenchmarkComplexMapStructAllTypesFormam-8                            	   30000	     43515 ns/op	   14649 B/op	     534 allocs/op
+BenchmarkComplexMapStructAllTypesFormamParallel-8                    	  200000	     10842 ns/op	   14652 B/op	     534 allocs/op
 --- FAIL: BenchmarkArrayMapNestedStructFormam
 	formam_test.go:137: formam: not supported type for field "Value" in path "NestedPtrArray[0].Value". Maybe you should to include it the UnmarshalText interface or register it using custom type?
 --- FAIL: BenchmarkArrayMapNestedStructFormamParallel
@@ -59,28 +59,28 @@ BenchmarkComplexMapStructAllTypesFormamParallel-4                    	  200000	 
 
 ### ajg/form
 ```go
-BenchmarkSimpleUserDecodeStructAGJForm-4                             	  300000	      5150 ns/op	    1336 B/op	      42 allocs/op
-BenchmarkSimpleUserDecodeStructParallelAGJFrom-4                     	 1000000	      1372 ns/op	    1336 B/op	      42 allocs/op
-BenchmarkSimpleUserEncodeStructAGJForm-4                             	  300000	      4196 ns/op	    1304 B/op	      37 allocs/op
-BenchmarkSimpleUserEncodeStructParallelAGJForm-4                     	 1000000	      1129 ns/op	    1304 B/op	      37 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypesAGJForm-4           	  100000	     18605 ns/op	    5718 B/op	     171 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallelAGJForm-4   	  300000	      4941 ns/op	    5718 B/op	     171 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypesAGJForm-4           	  100000	     14417 ns/op	    5903 B/op	     110 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallelAGJForm-4   	  500000	      3702 ns/op	    5904 B/op	     110 allocs/op
+BenchmarkSimpleUserDecodeStructAGJForm-8                             	  300000	      5567 ns/op	    1320 B/op	      34 allocs/op
+BenchmarkSimpleUserDecodeStructParallelAGJFrom-8                     	 1000000	      1482 ns/op	    1320 B/op	      34 allocs/op
+BenchmarkSimpleUserEncodeStructAGJForm-8                             	  300000	      4699 ns/op	    1272 B/op	      29 allocs/op
+BenchmarkSimpleUserEncodeStructParallelAGJForm-8                     	 1000000	      1239 ns/op	    1272 B/op	      29 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesAGJForm-8           	  100000	     20476 ns/op	    5662 B/op	     143 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallelAGJForm-8   	  300000	      5039 ns/op	    5662 B/op	     143 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesAGJForm-8           	  100000	     15661 ns/op	    5792 B/op	      82 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallelAGJForm-8   	  300000	      3851 ns/op	    5792 B/op	      82 allocs/op
 --- FAIL: BenchmarkComplexArrayDecodeStructAllTypesAGJForm
-	ajg_form_test.go:127:  is not a valid index for type []uint32
+	ajg_form_test.go:127:  is not a valid index for type []int32
 --- FAIL: BenchmarkComplexArrayDecodeStructAllTypesParallelAGJForm
-	ajg_form_test.go:140: Int8Ptr[1] doesn't exist in benchmarks.ComplexArrayStruct
-BenchmarkComplexArrayEncodeStructAllTypesAGJForm-4                   	   30000	     61548 ns/op	   22195 B/op	     538 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypesParallelAGJForm-4           	  100000	     16386 ns/op	   22193 B/op	     538 allocs/op
-BenchmarkComplexMapDecodeStructAllTypesAGJForm-4                     	   20000	     76838 ns/op	   22498 B/op	     692 allocs/op
-BenchmarkComplexMapDecodeStructAllTypesParallelAGJForm-4             	  100000	     20941 ns/op	   22496 B/op	     692 allocs/op
-BenchmarkComplexMapEncodeStructAllTypesAGJForm-4                     	   50000	     40160 ns/op	   18286 B/op	     419 allocs/op
-BenchmarkComplexMapEncodeStructAllTypesParallelAGJForm-4             	  200000	     10761 ns/op	   18289 B/op	     419 allocs/op
+	ajg_form_test.go:140: NestedInt[0][0] doesn't exist in benchmarks.ComplexArrayStruct
+BenchmarkComplexArrayEncodeStructAllTypesAGJForm-8                   	   20000	     67813 ns/op	   21553 B/op	     400 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallelAGJForm-8           	  100000	     17175 ns/op	   21552 B/op	     400 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesAGJForm-8                     	   20000	     84436 ns/op	   22294 B/op	     592 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallelAGJForm-8             	  100000	     21599 ns/op	   22298 B/op	     592 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesAGJForm-8                     	   30000	     49011 ns/op	   17958 B/op	     323 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallelAGJForm-8             	  200000	     11763 ns/op	   17958 B/op	     323 allocs/op
 --- FAIL: BenchmarkDecodeNestedStructAGJForm
 	ajg_form_test.go:261: NestedArray[0] doesn't exist in benchmarks.NestedStruct
 --- FAIL: BenchmarkDecodeNestedStructParallelAGJForm
 	ajg_form_test.go:275: NestedArray[0] doesn't exist in benchmarks.NestedStruct
-BenchmarkEncodeNestedStructAGJForm-4                                 	  100000	     15989 ns/op	    5838 B/op	     147 allocs/op
-BenchmarkEncodeNestedStructParallelAGJForm-4                         	  300000	      4272 ns/op	    5838 B/op	     147 allocs/op
+BenchmarkEncodeNestedStructAGJForm-8                                 	  100000	     18583 ns/op	    5704 B/op	     113 allocs/op
+BenchmarkEncodeNestedStructParallelAGJForm-8                         	  300000	      4683 ns/op	    5704 B/op	     113 allocs/op
 ```

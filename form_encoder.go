@@ -49,15 +49,17 @@ type Encoder struct {
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
 	dataPool        *sync.Pool
+	embedAnonymous  bool
 }
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
 
 	e := &Encoder{
-		tagName:     "form",
-		mode:        ModeImplicit,
-		structCache: newStructCacheMap(),
+		tagName:        "form",
+		mode:           ModeImplicit,
+		structCache:    newStructCacheMap(),
+		embedAnonymous: true,
 	}
 
 	e.dataPool = &sync.Pool{New: func() interface{} {
@@ -80,6 +82,12 @@ func (e *Encoder) SetTagName(tagName string) {
 // Default is ModeImplicit
 func (e *Encoder) SetMode(mode Mode) {
 	e.mode = mode
+}
+
+// SetAnonymousMode sets the mode the encoder should run
+// Default is AnonymousEmbed
+func (e *Encoder) SetAnonymousMode(mode AnonymousMode) {
+	e.embedAnonymous = mode == AnonymousEmbed
 }
 
 // RegisterTagNameFunc registers a custom tag name parser function
@@ -120,7 +128,7 @@ func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
 	if kind == reflect.Struct && val.Type() != timeType {
 		enc.traverseStruct(val, enc.namespace[0:0], -1)
 	} else {
-		enc.setFieldByType(val, enc.namespace[0:0], -1)
+		enc.setFieldByType(val, enc.namespace[0:0], -1, false)
 	}
 
 	if len(enc.errs) > 0 {

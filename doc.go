@@ -230,6 +230,16 @@ you can tell form to ignore fields using `-` in the tag
         Field string `form:"-"`
     }
 
+Omitempty
+
+you can tell form to omit empty fields using `,omitempty` or `FieldName,omitempty` in the tag
+
+    type MyStruct struct {
+        Field  string `form:",omitempty"`
+        Field2 string `form:"CustomFieldName,omitempty"`
+    }
+
+
 Notes
 
 To maximize compatibility with other systems the Encoder attempts
