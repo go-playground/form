@@ -1320,3 +1320,56 @@ func TestEncoderEmbedModes(t *testing.T) {
 	Equal(t, values["Field"][0], "B Val")
 	Equal(t, values["A.Field"][0], "A Val")
 }
+
+func TestOmitEmpty(t *testing.T) {
+
+	type Test struct {
+		String  string            `form:",omitempty"`
+		Array   []string          `form:",omitempty"`
+		Map     map[string]string `form:",omitempty"`
+		String2 string            `form:"str,omitempty"`
+		Array2  []string          `form:"arr,omitempty"`
+		Map2    map[string]string `form:"map,omitempty"`
+	}
+
+	var tst Test
+
+	encoder := NewEncoder()
+
+	values, err := encoder.Encode(tst)
+	Equal(t, err, nil)
+	Equal(t, len(values), 0)
+
+	type Test2 struct {
+		String  string
+		Array   []string
+		Map     map[string]string
+		String2 string            `form:"str,omitempty"`
+		Array2  []string          `form:"arr,omitempty"`
+		Map2    map[string]string `form:"map,omitempty"`
+	}
+
+	var tst2 Test2
+
+	values, err = encoder.Encode(tst2)
+	Equal(t, err, nil)
+	Equal(t, len(values), 1)
+	Equal(t, values["String"][0], "")
+
+	type Test3 struct {
+		String  string
+		Array   []string
+		Map     map[string]string
+		String2 string `form:"str"`
+		Array2  []string
+		Map2    map[string]string
+	}
+
+	var tst3 Test3
+
+	values, err = encoder.Encode(tst3)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, values["String"][0], "")
+	Equal(t, values["str"][0], "")
+}

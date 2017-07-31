@@ -44,3 +44,13 @@ func parseBool(str string) (bool, error) {
 	// to ensure compatibility with std library and beyond.
 	return false, &strconv.NumError{Func: "ParseBool", Num: str, Err: strconv.ErrSyntax}
 }
+
+// hasValue determines if a reflect.Value is it's default value
+func hasValue(field reflect.Value) bool {
+	switch field.Kind() {
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !field.IsNil()
+	default:
+		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
+	}
+}

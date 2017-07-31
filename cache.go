@@ -26,6 +26,7 @@ type cachedField struct {
 	idx         int
 	name        string
 	isAnonymous bool
+	isOmitEmpty bool
 }
 
 type cachedStruct struct {
@@ -85,12 +86,13 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 
 	var fld reflect.StructField
 	var name string
+	var idx int
+	var isOmitEmpty bool
 
 	for i := 0; i < numFields; i++ {
-
+		isOmitEmpty = false
 		fld = typ.Field(i)
 
-		// fmt.Println("PkgPath:", fld.PkgPath, " Anonymous:", fld.Anonymous, " Name:", fld.Name)
 		if fld.PkgPath != blank && !fld.Anonymous {
 			continue
 		}
@@ -99,13 +101,8 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			name = s.tagFn(fld)
 		} else {
 			name = fld.Tag.Get(tagName)
-
-			if commaIndex := strings.Index(name, ","); commaIndex != -1 {
-				name = name[:commaIndex]
-			}
 		}
 
-		// fmt.Println("Ignore:", name == ignore)
 		if name == ignore {
 			continue
 		}
@@ -114,11 +111,17 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			continue
 		}
 
+		// check for omitempty
+		if idx = strings.LastIndexByte(name, ','); idx != -1 {
+			isOmitEmpty = name[idx+1:] == "omitempty"
+			name = name[:idx]
+		}
+
 		if len(name) == 0 {
 			name = fld.Name
 		}
 
-		cs.fields = append(cs.fields, cachedField{idx: i, name: name, isAnonymous: fld.Anonymous})
+		cs.fields = append(cs.fields, cachedField{idx: i, name: name, isAnonymous: fld.Anonymous, isOmitEmpty: isOmitEmpty})
 	}
 
 	sort.Sort(cs.fields)

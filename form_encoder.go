@@ -128,7 +128,7 @@ func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
 	if kind == reflect.Struct && val.Type() != timeType {
 		enc.traverseStruct(val, enc.namespace[0:0], -1)
 	} else {
-		enc.setFieldByType(val, enc.namespace[0:0], -1)
+		enc.setFieldByType(val, enc.namespace[0:0], -1, false)
 	}
 
 	if len(enc.errs) > 0 {

@@ -39,7 +39,7 @@ Supported Types ( out of the box )
 * `slice`, `array`
 * `map`
 * `custom types` can override any of the above types
-* many other types may be supported inherently (eg. `bson.ObjectId` is `type ObjectId string`, which will get populated by the string type
+* many other types may be supported inherently
 
 **NOTE**: `map`, `struct` and `slice` nesting are ad infinitum.
 
@@ -234,6 +234,16 @@ you can tell form to ignore fields using `-` in the tag
 ```go
 type MyStruct struct {
     Field string `form:"-"`
+}
+```
+
+Omitempty
+--------------
+you can tell form to omit empty fields using `,omitempty` or `FieldName,omitempty` in the tag
+```go
+type MyStruct struct {
+    Field  string `form:",omitempty"`
+	Field2 string `form:"CustomFieldName,omitempty"`
 }
 ```
 
