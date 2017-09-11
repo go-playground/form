@@ -380,7 +380,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 	case reflect.Bool:
 
-		if !ok || len(arr[idx]) == 0 {
+		if !ok {
 			return
 		}
 
