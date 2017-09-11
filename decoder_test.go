@@ -448,6 +448,8 @@ func TestDecoderBool(t *testing.T) {
 	type TestBool struct {
 		Bool              bool
 		BoolPtr           *bool
+		BoolPtrNil        *bool
+		BoolPtrEmpty      *bool
 		BoolArray         []bool
 		BoolPtrArray      []*bool
 		BoolArrayArray    [][]bool
@@ -460,6 +462,7 @@ func TestDecoderBool(t *testing.T) {
 	values := url.Values{
 		"Bool":                    []string{"true"},
 		"BoolPtr":                 []string{"true"},
+		"BoolPtrEmpty":            []string{""},
 		"BoolArray":               []string{"off", "t", "on"},
 		"BoolPtrArray[0]":         []string{"true"},
 		"BoolPtrArray[2]":         []string{"T"},
@@ -484,6 +487,9 @@ func TestDecoderBool(t *testing.T) {
 	Equal(t, test.Bool, true)
 
 	Equal(t, *test.BoolPtr, true)
+	Equal(t, test.BoolPtrNil, nil)
+	NotEqual(t, test.BoolPtrEmpty, nil)
+	Equal(t, *test.BoolPtrEmpty, false)
 
 	Equal(t, len(test.BoolArray), 7)
 	Equal(t, test.BoolArray[0], false)
