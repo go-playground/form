@@ -1547,3 +1547,21 @@ func TestDecoderEmbedModes(t *testing.T) {
 	Equal(t, b.Field, "B Val")
 	Equal(t, b.A.Field, "A Val")
 }
+
+func TestInterfaceDecoding(t *testing.T) {
+
+	type Test struct {
+		Iface interface{}
+	}
+
+	var b Test
+
+	values := url.Values{
+		"Iface": []string{"1"},
+	}
+
+	decoder := NewDecoder()
+	err := decoder.Decode(&b, values)
+	Equal(t, err, nil)
+	Equal(t, b.Iface, "1")
+}

@@ -2,7 +2,6 @@ package form
 
 import (
 	"errors"
-	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -419,7 +418,7 @@ func TestEncoderString(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "1")
 
-	val, ok = values["StringPtrArray[1]"]
+	_, ok = values["StringPtrArray[1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["StringPtrArray[2]"]
@@ -442,7 +441,7 @@ func TestEncoderString(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "3")
 
-	val, ok = values["StringArrayArray[1][1]"]
+	_, ok = values["StringArrayArray[1][1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["StringArrayArray[2][0]"]
@@ -453,14 +452,14 @@ func TestEncoderString(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "1")
 
-	val, ok = values["StringPtrArrayArray[0][1]"]
+	_, ok = values["StringPtrArrayArray[0][1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["StringPtrArrayArray[0][2]"]
 	Equal(t, ok, true)
 	Equal(t, val[0], "3")
 
-	val, ok = values["StringPtrArrayArray[1][1]"]
+	_, ok = values["StringPtrArrayArray[1][1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["StringPtrArrayArray[2][0]"]
@@ -608,7 +607,7 @@ func TestEncoderFloat(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "3.3")
 
-	val, ok = values["Float32ArrayArray[1][0]"]
+	_, ok = values["Float32ArrayArray[1][0]"]
 	Equal(t, ok, false)
 
 	val, ok = values["Float32ArrayArray[2][0]"]
@@ -627,7 +626,7 @@ func TestEncoderFloat(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "3.3")
 
-	val, ok = values["Float64ArrayArray[1][0]"]
+	_, ok = values["Float64ArrayArray[1][0]"]
 	Equal(t, ok, false)
 
 	val, ok = values["Float64ArrayArray[2][0]"]
@@ -638,14 +637,14 @@ func TestEncoderFloat(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "1.1")
 
-	val, ok = values["Float32PtrArrayArray[0][1]"]
+	_, ok = values["Float32PtrArrayArray[0][1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["Float32PtrArrayArray[0][2]"]
 	Equal(t, ok, true)
 	Equal(t, val[0], "3.3")
 
-	val, ok = values["Float32PtrArrayArray[1][0]"]
+	_, ok = values["Float32PtrArrayArray[1][0]"]
 	Equal(t, ok, false)
 
 	val, ok = values["Float32PtrArrayArray[2][0]"]
@@ -656,14 +655,14 @@ func TestEncoderFloat(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "1.1")
 
-	val, ok = values["Float64PtrArrayArray[0][1]"]
+	_, ok = values["Float64PtrArrayArray[0][1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["Float64PtrArrayArray[0][2]"]
 	Equal(t, ok, true)
 	Equal(t, val[0], "3.3")
 
-	val, ok = values["Float64PtrArrayArray[1][0]"]
+	_, ok = values["Float64PtrArrayArray[1][0]"]
 	Equal(t, ok, false)
 
 	val, ok = values["Float64PtrArrayArray[2][0]"]
@@ -760,7 +759,7 @@ func TestEncoderBool(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "false")
 
-	val, ok = values["BoolPtrArray[1]"]
+	_, ok = values["BoolPtrArray[1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["BoolPtrArray[2]"]
@@ -779,7 +778,7 @@ func TestEncoderBool(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "true")
 
-	val, ok = values["BoolArrayArray[1][0]"]
+	_, ok = values["BoolArrayArray[1][0]"]
 	Equal(t, ok, false)
 
 	val, ok = values["BoolArrayArray[2][0]"]
@@ -790,14 +789,14 @@ func TestEncoderBool(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "true")
 
-	val, ok = values["BoolPtrArrayArray[0][1]"]
+	_, ok = values["BoolPtrArrayArray[0][1]"]
 	Equal(t, ok, false)
 
 	val, ok = values["BoolPtrArrayArray[0][2]"]
 	Equal(t, ok, true)
 	Equal(t, val[0], "true")
 
-	val, ok = values["BoolPtrArrayArray[1][0]"]
+	_, ok = values["BoolPtrArrayArray[1][0]"]
 	Equal(t, ok, false)
 
 	val, ok = values["BoolPtrArrayArray[2][0]"]
@@ -904,7 +903,7 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "joeybloggs")
 
-	val, ok = values["Ignore"]
+	_, ok = values["Ignore"]
 	Equal(t, ok, false)
 
 	val, ok = values["NonNilPtr.Number"]
@@ -931,10 +930,10 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "Anon")
 
-	val, ok = values["Anonymous.Ignore"]
+	_, ok = values["Anonymous.Ignore"]
 	Equal(t, ok, false)
 
-	val, ok = values["Anonymous.unexposed"]
+	_, ok = values["Anonymous.unexposed"]
 	Equal(t, ok, false)
 
 	val, ok = values["Time"]
@@ -945,7 +944,7 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], tm.Format("2006-01-02"))
 
-	val, ok = values["unexposed"]
+	_, ok = values["unexposed"]
 	Equal(t, ok, false)
 
 	val, ok = values["mp[existingkey]"]
@@ -962,14 +961,14 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, val[0], "1")
 	Equal(t, val[1], "2")
 
-	val, ok = values["ZeroLengthArray"]
+	_, ok = values["ZeroLengthArray"]
 	Equal(t, ok, false)
 
 	val, ok = values["IfaceNonNil.Number"]
 	Equal(t, ok, true)
 	Equal(t, val[0], "")
 
-	val, ok = values["IfaceInvalid"]
+	_, ok = values["IfaceInvalid"]
 	Equal(t, ok, false)
 
 	val, ok = values["IfaceNonNil.Number"]
@@ -1009,10 +1008,10 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, val[0], "tval")
 
-	val, ok = values["Ignore"]
+	_, ok = values["Ignore"]
 	Equal(t, ok, false)
 
-	val, ok = values["unexposed"]
+	_, ok = values["unexposed"]
 	Equal(t, ok, false)
 
 	val, ok = values["ArrayTime[0]"]
@@ -1139,11 +1138,6 @@ func TestEncoderNativeTime(t *testing.T) {
 	type TestError struct {
 		Time        time.Time
 		TimeNoValue time.Time
-	}
-
-	values := url.Values{
-		"Time":        []string{"2006-01-02T15:04:05Z"},
-		"TimeNoValue": []string{""},
 	}
 
 	tm, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")

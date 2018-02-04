@@ -45,10 +45,10 @@ func (e *InvalidEncodeError) Error() string {
 // Encoder is the main encode instance
 type Encoder struct {
 	tagName         string
-	mode            Mode
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
 	dataPool        *sync.Pool
+	mode            Mode
 	embedAnonymous  bool
 }
 

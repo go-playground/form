@@ -65,8 +65,6 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 
 		e.setFieldByType(v.Field(f.idx), namespace, idx, f.isOmitEmpty)
 	}
-
-	return
 }
 
 func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx int, isOmitEmpty bool) {
@@ -214,8 +212,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 		e.traverseStruct(v, namespace, -2)
 	}
-
-	return
 }
 
 func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) {
