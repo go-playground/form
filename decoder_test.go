@@ -785,7 +785,7 @@ func TestDecoderErrors(t *testing.T) {
 	}
 
 	test := TestError{
-		OverFlowExistingArray: make([]int, 2, 2),
+		OverFlowExistingArray: make([]int, 2),
 	}
 
 	decoder := NewDecoder()
@@ -888,7 +888,7 @@ func TestDecoderErrors(t *testing.T) {
 	Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
 
 	k = err["BadArrayIndex"]
-	Equal(t, k.Error(), "Invalid Array index 'bad index'")
+	Equal(t, k.Error(), "invalid slice index 'bad index'")
 
 	type TestError2 struct {
 		BadMapKey map[time.Time]string
@@ -1564,4 +1564,30 @@ func TestInterfaceDecoding(t *testing.T) {
 	err := decoder.Decode(&b, values)
 	Equal(t, err, nil)
 	Equal(t, b.Iface, "1")
+}
+
+func TestDecodeArrayBug(t *testing.T) {
+	var data struct {
+		A [2]string
+		B [2]string
+		C [2]string
+	}
+	decoder := NewDecoder()
+	err := decoder.Decode(&data, url.Values{
+		// Mixed types
+		"A":    {"10"},
+		"A[1]": {"20"},
+		// overflow
+		"B":    {"10", "20", "30"},
+		"B[1]": {"31", "10", "20"},
+		"B[2]": {"40"},
+		// invalid array index
+		"C[q]": {""},
+	})
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:C ERROR:invalid array index 'q'")
+	Equal(t, data.A[0], "10")
+	Equal(t, data.A[1], "20")
+	Equal(t, data.B[0], "10")
+	Equal(t, data.B[1], "31")
 }

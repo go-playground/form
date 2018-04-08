@@ -354,24 +354,69 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		v.SetBool(b)
 		set = true
 
-	case reflect.Slice, reflect.Array:
-		if !ok {
+	case reflect.Slice:
 
-			d.parseMapData()
+		d.parseMapData()
+		// slice elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
 
-			// maybe it's an numbered array i.e. Phone[0].Number
-			if rd := d.findAlias(string(namespace)); rd != nil {
+		if ok && len(arr) > 0 {
+			var varr reflect.Value
 
-				var varr reflect.Value
-				var kv key
+			var ol int
+			l := len(arr)
 
-				sl := rd.sliceLen + 1
+			if v.IsNil() {
+				varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
+			} else {
 
-				// checking below for maxArraySize, but if array exists and already
-				// has sufficient capacity allocated then we do not check as the code
-				// obviously allows a capacity greater than the maxArraySize.
+				ol = v.Len()
+				l += ol
 
-				if v.IsNil() {
+				if v.Cap() <= l {
+					varr = reflect.MakeSlice(v.Type(), l, l)
+				} else {
+					// preserve predefined capacity, possibly for reuse after decoding
+					varr = reflect.MakeSlice(v.Type(), l, v.Cap())
+				}
+				reflect.Copy(varr, v)
+			}
+
+			for i := ol; i < l; i++ {
+				newVal := reflect.New(v.Type().Elem()).Elem()
+
+				if d.setFieldByType(newVal, namespace, i-ol) {
+					set = true
+					varr.Index(i).Set(newVal)
+				}
+			}
+
+			v.Set(varr)
+		}
+
+		// maybe it's an numbered array i.e. Phone[0].Number
+		if rd := d.findAlias(string(namespace)); rd != nil {
+
+			var varr reflect.Value
+			var kv key
+
+			sl := rd.sliceLen + 1
+
+			// checking below for maxArraySize, but if array exists and already
+			// has sufficient capacity allocated then we do not check as the code
+			// obviously allows a capacity greater than the maxArraySize.
+
+			if v.IsNil() {
+
+				if sl > d.d.maxArraySize {
+					d.setError(namespace, fmt.Errorf(errArraySize, sl, d.d.maxArraySize))
+					return
+				}
+
+				varr = reflect.MakeSlice(v.Type(), sl, sl)
+
+			} else if v.Len() < sl {
+
+				if v.Cap() <= sl {
 
 					if sl > d.d.maxArraySize {
 						d.setError(namespace, fmt.Errorf(errArraySize, sl, d.d.maxArraySize))
@@ -379,88 +424,104 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 					}
 
 					varr = reflect.MakeSlice(v.Type(), sl, sl)
-
-				} else if v.Len() < sl {
-
-					if v.Cap() <= sl {
-
-						if sl > d.d.maxArraySize {
-							d.setError(namespace, fmt.Errorf(errArraySize, sl, d.d.maxArraySize))
-							return
-						}
-
-						varr = reflect.MakeSlice(v.Type(), sl, sl)
-					} else {
-						varr = reflect.MakeSlice(v.Type(), sl, v.Cap())
-					}
-
-					reflect.Copy(varr, v)
-
 				} else {
-					varr = v
+					varr = reflect.MakeSlice(v.Type(), sl, v.Cap())
 				}
 
-				for i := 0; i < len(rd.keys); i++ {
+				reflect.Copy(varr, v)
 
-					kv = rd.keys[i]
-					newVal := reflect.New(varr.Type().Elem()).Elem()
-
-					if kv.ivalue == -1 {
-						d.setError(namespace, fmt.Errorf("Invalid Array index '%s'", kv.value))
-						continue
-					}
-
-					if d.setFieldByType(newVal, append(namespace, kv.searchValue...), 0) {
-						set = true
-						varr.Index(kv.ivalue).Set(newVal)
-					}
-				}
-
-				if !set {
-					return
-				}
-
-				v.Set(varr)
-			}
-
-			return
-		}
-
-		if len(arr) == 0 {
-			return
-		}
-
-		var varr reflect.Value
-
-		var ol int
-		l := len(arr)
-
-		if v.IsNil() {
-			varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
-		} else {
-
-			ol = v.Len()
-			l += ol
-
-			if v.Cap() <= l {
-				varr = reflect.MakeSlice(v.Type(), l, l)
 			} else {
-				// preserve predefined capacity, possibly for reuse after decoding
-				varr = reflect.MakeSlice(v.Type(), l, v.Cap())
+				varr = v
 			}
+
+			for i := 0; i < len(rd.keys); i++ {
+
+				kv = rd.keys[i]
+				newVal := reflect.New(varr.Type().Elem()).Elem()
+
+				if kv.ivalue == -1 {
+					d.setError(namespace, fmt.Errorf("invalid slice index '%s'", kv.value))
+					continue
+				}
+
+				if d.setFieldByType(newVal, append(namespace, kv.searchValue...), 0) {
+					set = true
+					varr.Index(kv.ivalue).Set(newVal)
+				}
+			}
+
+			if !set {
+				return
+			}
+
+			v.Set(varr)
+		}
+
+	case reflect.Array:
+		d.parseMapData()
+
+		// array elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
+
+		if ok && len(arr) > 0 {
+			var varr reflect.Value
+
+			overCapacity := v.Len() < len(arr)
+			if overCapacity {
+				// more values than array capacity, ignore values over capacity as it's possible some would just want
+				// to grab the first x number of elements; in the future strict mode logic should return an error
+				fmt.Println("warning number of post form array values is larger than array capacity, ignoring overflow values")
+			}
+			varr = reflect.Indirect(reflect.New(reflect.ArrayOf(v.Len(), v.Type().Elem())))
 			reflect.Copy(varr, v)
-		}
 
-		for i := ol; i < l; i++ {
-			newVal := reflect.New(v.Type().Elem()).Elem()
+			for i := 0; i < v.Len(); i++ {
+				newVal := reflect.New(v.Type().Elem()).Elem()
 
-			if d.setFieldByType(newVal, namespace, i-ol) {
-				set = true
-				varr.Index(i).Set(newVal)
+				if d.setFieldByType(newVal, namespace, 0) {
+					set = true
+					varr.Index(i).Set(newVal)
+				}
 			}
+			v.Set(varr)
 		}
 
-		v.Set(varr)
+		// maybe it's an numbered array i.e. Phone[0].Number
+		if rd := d.findAlias(string(namespace)); rd != nil {
+			var varr reflect.Value
+			var kv key
+
+			overCapacity := rd.sliceLen >= v.Len()
+			if overCapacity {
+				// more values than array capacity, ignore values over capacity as it's possible some would just want
+				// to grab the first x number of elements; in the future strict mode logic should return an error
+				fmt.Println("warning number of post form array values is larger than array capacity, ignoring overflow values")
+			}
+			varr = reflect.Indirect(reflect.New(reflect.ArrayOf(v.Len(), v.Type().Elem())))
+			reflect.Copy(varr, v)
+
+			for i := 0; i < len(rd.keys); i++ {
+				kv = rd.keys[i]
+				if kv.ivalue >= v.Len() {
+					continue
+				}
+				newVal := reflect.New(varr.Type().Elem()).Elem()
+
+				if kv.ivalue == -1 {
+					d.setError(namespace, fmt.Errorf("invalid array index '%s'", kv.value))
+					continue
+				}
+
+				if d.setFieldByType(newVal, append(namespace, kv.searchValue...), 0) {
+					set = true
+					varr.Index(kv.ivalue).Set(newVal)
+				}
+			}
+
+			if !set {
+				return
+			}
+			v.Set(varr)
+		}
 
 	case reflect.Map:
 		var rd *recursiveData
