@@ -31,6 +31,9 @@ Questions
     No because TextUnmarshaler only accepts []byte but posted values can have
     multiple values, so is not suitable.
 
+	Mixing array/slice with array[idx]/slice[idx], in which order are they parsed?
+	array/slice then array[idx]/slice[idx]
+
 Supported Types
 
 out of the box supported types

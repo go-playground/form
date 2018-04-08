@@ -1571,6 +1571,10 @@ func TestDecodeArrayBug(t *testing.T) {
 		A [2]string
 		B [2]string
 		C [2]string
+		D [3]string
+		E [3]string
+		F [3]string
+		G [3]string
 	}
 	decoder := NewDecoder()
 	err := decoder.Decode(&data, url.Values{
@@ -1583,6 +1587,12 @@ func TestDecodeArrayBug(t *testing.T) {
 		"B[2]": {"40"},
 		// invalid array index
 		"C[q]": {""},
+		// index and mix tests
+		"D":    {"10"},
+		"E":    {"10", "20"},
+		"F":    {"10", "", "20"},
+		"G":    {"10"},
+		"G[2]": {"20"},
 	})
 	NotEqual(t, err, nil)
 	Equal(t, err.Error(), "Field Namespace:C ERROR:invalid array index 'q'")
@@ -1590,4 +1600,18 @@ func TestDecodeArrayBug(t *testing.T) {
 	Equal(t, data.A[1], "20")
 	Equal(t, data.B[0], "10")
 	Equal(t, data.B[1], "31")
+	Equal(t, data.C[0], "")
+	Equal(t, data.C[1], "")
+	Equal(t, data.D[0], "10")
+	Equal(t, data.D[1], "")
+	Equal(t, data.D[2], "")
+	Equal(t, data.E[0], "10")
+	Equal(t, data.E[1], "20")
+	Equal(t, data.E[2], "")
+	Equal(t, data.F[0], "10")
+	Equal(t, data.F[1], "")
+	Equal(t, data.F[2], "20")
+	Equal(t, data.G[0], "10")
+	Equal(t, data.G[1], "")
+	Equal(t, data.G[2], "20")
 }

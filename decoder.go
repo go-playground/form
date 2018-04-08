@@ -464,8 +464,8 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 		if ok && len(arr) > 0 {
 			var varr reflect.Value
-
-			overCapacity := v.Len() < len(arr)
+			l := len(arr)
+			overCapacity := v.Len() < l
 			if overCapacity {
 				// more values than array capacity, ignore values over capacity as it's possible some would just want
 				// to grab the first x number of elements; in the future strict mode logic should return an error
@@ -474,10 +474,13 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			varr = reflect.Indirect(reflect.New(reflect.ArrayOf(v.Len(), v.Type().Elem())))
 			reflect.Copy(varr, v)
 
-			for i := 0; i < v.Len(); i++ {
+			if v.Len() < len(arr) {
+				l = v.Len()
+			}
+			for i := 0; i < l; i++ {
 				newVal := reflect.New(v.Type().Elem()).Elem()
 
-				if d.setFieldByType(newVal, namespace, 0) {
+				if d.setFieldByType(newVal, namespace, i) {
 					set = true
 					varr.Index(i).Set(newVal)
 				}
