@@ -76,10 +76,10 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		idx = -2
 	}
 
-	v, kind := ExtractType(current)
-	if isOmitEmpty && !hasValue(v) {
+	if isOmitEmpty && !hasValue(current) {
 		return
 	}
+	v, kind := ExtractType(current)
 
 	if e.e.customTypeFuncs != nil {
 

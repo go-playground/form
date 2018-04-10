@@ -83,7 +83,6 @@ func TestEncoderInt(t *testing.T) {
 
 	encoder := NewEncoder()
 	values, errs := encoder.Encode(test)
-
 	Equal(t, errs, nil)
 	Equal(t, len(values), 25)
 
@@ -1366,4 +1365,22 @@ func TestOmitEmpty(t *testing.T) {
 	Equal(t, len(values), 2)
 	Equal(t, values["String"][0], "")
 	Equal(t, values["str"][0], "")
+
+	type T struct {
+		X      *uint8    `form:"x,omitempty"`
+		Array  []*string `form:"arr,omitempty"`
+		Array2 []*string `form:"arr2,dive,omitempty"`
+	}
+	x := uint8(0)
+	s := ""
+	tst4 := T{
+		X:     &x,
+		Array: []*string{&s},
+	}
+
+	values, err = encoder.Encode(tst4)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, values["x"][0], "0")
+	Equal(t, values["arr[0]"][0], "")
 }
