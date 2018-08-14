@@ -1615,3 +1615,26 @@ func TestDecodeArrayBug(t *testing.T) {
 	Equal(t, data.G[1], "")
 	Equal(t, data.G[2], "20")
 }
+
+func TestDecodeWithGoValuesCollection(t *testing.T) {
+	type EmbeddedName struct {
+		Name string `form:"name"`
+	}
+	var data struct {
+		EmbeddedName
+		Age int `form:"age"`
+	}
+	decoder := NewDecoder()
+	goValues := make(map[string]interface{})
+	err := decoder.Decode(&data, url.Values{
+		"name": {"John"},
+		"age":  {"30"},
+	}, goValues)
+	Equal(t, err, nil)
+	Equal(t, data.Name, "John")
+	Equal(t, data.Age, 30)
+	Equal(t, goValues, map[string]interface{}{
+		"name": "John",
+		"age":  30,
+	})
+}

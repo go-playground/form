@@ -142,7 +142,7 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 // Decode parses the given values and sets the corresponding struct and/or type values
 //
 // Decode returns an InvalidDecoderError if interface passed is invalid.
-func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
+func (d *Decoder) Decode(v interface{}, values url.Values, collectGoValues ...map[string]interface{}) (err error) {
 
 	val := reflect.ValueOf(v)
 
@@ -158,6 +158,9 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 	typ := val.Type()
 
 	if val.Kind() == reflect.Struct && typ != timeType {
+		if len(collectGoValues) > 0 {
+			dec.goValues = collectGoValues[0]
+		}
 		dec.traverseStruct(val, typ, dec.namespace[0:0])
 	} else {
 		dec.setFieldByType(val, dec.namespace[0:0], 0)

@@ -20,6 +20,7 @@ type decoder struct {
 	errs      DecodeErrors
 	dm        dataMap
 	values    url.Values
+	goValues  map[string]interface{}
 	maxKeyLen int
 	namespace []byte
 }
@@ -170,6 +171,9 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 		}
 
 		if d.setFieldByType(v.Field(f.idx), namespace, 0) {
+			if d.goValues != nil {
+				d.goValues[f.name] = v.Field(f.idx).Interface()
+			}
 			set = true
 		}
 	}
