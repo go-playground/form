@@ -55,7 +55,7 @@ Use go get.
 Then import the form package into your own code.
 
 	import "github.com/go-playground/form"
-    
+
 Usage
 -----
 
@@ -215,8 +215,8 @@ Registering Custom Types
 Decoder
 ```go
 decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse("2006-01-02", vals[0])
-	}, time.Time{})
+	return time.Parse("2006-01-02", vals[0])
+}, time.Time{})
 ```
 ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
 the struct and not just the struct fields eg. url.Values{"User":"Name%3Djoeybloggs"} will call the
@@ -226,8 +226,8 @@ custom type function with 'User' as the type, however url.Values{"User.Name":"jo
 Encoder
 ```go
 encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
-		return []string{x.(time.Time).Format("2006-01-02")}, nil
-	}, time.Time{})
+	return []string{x.(time.Time).Format("2006-01-02")}, nil
+}, time.Time{})
 ```
 
 Ignoring Fields
@@ -235,7 +235,7 @@ Ignoring Fields
 you can tell form to ignore fields using `-` in the tag
 ```go
 type MyStruct struct {
-    Field string `form:"-"`
+	Field string `form:"-"`
 }
 ```
 
@@ -244,14 +244,14 @@ Omitempty
 you can tell form to omit empty fields using `,omitempty` or `FieldName,omitempty` in the tag
 ```go
 type MyStruct struct {
-    Field  string `form:",omitempty"`
+	Field  string `form:",omitempty"`
 	Field2 string `form:"CustomFieldName,omitempty"`
 }
 ```
 
 Notes
 ------
-To maximize compatibility with other systems the Encoder attempts 
+To maximize compatibility with other systems the Encoder attempts
 to avoid using array indexes in url.Values if at all possible.
 
 eg.
