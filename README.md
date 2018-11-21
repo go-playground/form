@@ -317,7 +317,7 @@ Complimentary Software
 Here is a list of software that compliments using this library post decoding.
 
 * [Validator](https://github.com/go-playground/validator) - Go Struct and Field validation, including Cross Field, Cross Struct, Map, Slice and Array diving.
-* [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
+* [mold](https://github.com/go-playground/mold) - Is a general library to help modify or set data within data structures and other objects.
 
 Package Versioning
 ----------
