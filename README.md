@@ -4,7 +4,7 @@ Package form
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
-[![GoDoc](https://godoc.org/github.com/swaggest/form?status.svg)](https://godoc.org/github.com/go-playground/form)
+[![GoDoc](https://godoc.org/github.com/swaggest/form?status.svg)](https://godoc.org/github.com/swaggest/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 [![Gitter](https://badges.gitter.im/go-playground/form.svg)](https://gitter.im/go-playground/form?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
