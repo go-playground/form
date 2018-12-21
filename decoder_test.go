@@ -1638,3 +1638,26 @@ func TestDecodeWithGoValuesCollection(t *testing.T) {
 		"age":  30,
 	})
 }
+
+func TestDecodeWithCollectionFormat(t *testing.T) {
+	type EmbeddedName struct {
+		Names []string `form:"names" collectionFormat:"csv"`
+	}
+	var data struct {
+		EmbeddedName
+		Age int `form:"age"`
+	}
+	decoder := NewDecoder()
+	goValues := make(map[string]interface{})
+	err := decoder.Decode(&data, url.Values{
+		"names": {"John,Paul,Ringo,George"},
+		"age":   {"30"},
+	}, goValues)
+	Equal(t, err, nil)
+	Equal(t, data.Names, []string{"John", "Paul", "Ringo", "George"})
+	Equal(t, data.Age, 30)
+	Equal(t, goValues, map[string]interface{}{
+		"names": []string{"John", "Paul", "Ringo", "George"},
+		"age":   30,
+	})
+}

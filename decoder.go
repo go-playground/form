@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -168,6 +169,10 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 		} else {
 			namespace = append(namespace, namespaceSeparator)
 			namespace = append(namespace, f.name...)
+		}
+
+		if f.sliceSeparator != 0 {
+			d.values[f.name] = strings.Split(d.values[f.name][0], string(f.sliceSeparator))
 		}
 
 		if d.setFieldByType(v.Field(f.idx), namespace, 0) {
@@ -360,7 +365,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 	case reflect.Slice:
 
-		d.parseMapData()
+		d.parseMapData() // check arr, current
 		// slice elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
 
 		if ok && len(arr) > 0 {

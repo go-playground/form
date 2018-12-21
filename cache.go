@@ -23,10 +23,11 @@ func (s cacheFields) Swap(i, j int) {
 }
 
 type cachedField struct {
-	idx         int
-	name        string
-	isAnonymous bool
-	isOmitEmpty bool
+	idx            int
+	name           string
+	isAnonymous    bool
+	isOmitEmpty    bool
+	sliceSeparator byte
 }
 
 type cachedStruct struct {
@@ -88,9 +89,11 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 	var name string
 	var idx int
 	var isOmitEmpty bool
+	var sliceSeparator byte
 
 	for i := 0; i < numFields; i++ {
 		isOmitEmpty = false
+		sliceSeparator = 0
 		fld = typ.Field(i)
 
 		if fld.PkgPath != blank && !fld.Anonymous {
@@ -117,11 +120,31 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			name = name[:idx]
 		}
 
+		// add support for OAS Swagger 2.0 collectionFormat
+		// https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v2.0/schema.json#L1528
+		if cf := fld.Tag.Get("collectionFormat"); cf != "" {
+			switch cf {
+			case "csv":
+				sliceSeparator = ','
+				break
+			case "tsv":
+				sliceSeparator = '\t'
+				break
+			case "ssv":
+				sliceSeparator = ' '
+				break
+			case "pipes":
+				sliceSeparator = '|'
+				break
+			}
+		}
+
 		if len(name) == 0 {
 			name = fld.Name
 		}
 
-		cs.fields = append(cs.fields, cachedField{idx: i, name: name, isAnonymous: fld.Anonymous, isOmitEmpty: isOmitEmpty})
+		cs.fields = append(cs.fields, cachedField{idx: i, name: name, isAnonymous: fld.Anonymous,
+			isOmitEmpty: isOmitEmpty, sliceSeparator: sliceSeparator})
 	}
 
 	sort.Sort(cs.fields)

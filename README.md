@@ -4,7 +4,7 @@ Package form
 [![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
-[![GoDoc](https://godoc.org/github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
+[![GoDoc](https://godoc.org/github.com/swaggest/form?status.svg)](https://godoc.org/github.com/go-playground/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 [![Gitter](https://badges.gitter.im/go-playground/form.svg)](https://gitter.im/go-playground/form?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -25,6 +25,14 @@ Common Questions
 
 - Does it support encoding.TextUnmarshaler? No because TextUnmarshaler only accepts []byte but posted values can have multiple values, so is not suitable.
 - Mixing `array/slice` with `array[idx]/slice[idx]`, in which order are they parsed? `array/slice` then `array[idx]/slice[idx]`
+
+This fork
+----------
+
+This fork slightly alters public API of awesome `github.com/go-playground/form` to improve compatibility with Swagger 2.0 and JSON Schema:
+- Allows collection of decoded field values to a `map[string]interface{}` that is suitable for further JSON Schema validation.
+- Supports Swagger 2.0 [`collectionFormat`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#parameter-object) with field tag.
+
 
 Supported Types ( out of the box )
 ----------
@@ -50,11 +58,11 @@ Installation
 
 Use go get.
 
-	go get -u github.com/go-playground/form
+	go get -u github.com/swaggest/form
 
 Then import the form package into your own code.
 
-	import "github.com/go-playground/form"
+	import "github.com/swaggest/form"
     
 Usage
 -----
@@ -91,7 +99,7 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/go-playground/form"
+	"github.com/swaggest/form"
 )
 
 // Address contains address information
@@ -158,7 +166,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-playground/form"
+	"github.com/swaggest/form"
 )
 
 // Address contains address information
