@@ -172,7 +172,9 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 		}
 
 		if f.sliceSeparator != 0 {
-			d.values[f.name] = strings.Split(d.values[f.name][0], string(f.sliceSeparator))
+			if len(d.values[f.name]) > 0 {
+				d.values[f.name] = strings.Split(d.values[f.name][0], string(f.sliceSeparator))
+			}
 		}
 
 		if d.setFieldByType(v.Field(f.idx), namespace, 0) {

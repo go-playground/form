@@ -1661,3 +1661,24 @@ func TestDecodeWithCollectionFormat(t *testing.T) {
 		"age":   30,
 	})
 }
+
+func TestDecodeMissingDataWithCollectionFormat(t *testing.T) {
+	type EmbeddedName struct {
+		Names []string `form:"names" collectionFormat:"csv"`
+	}
+	var data struct {
+		EmbeddedName
+		Age int `form:"age"`
+	}
+	decoder := NewDecoder()
+	goValues := make(map[string]interface{})
+	err := decoder.Decode(&data, url.Values{
+		"age": {"30"},
+	}, goValues)
+	Equal(t, err, nil)
+	Equal(t, data.Names, nil)
+	Equal(t, data.Age, 30)
+	Equal(t, goValues, map[string]interface{}{
+		"age": 30,
+	})
+}
