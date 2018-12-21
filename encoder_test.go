@@ -1384,3 +1384,22 @@ func TestOmitEmpty(t *testing.T) {
 	Equal(t, values["x"][0], "0")
 	Equal(t, values["arr[0]"][0], "")
 }
+
+func TestEncodeWithCollectionFormat(t *testing.T) {
+	type EmbeddedName struct {
+		Names []string `form:"names" collectionFormat:"csv"`
+	}
+	var data struct {
+		EmbeddedName
+		Age int `form:"age"`
+	}
+	data.Age = 66
+	data.Names = []string{"John", "Paul", "Ringo", "George"}
+	encoder := NewEncoder()
+
+	values, err := encoder.Encode(data)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, values["age"], []string{"66"})
+	Equal(t, values["names"], []string{"John,Paul,Ringo,George"})
+}

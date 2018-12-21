@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -64,6 +65,12 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 		}
 
 		e.setFieldByType(v.Field(f.idx), namespace, idx, f.isOmitEmpty)
+
+		if f.sliceSeparator != 0 {
+			if len(e.values[f.name]) > 0 {
+				e.values[f.name] = []string{strings.Join(e.values[f.name], string(f.sliceSeparator))}
+			}
+		}
 	}
 }
 
