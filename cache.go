@@ -110,7 +110,7 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 			continue
 		}
 
-		if mode == ModeExplicit && len(name) == 0 {
+		if mode == ModeExplicit && len(name) == 0 && !fld.Anonymous {
 			continue
 		}
 

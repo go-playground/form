@@ -27,7 +27,7 @@ const (
 	ModeImplicit Mode = iota
 
 	// ModeExplicit only parses values for field with a field tag
-	// and that tag is not the ignore '-' tag
+	// and that tag is not the ignore '-' tag, anonymous fields are still parsed
 	ModeExplicit
 )
 
