@@ -32,6 +32,7 @@ This fork
 This fork slightly alters public API of awesome `github.com/go-playground/form` to improve compatibility with Swagger 2.0 and JSON Schema:
 - Allows collection of decoded field values to a `map[string]interface{}` that is suitable for further JSON Schema validation.
 - Supports Swagger 2.0 [`collectionFormat`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#parameter-object) with field tag.
+- Provides `sql.Null*` [encoders](https://godoc.org/github.com/swaggest/form#RegisterSQLNullTypesDecoders)/[decoders](https://godoc.org/github.com/swaggest/form#RegisterSQLNullTypesEncoders)
 
 
 Supported Types ( out of the box )
