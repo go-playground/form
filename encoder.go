@@ -92,7 +92,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 		if cf, ok := e.e.customTypeFuncs[v.Type()]; ok {
 
-			arr, err := cf(v.Interface())
+			val, err := cf(v.Interface())
 			if err != nil {
 				e.setError(namespace, err)
 				return
@@ -104,7 +104,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				namespace = append(namespace, ']')
 			}
 
-			e.setVal(namespace, idx, arr...)
+			e.setVal(namespace, idx, val)
 			return
 		}
 	}
@@ -228,13 +228,13 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 	if e.e.customTypeFuncs != nil {
 
 		if cf, ok := e.e.customTypeFuncs[v.Type()]; ok {
-			arr, err := cf(v.Interface())
+			val, err := cf(v.Interface())
 			if err != nil {
 				e.setError(namespace, err)
 				return "", false
 			}
 
-			return arr[0], true
+			return val, true
 		}
 	}
 

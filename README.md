@@ -223,8 +223,8 @@ Registering Custom Types
 
 Decoder
 ```go
-decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse("2006-01-02", vals[0])
+decoder.RegisterFunc(func(val string) (interface{}, error) {
+		return time.Parse("2006-01-02", val)
 	}, time.Time{})
 ```
 ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
@@ -234,8 +234,8 @@ custom type function with 'User' as the type, however url.Values{"User.Name":"jo
 
 Encoder
 ```go
-encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
-		return []string{x.(time.Time).Format("2006-01-02")}, nil
+encoder.RegisterFunc(func(x interface{}) (string, error) {
+		return x.(time.Time).Format("2006-01-02"), nil
 	}, time.Time{})
 ```
 

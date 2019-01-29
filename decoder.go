@@ -199,7 +199,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 		if ok {
 			if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
-				val, err := cf(arr)
+				val, err := cf(arr[idx])
 				if err != nil {
 					d.setError(namespace, err)
 					return
@@ -622,7 +622,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 	if d.d.customTypeFuncs != nil {
 		if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
 
-			val, er := cf([]string{key})
+			val, er := cf(key)
 			if er != nil {
 				err = er
 				return

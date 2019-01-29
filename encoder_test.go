@@ -889,8 +889,8 @@ func TestEncoderStruct(t *testing.T) {
 
 	encoder := NewEncoder()
 	encoder.SetTagName("form")
-	encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
-		return []string{x.(time.Time).Format("2006-01-02")}, nil
+	encoder.RegisterFunc(func(x interface{}) (string, error) {
+		return x.(time.Time).Format("2006-01-02"), nil
 	}, time.Time{})
 
 	values, errs := encoder.Encode(test)
@@ -1174,12 +1174,12 @@ func TestEncoderErrors(t *testing.T) {
 	test := TestError{
 		BadMapKey: map[time.Time]string{tm: "time"},
 		Iface:     map[interface{}]string{nil: "time"},
-		Struct:    map[struct{}]string{struct{}{}: "str"},
+		Struct:    map[struct{}]string{{}: "str"},
 	}
 
 	encoder := NewEncoder()
-	encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
-		return nil, errors.New("Bad Type Conversion")
+	encoder.RegisterFunc(func(x interface{}) (string, error) {
+		return "", errors.New("Bad Type Conversion")
 	}, time.Time{})
 
 	values, errs := encoder.Encode(&test)

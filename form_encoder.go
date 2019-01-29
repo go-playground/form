@@ -2,14 +2,20 @@ package form
 
 import (
 	"bytes"
+	"errors"
 	"net/url"
 	"reflect"
 	"strings"
 	"sync"
 )
 
+// DEPRECATED
+// Use EncodeFunc
 // EncodeCustomTypeFunc allows for registering/overriding types to be parsed.
 type EncodeCustomTypeFunc func(x interface{}) ([]string, error)
+
+// EncodeFunc allows for registering/overriding types to be parsed.
+type EncodeFunc func(x interface{}) (string, error)
 
 // EncodeErrors is a map of errors encountered during form encoding
 type EncodeErrors map[string]error
@@ -46,7 +52,7 @@ func (e *InvalidEncodeError) Error() string {
 type Encoder struct {
 	tagName         string
 	structCache     *structCacheMap
-	customTypeFuncs map[reflect.Type]EncodeCustomTypeFunc
+	customTypeFuncs map[reflect.Type]EncodeFunc
 	dataPool        *sync.Pool
 	mode            Mode
 	embedAnonymous  bool
@@ -100,16 +106,40 @@ func (e *Encoder) RegisterTagNameFunc(fn TagNameFunc) {
 	e.structCache.tagFn = fn
 }
 
+// RegisterFunc registers a EncodeFunc against a number of types
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
+func (e *Encoder) RegisterFunc(fn EncodeFunc, types ...interface{}) {
+
+	if e.customTypeFuncs == nil {
+		e.customTypeFuncs = map[reflect.Type]EncodeFunc{}
+	}
+
+	for _, t := range types {
+		e.customTypeFuncs[reflect.TypeOf(t)] = fn
+	}
+}
+
+// DEPRECATED
+// Use RegisterFunc
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
 func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...interface{}) {
 
 	if e.customTypeFuncs == nil {
-		e.customTypeFuncs = map[reflect.Type]EncodeCustomTypeFunc{}
+		e.customTypeFuncs = map[reflect.Type]EncodeFunc{}
 	}
 
 	for _, t := range types {
-		e.customTypeFuncs[reflect.TypeOf(t)] = fn
+		e.customTypeFuncs[reflect.TypeOf(t)] = func(x interface{}) (string, error) {
+			res, err := fn(x)
+			if err != nil {
+				return "", err
+			}
+			if len(res) > 0 {
+				return res[0], err
+			}
+			return "", errors.New("empty result")
+		}
 	}
 }
 

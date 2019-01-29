@@ -609,8 +609,8 @@ func TestDecoderStruct(t *testing.T) {
 
 	decoder := NewDecoder()
 	decoder.SetTagName("form")
-	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse("2006-01-02", vals[0])
+	decoder.RegisterFunc(func(val string) (interface{}, error) {
+		return time.Parse("2006-01-02", val)
 	}, time.Time{})
 
 	errs := decoder.Decode(&test, values)
@@ -790,7 +790,7 @@ func TestDecoderErrors(t *testing.T) {
 
 	decoder := NewDecoder()
 	decoder.SetMaxArraySize(4)
-	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+	decoder.RegisterFunc(func(val string) (interface{}, error) {
 		return nil, errors.New("Bad Type Conversion")
 	}, "")
 
@@ -900,8 +900,8 @@ func TestDecoderErrors(t *testing.T) {
 
 	var test2 TestError2
 	decoder2 := NewDecoder()
-	decoder2.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse("2006-01-02", vals[0])
+	decoder2.RegisterFunc(func(val string) (interface{}, error) {
+		return time.Parse("2006-01-02", val)
 	}, time.Time{})
 
 	errs = decoder2.Decode(&test2, values2)

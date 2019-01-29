@@ -8,8 +8,13 @@ import (
 	"sync"
 )
 
+// DEPRECATED
+// Use DecodeFunc
 // DecodeCustomTypeFunc allows for registering/overriding types to be parsed.
 type DecodeCustomTypeFunc func([]string) (interface{}, error)
+
+// DecodeFunc allows for registering/overriding types to be parsed.
+type DecodeFunc func(string) (interface{}, error)
 
 // DecodeErrors is a map of errors encountered during form decoding
 type DecodeErrors map[string]error
@@ -66,7 +71,7 @@ type Decoder struct {
 	tagName         string
 	mode            Mode
 	structCache     *structCacheMap
-	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
+	customTypeFuncs map[reflect.Type]DecodeFunc
 	maxArraySize    int
 	dataPool        *sync.Pool
 }
@@ -122,7 +127,9 @@ func (d *Decoder) RegisterTagNameFunc(fn TagNameFunc) {
 	d.structCache.tagFn = fn
 }
 
-// RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types.
+// DEPRECATED
+// Please use RegisterFunc
+// RegisterCustomTypeFunc registers a DecodeCustomTypeFunc against a number of types.
 // NOTE: This method is not thread-safe it is intended that these all be registered prior to any parsing
 //
 // ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
@@ -131,7 +138,24 @@ func (d *Decoder) RegisterTagNameFunc(fn TagNameFunc) {
 func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...interface{}) {
 
 	if d.customTypeFuncs == nil {
-		d.customTypeFuncs = map[reflect.Type]DecodeCustomTypeFunc{}
+		d.customTypeFuncs = map[reflect.Type]DecodeFunc{}
+	}
+
+	for _, t := range types {
+		d.customTypeFuncs[reflect.TypeOf(t)] = func(v string) (interface{}, error) { return fn([]string{v}) }
+	}
+}
+
+// RegisterFunc registers a DecodeFunc against a number of types.
+// NOTE: This method is not thread-safe it is intended that these all be registered prior to any parsing
+//
+// ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
+// the struct and not just the struct fields eg. url.Values{"User":"Name%3Djoeybloggs"} will call the
+// custom type function with `User` as the type, however url.Values{"User.Name":"joeybloggs"} will not.
+func (d *Decoder) RegisterFunc(fn DecodeFunc, types ...interface{}) {
+
+	if d.customTypeFuncs == nil {
+		d.customTypeFuncs = map[reflect.Type]DecodeFunc{}
 	}
 
 	for _, t := range types {
