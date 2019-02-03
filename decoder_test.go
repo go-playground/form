@@ -1615,3 +1615,44 @@ func TestDecodeArrayBug(t *testing.T) {
 	Equal(t, data.G[1], "")
 	Equal(t, data.G[2], "20")
 }
+
+func TestDecoder_RegisterCustomTypeFuncOnSlice(t *testing.T) {
+	type customString string
+
+	type TestStruct struct {
+		Slice []customString `form:"slice"`
+	}
+
+	d := NewDecoder()
+	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
+		custom := make([]customString, 0, len(vals))
+		for i := 0; i < len(vals); i++ {
+			custom = append(custom, customString("custom"+vals[i]))
+		}
+		return custom, nil
+	}, []customString{})
+
+	var v TestStruct
+	err := d.Decode(&v, url.Values{"slice": []string{"v1", "v2"}})
+	Equal(t, err, nil)
+	Equal(t, v.Slice, []customString{"customv1", "customv2"})
+}
+
+func TestDecoder_RegisterCustomTypeFunc(t *testing.T) {
+	type customString string
+
+	type TestStruct struct {
+		Slice []customString `form:"slice"`
+	}
+
+	d := NewDecoder()
+	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
+		return customString("custom" + vals[0]), nil
+	}, customString(""))
+
+	var v TestStruct
+	err := d.Decode(&v, url.Values{"slice": []string{"v1", "v2"}})
+	Equal(t, err, nil)
+
+	Equal(t, v.Slice, []customString{"customv1", "customv2"})
+}
