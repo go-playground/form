@@ -188,7 +188,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 		if ok {
 			if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
-				val, err := cf(arr)
+				val, err := cf(arr[idx:])
 				if err != nil {
 					d.setError(namespace, err)
 					return
@@ -355,7 +355,6 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Slice:
-
 		d.parseMapData()
 		// slice elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
 
