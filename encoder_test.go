@@ -1403,3 +1403,24 @@ func TestEncodeWithCollectionFormat(t *testing.T) {
 	Equal(t, values["age"], []string{"66"})
 	Equal(t, values["names"], []string{"John,Paul,Ringo,George"})
 }
+
+func TestEncoder_EncodeWithColumns(t *testing.T) {
+	type EmbeddedName struct {
+		Names []string `form:"names" collectionFormat:"csv"`
+	}
+	var data struct {
+		EmbeddedName
+		Age int `form:"age"`
+	}
+	data.Age = 66
+	data.Names = []string{"John", "Paul", "Ringo", "George"}
+	encoder := NewEncoder()
+
+	values, columns, err := encoder.EncodeWithColumns(data)
+	Equal(t, err, nil)
+	Equal(t, len(values), 2)
+	Equal(t, len(columns), 2)
+	Equal(t, columns, []string{"age", "names"})
+	Equal(t, values["age"], []string{"66"})
+	Equal(t, values["names"], []string{"John,Paul,Ringo,George"})
+}

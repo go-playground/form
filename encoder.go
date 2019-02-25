@@ -12,6 +12,7 @@ import (
 type encoder struct {
 	e         *Encoder
 	errs      EncodeErrors
+	columns   []string
 	values    url.Values
 	namespace []byte
 }
@@ -24,12 +25,15 @@ func (e *encoder) setError(namespace []byte, err error) {
 	e.errs[string(namespace)] = err
 }
 
-func (e *encoder) setVal(namespace []byte, idx int, vals ...string) {
+func (e *encoder) setVal(namespace []byte, vals ...string) {
 
 	arr, ok := e.values[string(namespace)]
 	if ok {
 		arr = append(arr, vals...)
 	} else {
+		if e.columns != nil {
+			e.columns = append(e.columns, string(namespace))
+		}
 		arr = vals
 	}
 
@@ -104,7 +108,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				namespace = append(namespace, ']')
 			}
 
-			e.setVal(namespace, idx, val)
+			e.setVal(namespace, val)
 			return
 		}
 	}
@@ -115,27 +119,26 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 	case reflect.String:
 
-		e.setVal(namespace, idx, v.String())
+		e.setVal(namespace, v.String())
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 
-		e.setVal(namespace, idx, strconv.FormatUint(v.Uint(), 10))
+		e.setVal(namespace, strconv.FormatUint(v.Uint(), 10))
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		e.setVal(namespace, idx, strconv.FormatInt(v.Int(), 10))
-
+		e.setVal(namespace, strconv.FormatInt(v.Int(), 10))
 	case reflect.Float32:
 
-		e.setVal(namespace, idx, strconv.FormatFloat(v.Float(), 'f', -1, 32))
+		e.setVal(namespace, strconv.FormatFloat(v.Float(), 'f', -1, 32))
 
 	case reflect.Float64:
 
-		e.setVal(namespace, idx, strconv.FormatFloat(v.Float(), 'f', -1, 64))
+		e.setVal(namespace, strconv.FormatFloat(v.Float(), 'f', -1, 64))
 
 	case reflect.Bool:
 
-		e.setVal(namespace, idx, strconv.FormatBool(v.Bool()))
+		e.setVal(namespace, strconv.FormatBool(v.Bool()))
 
 	case reflect.Slice, reflect.Array:
 
@@ -202,7 +205,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				namespace = append(namespace, ']')
 			}
 
-			e.setVal(namespace, idx, v.Interface().(time.Time).Format(time.RFC3339))
+			e.setVal(namespace, v.Interface().(time.Time).Format(time.RFC3339))
 			return
 		}
 

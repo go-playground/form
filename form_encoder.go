@@ -172,3 +172,35 @@ func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
 
 	return
 }
+
+// EncodeWithColumns encodes the given values and sets the corresponding struct values,
+// additionally returning slice of column names in original order
+func (e *Encoder) EncodeWithColumns(v interface{}) (values url.Values, columns []string, err error) {
+	val, kind := ExtractType(reflect.ValueOf(v))
+
+	if kind == reflect.Ptr || kind == reflect.Interface || kind == reflect.Invalid {
+		return nil, nil, &InvalidEncodeError{reflect.TypeOf(v)}
+	}
+
+	enc := e.dataPool.Get().(*encoder)
+	enc.values = make(url.Values)
+	enc.columns = make([]string, 0)
+
+	if kind == reflect.Struct && val.Type() != timeType {
+		enc.traverseStruct(val, enc.namespace[0:0], -1)
+	} else {
+		enc.setFieldByType(val, enc.namespace[0:0], -1, false)
+	}
+
+	if len(enc.errs) > 0 {
+		err = enc.errs
+		enc.errs = nil
+	}
+
+	values = enc.values
+	columns = enc.columns
+
+	e.dataPool.Put(enc)
+
+	return
+}
