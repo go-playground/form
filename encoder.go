@@ -71,8 +71,9 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 		e.setFieldByType(v.Field(f.idx), namespace, idx, f.isOmitEmpty)
 
 		if f.sliceSeparator != 0 {
-			if len(e.values[f.name]) > 0 {
-				e.values[f.name] = []string{strings.Join(e.values[f.name], string(f.sliceSeparator))}
+			ns := string(namespace)
+			if len(e.values[ns]) > 0 {
+				e.values[ns] = []string{strings.Join(e.values[ns], string(f.sliceSeparator))}
 			}
 		}
 	}

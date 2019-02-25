@@ -1408,9 +1408,15 @@ func TestEncoder_EncodeWithColumns(t *testing.T) {
 	type EmbeddedName struct {
 		Names []string `form:"names" collectionFormat:"csv"`
 	}
+	type EmbeddedTail struct {
+		Tail string `form:"tail"`
+	}
+
 	var data struct {
 		EmbeddedName
+		ID  int `form:"id"`
 		Age int `form:"age"`
+		EmbeddedTail
 	}
 	data.Age = 66
 	data.Names = []string{"John", "Paul", "Ringo", "George"}
@@ -1418,9 +1424,9 @@ func TestEncoder_EncodeWithColumns(t *testing.T) {
 
 	values, columns, err := encoder.EncodeWithColumns(data)
 	Equal(t, err, nil)
-	Equal(t, len(values), 2)
-	Equal(t, len(columns), 2)
-	Equal(t, columns, []string{"age", "names"})
+	Equal(t, len(values), 4)
+	Equal(t, len(columns), 4)
+	Equal(t, columns, []string{"names", "id", "age", "tail"})
 	Equal(t, values["age"], []string{"66"})
 	Equal(t, values["names"], []string{"John,Paul,Ringo,George"})
 }
