@@ -1,5 +1,7 @@
 Package form
 ============
+[![Build Status](https://travis-ci.org/swaggest/form.svg?branch=master)](https://travis-ci.org/swaggest/form)
+[![Coverage Status](https://codecov.io/gh/swaggest/form/branch/master/graph/badge.svg)](https://codecov.io/gh/swaggest/form)
 [![GoDoc](https://godoc.org/github.com/swaggest/form?status.svg)](https://godoc.org/github.com/swaggest/form)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 

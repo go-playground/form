@@ -1303,8 +1303,8 @@ func TestEncoderEmbedModes(t *testing.T) {
 	values, err := encoder.Encode(b)
 	Equal(t, err, nil)
 	Equal(t, len(values), 1)
-	Equal(t, values["Field"][0], "B Val")
-	Equal(t, values["Field"][1], "A Val")
+	Equal(t, values["Field"][0], "A Val")
+	Equal(t, values["Field"][1], "B Val")
 
 	encoder.SetAnonymousMode(AnonymousSeparate)
 	values, err = encoder.Encode(b)
