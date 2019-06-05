@@ -34,6 +34,8 @@ func getUserStruct() *User {
 	}
 }
 
+//BenchmarkSimpleUserDecodeStruct-4   	 3000000	       357 ns/op	      64 B/op	       1 allocs/op
+// BenchmarkSimpleUserDecodeStruct-4   	 5000000	       272 ns/op	      64 B/op	       1 allocs/op
 func BenchmarkSimpleUserDecodeStruct(b *testing.B) {
 
 	values := getUserStructValues()

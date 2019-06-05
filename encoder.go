@@ -1,6 +1,7 @@
 package form
 
 import (
+	"encoding"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -112,6 +113,23 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			e.setVal(namespace, val)
 			return
 		}
+	}
+
+	if tu, ok := v.Interface().(encoding.TextMarshaler); ok {
+		val, err := tu.MarshalText()
+		if err != nil {
+			e.setError(namespace, err)
+			return
+		}
+
+		if idx > -1 {
+			namespace = append(namespace, '[')
+			namespace = strconv.AppendInt(namespace, int64(idx), 10)
+			namespace = append(namespace, ']')
+		}
+
+		e.setVal(namespace, string(val))
+		return
 	}
 
 	switch kind {

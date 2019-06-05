@@ -1,6 +1,7 @@
 package form
 
 import (
+	"encoding"
 	"fmt"
 	"log"
 	"net/url"
@@ -211,6 +212,20 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			}
 		}
 	}
+
+	if ok {
+		if tu, ok := current.Addr().Interface().(encoding.TextUnmarshaler); ok {
+			err := tu.UnmarshalText([]byte(arr[idx]))
+			if err != nil {
+				d.setError(namespace, err)
+				return
+			}
+
+			set = true
+			return
+		}
+	}
+
 	switch kind {
 	case reflect.Interface:
 		if !ok {

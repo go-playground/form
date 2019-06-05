@@ -696,9 +696,8 @@ func TestDecoderNativeTime(t *testing.T) {
 	}
 
 	values := url.Values{
-		"Time":        []string{"2006-01-02T15:04:05Z"},
-		"TimeNoValue": []string{""},
-		"TimePtr":     []string{"2006-01-02T15:04:05Z"},
+		"Time":    []string{"2006-01-02T15:04:05Z"},
+		"TimePtr": []string{"2006-01-02T15:04:05Z"},
 	}
 
 	var test TestError
@@ -710,7 +709,7 @@ func TestDecoderNativeTime(t *testing.T) {
 
 	tm, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 	Equal(t, test.Time.Equal(tm), true)
-	Equal(t, test.TimeNoValue.Equal(tm), false)
+	Equal(t, test.TimeNoValue.IsZero(), true)
 
 	NotEqual(t, test.TimePtr, nil)
 	Equal(t, (*test.TimePtr).Equal(tm), true)
@@ -1681,4 +1680,28 @@ func TestDecodeMissingDataWithCollectionFormat(t *testing.T) {
 	Equal(t, goValues, map[string]interface{}{
 		"age": 30,
 	})
+}
+
+type textMarshaler string
+
+func (c *textMarshaler) UnmarshalText(s []byte) error {
+	*c = textMarshaler("unmarshaled:" + string(s))
+	return nil
+}
+
+func (c textMarshaler) MarshalText() (text []byte, err error) {
+	return []byte("marshaled:" + string(c)), nil
+}
+
+func TestDecoder_Decode_textUnmarshal(t *testing.T) {
+	var data struct {
+		Value textMarshaler `form:"value"`
+	}
+	decoder := NewDecoder()
+	goValues := make(map[string]interface{})
+	err := decoder.Decode(&data, url.Values{
+		"value": {"abc"},
+	}, goValues)
+	Equal(t, err, nil)
+	Equal(t, string(data.Value), "unmarshaled:abc")
 }

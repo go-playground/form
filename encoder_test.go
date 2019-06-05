@@ -1430,3 +1430,15 @@ func TestEncoder_EncodeWithColumns(t *testing.T) {
 	Equal(t, values["age"], []string{"66"})
 	Equal(t, values["names"], []string{"John,Paul,Ringo,George"})
 }
+
+func TestEncoder_Encode_textMarshal(t *testing.T) {
+	var data struct {
+		Value textMarshaler `form:"value"`
+	}
+	data.Value = "abc"
+	encoder := NewEncoder()
+
+	u, err := encoder.Encode(data)
+	Equal(t, err, nil)
+	Equal(t, u["value"][0], "marshaled:abc")
+}
