@@ -1434,6 +1434,7 @@ func TestEncoder_EncodeWithColumns(t *testing.T) {
 func TestEncoder_Encode_textMarshal(t *testing.T) {
 	var data struct {
 		Value textMarshaler `form:"value"`
+		Time  *time.Time    `form:"time"`
 	}
 	data.Value = "abc"
 	encoder := NewEncoder()
