@@ -1,7 +1,7 @@
 Package form
 ============
-<img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">![Project status](https://img.shields.io/badge/version-3.1.4-green.svg)
-[![Build Status](https://semaphoreci.com/api/v1/joeybloggs/form/branches/master/badge.svg)](https://semaphoreci.com/joeybloggs/form)
+<img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">![Project status](https://img.shields.io/badge/version-4.0.0-green.svg)
+[![Build Status](https://travis-ci.org/go-playground/form.svg?branch=master)](https://travis-ci.org/go-playground/form)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
 [![GoDoc](https://godoc.org/github.com/go-playground/form?status.svg)](https://godoc.org/github.com/go-playground/form)
@@ -50,11 +50,11 @@ Installation
 
 Use go get.
 
-	go get -u github.com/go-playground/form
+	go get github.com/go-playground/form
 
 Then import the form package into your own code.
 
-	import "github.com/go-playground/form"
+	import "github.com/go-playground/form/v4"
 
 Usage
 -----
@@ -91,7 +91,7 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 )
 
 // Address contains address information
@@ -158,7 +158,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 )
 
 // Address contains address information
