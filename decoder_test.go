@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	. "gopkg.in/go-playground/assert.v1"
+	. "github.com/go-playground/assert"
 )
 
 // NOTES:
