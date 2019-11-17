@@ -1656,3 +1656,32 @@ func TestDecoder_RegisterCustomTypeFunc(t *testing.T) {
 
 	Equal(t, v.Slice, []customString{"customv1", "customv2"})
 }
+
+func TestDecoder_EmptyArrayString(t *testing.T) {
+	type T1 struct {
+		F1 string `form:"F1"`
+	}
+	in := url.Values{
+		"F1": []string{},
+	}
+
+	v := new(T1)
+
+	d := NewDecoder()
+	err := d.Decode(v, in)
+	Equal(t, err, nil)
+}
+
+func TestDecoder_EmptyArrayBool(t *testing.T) {
+	type T1 struct {
+		F1 bool `form:"F1"`
+	}
+	in := url.Values{
+		"F1": []string{},
+	}
+
+	v := new(T1)
+	d := NewDecoder()
+	err := d.Decode(v, in)
+	Equal(t, err, nil)
+}
