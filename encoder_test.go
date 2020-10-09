@@ -1443,3 +1443,30 @@ func TestEncoder_Encode_textMarshal(t *testing.T) {
 	Equal(t, err, nil)
 	Equal(t, u["value"][0], "marshaled:abc")
 }
+
+func TestEncoder_Encode_collectGoValues(t *testing.T) {
+	type Emb struct {
+		Extra float64 `form:"emb"`
+	}
+	var data struct {
+		Emb
+		Value string `form:"value"`
+		Num   int    `form:"num"`
+	}
+	data.Value = "abc"
+	data.Num = 123
+	data.Extra = 1.23
+	encoder := NewEncoder()
+
+	goValues := make(map[string]interface{})
+
+	u, err := encoder.Encode(data, goValues)
+	Equal(t, err, nil)
+	Equal(t, u["value"][0], "abc")
+	Equal(t, u["num"][0], "123")
+	Equal(t, u["emb"][0], "1.23")
+
+	Equal(t, goValues["value"], "abc")
+	Equal(t, goValues["num"], 123)
+	Equal(t, goValues["emb"], 1.23)
+}

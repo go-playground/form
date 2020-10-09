@@ -144,7 +144,7 @@ func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...inter
 }
 
 // Encode encodes the given values and sets the corresponding struct values
-func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
+func (e *Encoder) Encode(v interface{}, collectGoValues ...map[string]interface{}) (values url.Values, err error) {
 
 	val, kind := ExtractType(reflect.ValueOf(v))
 
@@ -156,6 +156,9 @@ func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
 	enc.values = make(url.Values)
 
 	if kind == reflect.Struct && val.Type() != timeType {
+		if len(collectGoValues) > 0 {
+			enc.goValues = collectGoValues[0]
+		}
 		enc.traverseStruct(val, enc.namespace[0:0], -1)
 	} else {
 		enc.setFieldByType(val, enc.namespace[0:0], -1, false)

@@ -15,6 +15,7 @@ type encoder struct {
 	errs      EncodeErrors
 	columns   []string
 	values    url.Values
+	goValues  map[string]interface{}
 	namespace []byte
 }
 
@@ -93,6 +94,10 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		return
 	}
 	v, kind := ExtractType(current)
+
+	if e.goValues != nil {
+		e.goValues[string(namespace)] = v.Interface()
+	}
 
 	if e.e.customTypeFuncs != nil {
 

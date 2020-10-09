@@ -1705,3 +1705,33 @@ func TestDecoder_Decode_textUnmarshal(t *testing.T) {
 	Equal(t, err, nil)
 	Equal(t, string(data.Value), "unmarshaled:abc")
 }
+
+func TestDecodeWithCustomFunc(t *testing.T) {
+	type name string
+
+	type EmbeddedName struct {
+		Names []name `form:"names"`
+	}
+	var data struct {
+		EmbeddedName
+		Age int `form:"age"`
+	}
+
+	decoder := NewDecoder()
+	decoder.RegisterFunc(func(s string) (interface{}, error) {
+		return name(s), nil
+	}, name(""))
+
+	goValues := make(map[string]interface{})
+	err := decoder.Decode(&data, url.Values{
+		"names": {"John", "Paul", "Ringo", "George"},
+		"age":   {"30"},
+	}, goValues)
+	Equal(t, err, nil)
+	Equal(t, data.Names, []name{"John", "Paul", "Ringo", "George"})
+	Equal(t, data.Age, 30)
+	Equal(t, goValues, map[string]interface{}{
+		"names": []name{"John", "Paul", "Ringo", "George"},
+		"age":   30,
+	})
+}
