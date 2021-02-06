@@ -241,7 +241,7 @@ Ignoring Fields
 you can tell form to ignore fields using `-` in the tag
 ```go
 type MyStruct struct {
-    Field string `form:"-"`
+	Field string `form:"-"`
 }
 ```
 
@@ -250,14 +250,14 @@ Omitempty
 you can tell form to omit empty fields using `,omitempty` or `FieldName,omitempty` in the tag
 ```go
 type MyStruct struct {
-    Field  string `form:",omitempty"`
+	Field  string `form:",omitempty"`
 	Field2 string `form:"CustomFieldName,omitempty"`
 }
 ```
 
 Notes
 ------
-To maximize compatibility with other systems the Encoder attempts 
+To maximize compatibility with other systems the Encoder attempts
 to avoid using array indexes in url.Values if at all possible.
 
 eg.
@@ -323,7 +323,7 @@ Complimentary Software
 Here is a list of software that compliments using this library post decoding.
 
 * [Validator](https://github.com/go-playground/validator) - Go Struct and Field validation, including Cross Field, Cross Struct, Map, Slice and Array diving.
-* [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
+* [mold](https://github.com/go-playground/mold) - Is a general library to help modify or set data within data structures and other objects.
 
 Package Versioning
 ----------

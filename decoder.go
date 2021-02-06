@@ -31,24 +31,19 @@ func (d *decoder) setError(namespace []byte, err error) {
 	if d.errs == nil {
 		d.errs = make(DecodeErrors)
 	}
-
 	d.errs[string(namespace)] = err
 }
 
 func (d *decoder) findAlias(ns string) *recursiveData {
-
 	for i := 0; i < len(d.dm); i++ {
-
 		if d.dm[i].alias == ns {
 			return d.dm[i]
 		}
 	}
-
 	return nil
 }
 
 func (d *decoder) parseMapData() {
-
 	// already parsed
 	if len(d.dm) > 0 {
 		return
@@ -156,7 +151,6 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 	}
 
 	for _, f := range s.fields {
-
 		namespace = namespace[:l]
 
 		if f.isAnonymous {
@@ -228,28 +222,27 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 	switch kind {
 	case reflect.Interface:
-		if !ok {
+		if !ok || idx == len(arr) {
 			return
 		}
 		v.Set(reflect.ValueOf(arr[idx]))
 		set = true
 
 	case reflect.Ptr:
-
 		newVal := reflect.New(v.Type().Elem())
 		if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
 			v.Set(newVal)
 		}
 
 	case reflect.String:
-		if !ok {
+		if !ok || idx == len(arr) {
 			return
 		}
 		v.SetString(arr[idx])
 		set = true
 
 	case reflect.Uint, reflect.Uint64:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var u64 uint64
@@ -261,7 +254,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Uint8:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var u64 uint64
@@ -273,7 +266,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Uint16:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var u64 uint64
@@ -285,7 +278,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Uint32:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var u64 uint64
@@ -297,7 +290,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Int, reflect.Int64:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var i64 int64
@@ -309,7 +302,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Int8:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var i64 int64
@@ -321,7 +314,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Int16:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var i64 int64
@@ -333,7 +326,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Int32:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var i64 int64
@@ -345,7 +338,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Float32:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var f float64
@@ -357,7 +350,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Float64:
-		if !ok || len(arr[idx]) == 0 {
+		if !ok || idx == len(arr) || len(arr[idx]) == 0 {
 			return
 		}
 		var f float64
@@ -369,7 +362,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Bool:
-		if !ok {
+		if !ok || idx == len(arr) {
 			return
 		}
 		var b bool
@@ -381,7 +374,6 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		set = true
 
 	case reflect.Slice:
-
 		d.parseMapData() // check arr, current
 		// slice elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
 

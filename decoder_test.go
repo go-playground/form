@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	. "gopkg.in/go-playground/assert.v1"
+	. "github.com/go-playground/assert/v2"
 )
 
 // NOTES:
@@ -1734,4 +1734,74 @@ func TestDecodeWithCustomFunc(t *testing.T) {
 		"names": []name{"John", "Paul", "Ringo", "George"},
 		"age":   30,
 	})
+}
+
+func TestDecoder_RegisterCustomTypeFuncOnSlice(t *testing.T) {
+	type customString string
+
+	type TestStruct struct {
+		Slice []customString `form:"slice"`
+	}
+
+	d := NewDecoder()
+	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
+		custom := make([]customString, 0, len(vals))
+		for i := 0; i < len(vals); i++ {
+			custom = append(custom, customString("custom"+vals[i]))
+		}
+		return custom, nil
+	}, []customString{})
+
+	var v TestStruct
+	err := d.Decode(&v, url.Values{"slice": []string{"v1", "v2"}})
+	Equal(t, err, nil)
+	Equal(t, v.Slice, []customString{"customv1", "customv2"})
+}
+
+func TestDecoder_RegisterCustomTypeFunc(t *testing.T) {
+	type customString string
+
+	type TestStruct struct {
+		Slice []customString `form:"slice"`
+	}
+
+	d := NewDecoder()
+	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
+		return customString("custom" + vals[0]), nil
+	}, customString(""))
+
+	var v TestStruct
+	err := d.Decode(&v, url.Values{"slice": []string{"v1", "v2"}})
+	Equal(t, err, nil)
+
+	Equal(t, v.Slice, []customString{"customv1", "customv2"})
+}
+
+func TestDecoder_EmptyArrayString(t *testing.T) {
+	type T1 struct {
+		F1 string `form:"F1"`
+	}
+	in := url.Values{
+		"F1": []string{},
+	}
+
+	v := new(T1)
+
+	d := NewDecoder()
+	err := d.Decode(v, in)
+	Equal(t, err, nil)
+}
+
+func TestDecoder_EmptyArrayBool(t *testing.T) {
+	type T1 struct {
+		F1 bool `form:"F1"`
+	}
+	in := url.Values{
+		"F1": []string{},
+	}
+
+	v := new(T1)
+	d := NewDecoder()
+	err := d.Decode(v, in)
+	Equal(t, err, nil)
 }
