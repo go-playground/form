@@ -1,5 +1,5 @@
-module github.com/go-playground/form/v4
+module github.com/swaggest/form
 
 go 1.13
 
-require github.com/go-playground/assert/v2 v2.0.1
+require github.com/stretchr/testify v1.6.1

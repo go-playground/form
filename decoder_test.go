@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/go-playground/assert/v2"
+	. "github.com/stretchr/testify/assert"
 )
 
 // NOTES:
@@ -111,7 +111,7 @@ func TestDecoderInt(t *testing.T) {
 
 	Equal(t, len(test.IntPtrArray), 3)
 	Equal(t, *test.IntPtrArray[0], int(1))
-	Equal(t, test.IntPtrArray[1], nil)
+	Nil(t, test.IntPtrArray[1])
 	Equal(t, *test.IntPtrArray[2], int(3))
 
 	Equal(t, len(test.IntArrayArray), 3)
@@ -128,7 +128,7 @@ func TestDecoderInt(t *testing.T) {
 	Equal(t, len(test.IntPtrArrayArray[1]), 0)
 	Equal(t, len(test.IntPtrArrayArray[2]), 1)
 	Equal(t, *test.IntPtrArrayArray[0][0], int(1))
-	Equal(t, test.IntPtrArrayArray[0][1], nil)
+	Nil(t, test.IntPtrArrayArray[0][1])
 	Equal(t, *test.IntPtrArrayArray[0][2], int(3))
 	Equal(t, *test.IntPtrArrayArray[2][0], int(1))
 
@@ -230,7 +230,7 @@ func TestDecoderUint(t *testing.T) {
 
 	Equal(t, len(test.UintPtrArray), 3)
 	Equal(t, *test.UintPtrArray[0], uint(1))
-	Equal(t, test.UintPtrArray[1], nil)
+	Nil(t, test.UintPtrArray[1])
 	Equal(t, *test.UintPtrArray[2], uint(3))
 
 	Equal(t, len(test.UintArrayArray), 3)
@@ -247,7 +247,7 @@ func TestDecoderUint(t *testing.T) {
 	Equal(t, len(test.UintPtrArrayArray[1]), 0)
 	Equal(t, len(test.UintPtrArrayArray[2]), 1)
 	Equal(t, *test.UintPtrArrayArray[0][0], uint(1))
-	Equal(t, test.UintPtrArrayArray[0][1], nil)
+	Nil(t, test.UintPtrArrayArray[0][1])
 	Equal(t, *test.UintPtrArrayArray[0][2], uint(3))
 	Equal(t, *test.UintPtrArrayArray[2][0], uint(1))
 
@@ -320,7 +320,7 @@ func TestDecoderString(t *testing.T) {
 
 	Equal(t, len(test.StringPtrArray), 3)
 	Equal(t, *test.StringPtrArray[0], "1")
-	Equal(t, test.StringPtrArray[1], nil)
+	Nil(t, test.StringPtrArray[1])
 	Equal(t, *test.StringPtrArray[2], "3")
 
 	Equal(t, len(test.StringArrayArray), 3)
@@ -337,7 +337,7 @@ func TestDecoderString(t *testing.T) {
 	Equal(t, len(test.StringPtrArrayArray[1]), 0)
 	Equal(t, len(test.StringPtrArrayArray[2]), 1)
 	Equal(t, *test.StringPtrArrayArray[0][0], "1")
-	Equal(t, test.StringPtrArrayArray[0][1], nil)
+	Nil(t, test.StringPtrArrayArray[0][1])
 	Equal(t, *test.StringPtrArrayArray[0][2], "3")
 	Equal(t, *test.StringPtrArrayArray[2][0], "1")
 
@@ -411,7 +411,7 @@ func TestDecoderFloat(t *testing.T) {
 
 	Equal(t, len(test.Float32PtrArray), 3)
 	Equal(t, *test.Float32PtrArray[0], float32(1.1))
-	Equal(t, test.Float32PtrArray[1], nil)
+	Nil(t, test.Float32PtrArray[1])
 	Equal(t, *test.Float32PtrArray[2], float32(3.3))
 
 	Equal(t, len(test.Float32ArrayArray), 3)
@@ -428,7 +428,7 @@ func TestDecoderFloat(t *testing.T) {
 	Equal(t, len(test.Float32PtrArrayArray[1]), 0)
 	Equal(t, len(test.Float32PtrArrayArray[2]), 1)
 	Equal(t, *test.Float32PtrArrayArray[0][0], float32(1.1))
-	Equal(t, test.Float32PtrArrayArray[0][1], nil)
+	Nil(t, test.Float32PtrArrayArray[0][1])
 	Equal(t, *test.Float32PtrArrayArray[0][2], float32(3.3))
 	Equal(t, *test.Float32PtrArrayArray[2][0], float32(1.1))
 
@@ -487,7 +487,7 @@ func TestDecoderBool(t *testing.T) {
 	Equal(t, test.Bool, true)
 
 	Equal(t, *test.BoolPtr, true)
-	Equal(t, test.BoolPtrNil, nil)
+	Nil(t, test.BoolPtrNil)
 	NotEqual(t, test.BoolPtrEmpty, nil)
 	Equal(t, *test.BoolPtrEmpty, false)
 
@@ -502,7 +502,7 @@ func TestDecoderBool(t *testing.T) {
 
 	Equal(t, len(test.BoolPtrArray), 3)
 	Equal(t, *test.BoolPtrArray[0], true)
-	Equal(t, test.BoolPtrArray[1], nil)
+	Nil(t, test.BoolPtrArray[1])
 	Equal(t, *test.BoolPtrArray[2], true)
 
 	Equal(t, len(test.BoolArrayArray), 3)
@@ -519,7 +519,7 @@ func TestDecoderBool(t *testing.T) {
 	Equal(t, len(test.BoolPtrArrayArray[1]), 0)
 	Equal(t, len(test.BoolPtrArrayArray[2]), 1)
 	Equal(t, *test.BoolPtrArrayArray[0][0], true)
-	Equal(t, test.BoolPtrArrayArray[0][1], nil)
+	Nil(t, test.BoolPtrArrayArray[0][1])
 	Equal(t, *test.BoolPtrArrayArray[0][2], true)
 	Equal(t, *test.BoolPtrArrayArray[2][0], true)
 
@@ -1156,7 +1156,7 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 
 	decoder := NewDecoder()
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
+	PanicsWithValue(t, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket", func() { decoder.Decode(&test, values) })
 
 	i := 1
 	err := decoder.Decode(i, values)
@@ -1186,19 +1186,19 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 		"Phone0].Number": []string{"1(111)111-1111"},
 	}
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0].Number' missing '[' bracket")
+	PanicsWithValue(t, "Invalid formatting for key 'Phone0].Number' missing '[' bracket", func() { decoder.Decode(&test, values) })
 
 	values = url.Values{
 		"Phone[[0.Number": []string{"1(111)111-1111"},
 	}
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket")
+	PanicsWithValue(t, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket", func() { decoder.Decode(&test, values) })
 
 	values = url.Values{
 		"Phone0]].Number": []string{"1(111)111-1111"},
 	}
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket")
+	PanicsWithValue(t, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket", func() { decoder.Decode(&test, values) })
 }
 
 func TestDecoderMapKeys(t *testing.T) {
@@ -1273,7 +1273,7 @@ func TestDecoderStructRecursion(t *testing.T) {
 	errs := decoder.Decode(&test, values)
 	Equal(t, errs, nil)
 	Equal(t, test.Nested.Value, "value")
-	Equal(t, test.Nested.Nested, nil)
+	Nil(t, test.Nested.Nested)
 }
 
 func TestDecoderFormDecode(t *testing.T) {
@@ -1675,7 +1675,7 @@ func TestDecodeMissingDataWithCollectionFormat(t *testing.T) {
 		"age": {"30"},
 	}, goValues)
 	Equal(t, err, nil)
-	Equal(t, data.Names, nil)
+	Nil(t, data.Names)
 	Equal(t, data.Age, 30)
 	Equal(t, goValues, map[string]interface{}{
 		"age": 30,
@@ -1744,13 +1744,9 @@ func TestDecoder_RegisterCustomTypeFuncOnSlice(t *testing.T) {
 	}
 
 	d := NewDecoder()
-	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
-		custom := make([]customString, 0, len(vals))
-		for i := 0; i < len(vals); i++ {
-			custom = append(custom, customString("custom"+vals[i]))
-		}
-		return custom, nil
-	}, []customString{})
+	d.RegisterFunc(func(val string) (i interface{}, e error) {
+		return customString("custom" + val), nil
+	}, customString(""))
 
 	var v TestStruct
 	err := d.Decode(&v, url.Values{"slice": []string{"v1", "v2"}})

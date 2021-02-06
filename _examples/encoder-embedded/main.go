@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-playground/form/v4"
+	"github.com/swaggest/form"
 )
 
 // A ...

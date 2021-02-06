@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/go-playground/form/v4"
+	"github.com/swaggest/form"
 )
 
 // A ...

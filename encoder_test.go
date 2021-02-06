@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/go-playground/assert/v2"
+	. "github.com/stretchr/testify/assert"
 )
 
 // NOTES:
@@ -1209,7 +1209,7 @@ func TestEncoderPanicsAndBadValues(t *testing.T) {
 
 	values, err := encoder.Encode(nil)
 	NotEqual(t, err, nil)
-	Equal(t, values, nil)
+	Nil(t, values)
 
 	_, ok := err.(*InvalidEncodeError)
 	Equal(t, ok, true)
@@ -1222,8 +1222,8 @@ func TestEncoderPanicsAndBadValues(t *testing.T) {
 	var tst *TestStruct
 
 	values, err = encoder.Encode(tst)
-	NotEqual(t, err, nil)
-	Equal(t, values, nil)
+	EqualError(t, err, "form: Encode(nil *form.TestStruct)")
+	Nil(t, values)
 
 	_, ok = err.(*InvalidEncodeError)
 	Equal(t, ok, true)

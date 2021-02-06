@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"testing"
 
+	assert "github.com/stretchr/testify/assert"
 	"github.com/swaggest/form"
-	assert "gopkg.in/go-playground/assert.v1"
 )
 
 type TestNullTypes struct {
