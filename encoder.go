@@ -181,7 +181,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			namespace = append(namespace, s...)
 			namespace = append(namespace, ']')
 
-			e.setFieldByType(current.MapIndex(key), namespace, -2, false)
+			e.setFieldByType(v.MapIndex(key), namespace, -2, false)
 		}
 
 	case reflect.Struct:
