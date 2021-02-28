@@ -552,7 +552,6 @@ func TestDecoderStruct(t *testing.T) {
 		}
 		Time                       time.Time
 		TimePtr                    *time.Time
-		unexposed                  string
 		Invalid                    interface{}
 		ExistingMap                map[string]string `form:"mp"`
 		MapNoValue                 map[int]int
@@ -1157,7 +1156,7 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 
 	decoder := NewDecoder()
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
+	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
 
 	i := 1
 	err := decoder.Decode(i, values)
@@ -1187,19 +1186,19 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 		"Phone0].Number": []string{"1(111)111-1111"},
 	}
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0].Number' missing '[' bracket")
+	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0].Number' missing '[' bracket")
 
 	values = url.Values{
 		"Phone[[0.Number": []string{"1(111)111-1111"},
 	}
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket")
+	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket")
 
 	values = url.Values{
 		"Phone0]].Number": []string{"1(111)111-1111"},
 	}
 
-	PanicMatches(t, func() { decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket")
+	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket")
 }
 
 func TestDecoderMapKeys(t *testing.T) {
