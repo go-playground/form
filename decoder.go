@@ -317,7 +317,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var f float64
 		if f, err = strconv.ParseFloat(arr[idx], 32); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[0], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetFloat(f)
@@ -329,7 +329,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var f float64
 		if f, err = strconv.ParseFloat(arr[idx], 64); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[0], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetFloat(f)
