@@ -1018,6 +1018,23 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, val[0], tm.Format(time.RFC3339))
 }
 
+func TestEncoderMap(t *testing.T) {
+	inner := map[string]interface{}{
+		"inner": "1",
+	}
+
+	outer := map[string]interface{}{
+		"outer": inner,
+	}
+
+	enc := NewEncoder()
+	values, _ := enc.Encode(outer)
+
+	val, ok := values["[outer][inner]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1")
+}
+
 func TestDecodeAllNonStructTypes(t *testing.T) {
 
 	encoder := NewEncoder()
