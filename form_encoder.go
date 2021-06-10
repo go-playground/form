@@ -50,16 +50,19 @@ type Encoder struct {
 	dataPool        *sync.Pool
 	mode            Mode
 	embedAnonymous  bool
+	namespacePrefix string
+	namespaceSuffix string
 }
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
 
 	e := &Encoder{
-		tagName:        "form",
-		mode:           ModeImplicit,
-		structCache:    newStructCacheMap(),
-		embedAnonymous: true,
+		tagName:         "form",
+		mode:            ModeImplicit,
+		structCache:     newStructCacheMap(),
+		embedAnonymous:  true,
+		namespacePrefix: ".",
 	}
 
 	e.dataPool = &sync.Pool{New: func() interface{} {
@@ -82,6 +85,16 @@ func (e *Encoder) SetTagName(tagName string) {
 // Default is ModeImplicit
 func (e *Encoder) SetMode(mode Mode) {
 	e.mode = mode
+}
+
+// SetNamespacePrefix sets a struct namespace prefix.
+func (e *Encoder) SetNamespacePrefix(namespacePrefix string) {
+	e.namespacePrefix = namespacePrefix
+}
+
+// SetNamespaceSuffix sets a struct namespace suffix.
+func (e *Encoder) SetNamespaceSuffix(namespaceSuffix string) {
+	e.namespaceSuffix = namespaceSuffix
 }
 
 // SetAnonymousMode sets the mode the encoder should run

@@ -159,8 +159,9 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 		if first {
 			namespace = append(namespace, f.name...)
 		} else {
-			namespace = append(namespace, namespaceSeparator)
+			namespace = append(namespace, d.d.namespacePrefix...)
 			namespace = append(namespace, f.name...)
+			namespace = append(namespace, d.d.namespaceSuffix...)
 		}
 
 		if d.setFieldByType(v.Field(f.idx), namespace, 0) {

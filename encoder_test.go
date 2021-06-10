@@ -1018,6 +1018,207 @@ func TestEncoderStruct(t *testing.T) {
 	Equal(t, val[0], tm.Format(time.RFC3339))
 }
 
+func TestEncoderStructCustomNamespace(t *testing.T) {
+
+	type Phone struct {
+		Number string
+	}
+
+	type TestStruct struct {
+		Name      string `form:"name"`
+		Ignore    string `form:"-"`
+		NonNilPtr *Phone
+		Phone     []Phone
+		PhonePtr  []*Phone
+
+		Anonymous struct {
+			Value     string
+			Ignore    string `form:"-"`
+			unexposed string
+		}
+		Time            time.Time
+		TimePtr         *time.Time
+		unexposed       string
+		Invalid         interface{}
+		ExistingMap     map[string]string `form:"mp"`
+		MapNoValue      map[int]int
+		Array           []string
+		ZeroLengthArray []string
+		IfaceNonNil     interface{}
+		IfaceInvalid    interface{}
+		TimeMapKey      map[time.Time]string
+		ArrayMap        []map[int]int
+		ArrayTime       []time.Time
+	}
+
+	tm, err := time.Parse("2006-01-02", "2016-01-02")
+	Equal(t, err, nil)
+
+	test := &TestStruct{
+		Name:      "joeybloggs",
+		Ignore:    "ignore",
+		NonNilPtr: new(Phone),
+		Phone: []Phone{
+			{Number: "1(111)111-1111"},
+			{Number: "9(999)999-9999"},
+		},
+		PhonePtr: []*Phone{
+			{Number: "1(111)111-1111"},
+			{Number: "9(999)999-9999"},
+		},
+		Anonymous: struct {
+			Value     string
+			Ignore    string `form:"-"`
+			unexposed string
+		}{
+			Value: "Anon",
+		},
+		Time:            tm,
+		TimePtr:         &tm,
+		unexposed:       "unexposed field",
+		ExistingMap:     map[string]string{"existingkey": "existingvalue", "key": "value"},
+		Array:           []string{"1", "2"},
+		ZeroLengthArray: []string{},
+		IfaceNonNil:     new(Phone),
+		IfaceInvalid:    nil,
+		TimeMapKey:      map[time.Time]string{tm: "time"},
+		ArrayMap:        []map[int]int{{1: 3}},
+		ArrayTime:       []time.Time{tm},
+	}
+
+	encoder := NewEncoder()
+	encoder.SetTagName("form")
+	encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
+		return []string{x.(time.Time).Format("2006-01-02")}, nil
+	}, time.Time{})
+	encoder.SetNamespacePrefix("[")
+	encoder.SetNamespaceSuffix("]")
+
+	values, errs := encoder.Encode(test)
+
+	Equal(t, errs, nil)
+	Equal(t, len(values), 16)
+
+	val, ok := values["name"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "joeybloggs")
+
+	_, ok = values["Ignore"]
+	Equal(t, ok, false)
+
+	val, ok = values["NonNilPtr[Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "")
+
+	val, ok = values["Phone[0][Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1(111)111-1111")
+
+	val, ok = values["Phone[1][Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "9(999)999-9999")
+
+	val, ok = values["PhonePtr[0][Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "1(111)111-1111")
+
+	val, ok = values["PhonePtr[1][Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "9(999)999-9999")
+
+	val, ok = values["Anonymous[Value]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "Anon")
+
+	_, ok = values["Anonymous[Ignore]"]
+	Equal(t, ok, false)
+
+	_, ok = values["Anonymous.unexposed"]
+	Equal(t, ok, false)
+
+	val, ok = values["Time"]
+	Equal(t, ok, true)
+	Equal(t, val[0], tm.Format("2006-01-02"))
+
+	val, ok = values["TimePtr"]
+	Equal(t, ok, true)
+	Equal(t, val[0], tm.Format("2006-01-02"))
+
+	_, ok = values["unexposed"]
+	Equal(t, ok, false)
+
+	val, ok = values["mp[existingkey]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "existingvalue")
+
+	val, ok = values["mp[key]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "value")
+
+	val, ok = values["Array"]
+	Equal(t, ok, true)
+	Equal(t, len(val), 2)
+	Equal(t, val[0], "1")
+	Equal(t, val[1], "2")
+
+	_, ok = values["ZeroLengthArray"]
+	Equal(t, ok, false)
+
+	val, ok = values["IfaceNonNil[Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "")
+
+	_, ok = values["IfaceInvalid"]
+	Equal(t, ok, false)
+
+	val, ok = values["IfaceNonNil[Number]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "")
+
+	val, ok = values["TimeMapKey["+tm.Format("2006-01-02")+"]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "time")
+
+	val, ok = values["ArrayMap[0][1]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "3")
+
+	val, ok = values["ArrayTime[0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], tm.Format("2006-01-02"))
+
+	s := struct {
+		Value     string
+		Ignore    string `form:"-"`
+		unexposed string
+		ArrayTime []time.Time
+	}{
+		Value:     "tval",
+		Ignore:    "ignore",
+		unexposed: "unexp",
+		ArrayTime: []time.Time{tm},
+	}
+
+	encoder = NewEncoder()
+	values, errs = encoder.Encode(&s)
+	Equal(t, errs, nil)
+	Equal(t, len(values), 2)
+
+	val, ok = values["Value"]
+	Equal(t, ok, true)
+	Equal(t, val[0], "tval")
+
+	_, ok = values["Ignore"]
+	Equal(t, ok, false)
+
+	_, ok = values["unexposed"]
+	Equal(t, ok, false)
+
+	val, ok = values["ArrayTime[0]"]
+	Equal(t, ok, true)
+	Equal(t, val[0], tm.Format(time.RFC3339))
+}
+
 func TestEncoderMap(t *testing.T) {
 	inner := map[string]interface{}{
 		"inner": "1",
@@ -1191,7 +1392,7 @@ func TestEncoderErrors(t *testing.T) {
 	test := TestError{
 		BadMapKey: map[time.Time]string{tm: "time"},
 		Iface:     map[interface{}]string{nil: "time"},
-		Struct:    map[struct{}]string{struct{}{}: "str"},
+		Struct:    map[struct{}]string{{}: "str"},
 	}
 
 	encoder := NewEncoder()
