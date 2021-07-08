@@ -6,11 +6,10 @@ import (
 )
 
 const (
-	blank              = ""
-	namespaceSeparator = '.'
-	ignore             = "-"
-	fieldNS            = "Field Namespace:"
-	errorText          = " ERROR:"
+	blank     = ""
+	ignore    = "-"
+	fieldNS   = "Field Namespace:"
+	errorText = " ERROR:"
 )
 
 var (

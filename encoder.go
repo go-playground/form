@@ -59,8 +59,9 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 		if first {
 			namespace = append(namespace, f.name...)
 		} else {
-			namespace = append(namespace, namespaceSeparator)
+			namespace = append(namespace, e.e.namespacePrefix...)
 			namespace = append(namespace, f.name...)
+			namespace = append(namespace, e.e.namespaceSuffix...)
 		}
 
 		e.setFieldByType(v.Field(f.idx), namespace, idx, f.isOmitEmpty)

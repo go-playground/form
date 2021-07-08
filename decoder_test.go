@@ -2,6 +2,7 @@ package form
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
@@ -533,10 +534,76 @@ func TestDecoderBool(t *testing.T) {
 	Equal(t, test.NoURLValue, false)
 }
 
+func TestDecoderEqualStructMapValue(t *testing.T) {
+	type PhoneStruct struct {
+		Number string
+	}
+
+	type PhoneMap map[string]string
+
+	type TestStruct struct {
+		PhoneStruct PhoneStruct `form:"Phone"`
+		PhoneMap    PhoneMap    `form:"Phone"`
+	}
+
+	testCases := []struct {
+		NamespacePrefix string
+		NamespaceSuffix string
+		Values          url.Values
+	}{{
+		NamespacePrefix: ".",
+		Values: url.Values{
+			"Phone.Number":  []string{"111"},
+			"Phone[Number]": []string{"222"},
+		},
+	}, {
+		NamespacePrefix: "[",
+		NamespaceSuffix: "]",
+		Values: url.Values{
+			"Phone[Number]": []string{"111"},
+		},
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(fmt.Sprintf("Namespace_%s%s", tc.NamespacePrefix, tc.NamespaceSuffix), func(t *testing.T) {
+			decoder := NewDecoder()
+			decoder.SetNamespacePrefix(tc.NamespacePrefix)
+			decoder.SetNamespaceSuffix(tc.NamespaceSuffix)
+
+			var test TestStruct
+
+			err := decoder.Decode(&test, tc.Values)
+			Equal(t, err, nil)
+
+			Equal(t, test.PhoneStruct.Number, "111")
+
+			if tc.NamespacePrefix == "." {
+				Equal(t, test.PhoneMap["Number"], "222")
+			} else {
+				Equal(t, test.PhoneMap["Number"], "111")
+			}
+		})
+	}
+}
+
 func TestDecoderStruct(t *testing.T) {
 
 	type Phone struct {
 		Number string
+	}
+
+	type TestMapKeys struct {
+		MapIfaceKey   map[interface{}]string
+		MapFloat32Key map[float32]float32
+		MapFloat64Key map[float64]float64
+		MapNestedInt  map[int]map[int]int
+		MapInt8       map[int8]int8
+		MapInt16      map[int16]int16
+		MapInt32      map[int32]int32
+		MapUint8      map[uint8]uint8
+		MapUint16     map[uint16]uint16
+		MapUint32     map[uint32]uint32
 	}
 
 	type TestStruct struct {
@@ -555,6 +622,7 @@ func TestDecoderStruct(t *testing.T) {
 		Invalid                    interface{}
 		ExistingMap                map[string]string `form:"mp"`
 		MapNoValue                 map[int]int
+		TestMapKeys                TestMapKeys
 		NilArray                   []string
 		TooSmallArray              []string
 		TooSmallCapOKArray         []string
@@ -569,15 +637,9 @@ func TestDecoderStruct(t *testing.T) {
 		ExistingArrayIndex         []string
 	}
 
-	values := url.Values{
+	defaultValues := url.Values{
 		"name":                          []string{"joeybloggs"},
 		"Ignore":                        []string{"ignore"},
-		"Phone[0].Number":               []string{"1(111)111-1111"},
-		"Phone[1].Number":               []string{"9(999)999-9999"},
-		"PhonePtr[0].Number":            []string{"1(111)111-1111"},
-		"PhonePtr[1].Number":            []string{"9(999)999-9999"},
-		"NonNilPtr.Number":              []string{"9(999)999-9999"},
-		"Anonymous.Value":               []string{"Anon"},
 		"Time":                          []string{"2016-01-02"},
 		"TimePtr":                       []string{"2016-01-02"},
 		"mp[key]":                       []string{"value"},
@@ -593,97 +655,177 @@ func TestDecoderStruct(t *testing.T) {
 		"ExistingArrayIndex[1]":         []string{"arr2"},
 	}
 
-	var test TestStruct
-	test.ExistingMap = map[string]string{"existingkey": "existingvalue"}
-	test.NonNilPtr = new(Phone)
-	test.IfaceNonNil = new(Phone)
-	test.IfaceInvalid = nil
-	test.TooSmallArray = []string{"0"}
-	test.TooSmallCapOKArray = make([]string, 0, 10)
-	test.TooSmallNumberedArray = []string{"0"}
-	test.TooSmallCapOKNumberedArray = make([]string, 0, 10)
-	test.BigEnoughNumberedArray = make([]string, 3, 10)
-	test.ExistingArray = []string{"arr1"}
-	test.ExistingArrayIndex = []string{"arr1"}
+	testCases := []struct {
+		NamespacePrefix string
+		NamespaceSuffix string
+		Values          url.Values
+	}{{
+		NamespacePrefix: ".",
+		Values: url.Values{
+			"Phone[0].Number":                []string{"1(111)111-1111"},
+			"Phone[1].Number":                []string{"9(999)999-9999"},
+			"PhonePtr[0].Number":             []string{"1(111)111-1111"},
+			"PhonePtr[1].Number":             []string{"9(999)999-9999"},
+			"NonNilPtr.Number":               []string{"9(999)999-9999"},
+			"Anonymous.Value":                []string{"Anon"},
+			"TestMapKeys.MapIfaceKey[key]":   []string{"3"},
+			"TestMapKeys.MapFloat32Key[0.0]": []string{"3.3"},
+			"TestMapKeys.MapFloat64Key[0.0]": []string{"3.3"},
+			"TestMapKeys.MapNestedInt[1][2]": []string{"3"},
+			"TestMapKeys.MapInt8[0]":         []string{"3"},
+			"TestMapKeys.MapInt16[0]":        []string{"3"},
+			"TestMapKeys.MapInt32[0]":        []string{"3"},
+			"TestMapKeys.MapUint8[0]":        []string{"3"},
+			"TestMapKeys.MapUint16[0]":       []string{"3"},
+			"TestMapKeys.MapUint32[0]":       []string{"3"},
+		},
+	}, {
+		NamespacePrefix: "[",
+		NamespaceSuffix: "]",
+		Values: url.Values{
+			"Phone[0][Number]":                []string{"1(111)111-1111"},
+			"Phone[1][Number]":                []string{"9(999)999-9999"},
+			"PhonePtr[0][Number]":             []string{"1(111)111-1111"},
+			"PhonePtr[1][Number]":             []string{"9(999)999-9999"},
+			"NonNilPtr[Number]":               []string{"9(999)999-9999"},
+			"Anonymous[Value]":                []string{"Anon"},
+			"TestMapKeys[MapIfaceKey][key]":   []string{"3"},
+			"TestMapKeys[MapFloat32Key][0.0]": []string{"3.3"},
+			"TestMapKeys[MapFloat64Key][0.0]": []string{"3.3"},
+			"TestMapKeys[MapNestedInt][1][2]": []string{"3"},
+			"TestMapKeys[MapInt8][0]":         []string{"3"},
+			"TestMapKeys[MapInt16][0]":        []string{"3"},
+			"TestMapKeys[MapInt32][0]":        []string{"3"},
+			"TestMapKeys[MapUint8][0]":        []string{"3"},
+			"TestMapKeys[MapUint16][0]":       []string{"3"},
+			"TestMapKeys[MapUint32][0]":       []string{"3"},
+		},
+	}}
 
-	decoder := NewDecoder()
-	decoder.SetTagName("form")
-	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse("2006-01-02", vals[0])
-	}, time.Time{})
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(fmt.Sprintf("Namespace_%s%s", tc.NamespacePrefix, tc.NamespaceSuffix), func(t *testing.T) {
+			decoder := NewDecoder()
+			decoder.SetNamespacePrefix(tc.NamespacePrefix)
+			decoder.SetNamespaceSuffix(tc.NamespaceSuffix)
 
-	errs := decoder.Decode(&test, values)
-	Equal(t, errs, nil)
+			values := url.Values{}
 
-	Equal(t, test.Name, "joeybloggs")
-	Equal(t, test.Ignore, "")
-	Equal(t, len(test.Phone), 2)
-	Equal(t, test.Phone[0].Number, "1(111)111-1111")
-	Equal(t, test.Phone[1].Number, "9(999)999-9999")
-	Equal(t, len(test.PhonePtr), 2)
-	Equal(t, (*test.PhonePtr[0]).Number, "1(111)111-1111")
-	Equal(t, (*test.PhonePtr[1]).Number, "9(999)999-9999")
-	Equal(t, test.NonNilPtr.Number, "9(999)999-9999")
-	Equal(t, test.Anonymous.Value, "Anon")
-	Equal(t, len(test.ExistingMap), 2)
-	Equal(t, test.ExistingMap["existingkey"], "existingvalue")
-	Equal(t, test.ExistingMap["key"], "value")
-	Equal(t, len(test.NilArray), 2)
-	Equal(t, test.NilArray[0], "1")
-	Equal(t, test.NilArray[1], "2")
-	Equal(t, len(test.TooSmallArray), 3)
-	Equal(t, test.TooSmallArray[0], "0")
-	Equal(t, test.TooSmallArray[1], "1")
-	Equal(t, test.TooSmallArray[2], "2")
-	Equal(t, len(test.ZeroLengthArray), 0)
-	Equal(t, len(test.TooSmallNumberedArray), 3)
-	Equal(t, test.TooSmallNumberedArray[0], "0")
-	Equal(t, test.TooSmallNumberedArray[1], "")
-	Equal(t, test.TooSmallNumberedArray[2], "2")
-	Equal(t, len(test.BigEnoughNumberedArray), 3)
-	Equal(t, cap(test.BigEnoughNumberedArray), 10)
-	Equal(t, test.BigEnoughNumberedArray[0], "")
-	Equal(t, test.BigEnoughNumberedArray[1], "")
-	Equal(t, test.BigEnoughNumberedArray[2], "1")
-	Equal(t, len(test.TooSmallCapOKArray), 2)
-	Equal(t, cap(test.TooSmallCapOKArray), 10)
-	Equal(t, test.TooSmallCapOKArray[0], "1")
-	Equal(t, test.TooSmallCapOKArray[1], "2")
-	Equal(t, len(test.TooSmallCapOKNumberedArray), 3)
-	Equal(t, cap(test.TooSmallCapOKNumberedArray), 10)
-	Equal(t, test.TooSmallCapOKNumberedArray[0], "")
-	Equal(t, test.TooSmallCapOKNumberedArray[1], "")
-	Equal(t, test.TooSmallCapOKNumberedArray[2], "2")
+			for key, vals := range defaultValues {
+				values[key] = vals
+			}
+			for key, vals := range tc.Values {
+				values[key] = vals
+			}
 
-	Equal(t, len(test.ExistingArray), 2)
-	Equal(t, test.ExistingArray[0], "arr1")
-	Equal(t, test.ExistingArray[1], "arr2")
+			decoder.SetTagName("form")
+			decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+				return time.Parse("2006-01-02", vals[0])
+			}, time.Time{})
 
-	Equal(t, len(test.ExistingArrayIndex), 2)
-	Equal(t, test.ExistingArrayIndex[0], "arr1")
-	Equal(t, test.ExistingArrayIndex[1], "arr2")
+			var test TestStruct
+			test.ExistingMap = map[string]string{"existingkey": "existingvalue"}
+			test.NonNilPtr = new(Phone)
+			test.IfaceNonNil = new(Phone)
+			test.IfaceInvalid = nil
+			test.TooSmallArray = []string{"0"}
+			test.TooSmallCapOKArray = make([]string, 0, 10)
+			test.TooSmallNumberedArray = []string{"0"}
+			test.TooSmallCapOKNumberedArray = make([]string, 0, 10)
+			test.BigEnoughNumberedArray = make([]string, 3, 10)
+			test.ExistingArray = []string{"arr1"}
+			test.ExistingArrayIndex = []string{"arr1"}
 
-	tm, _ := time.Parse("2006-01-02", "2016-01-02")
-	Equal(t, test.Time.Equal(tm), true)
-	Equal(t, (*test.TimePtr).Equal(tm), true)
+			errs := decoder.Decode(&test, values)
+			Equal(t, errs, nil)
 
-	NotEqual(t, test.TimeMapKey, nil)
-	Equal(t, len(test.TimeMapKey), 1)
+			Equal(t, test.Name, "joeybloggs")
+			Equal(t, test.Ignore, "")
+			Equal(t, len(test.Phone), 2)
+			Equal(t, test.Phone[0].Number, "1(111)111-1111")
+			Equal(t, test.Phone[1].Number, "9(999)999-9999")
+			Equal(t, len(test.PhonePtr), 2)
+			Equal(t, test.PhonePtr[0].Number, "1(111)111-1111")
+			Equal(t, test.PhonePtr[1].Number, "9(999)999-9999")
+			Equal(t, test.NonNilPtr.Number, "9(999)999-9999")
+			Equal(t, test.Anonymous.Value, "Anon")
+			Equal(t, len(test.ExistingMap), 2)
+			Equal(t, test.ExistingMap["existingkey"], "existingvalue")
+			Equal(t, test.ExistingMap["key"], "value")
+			Equal(t, len(test.NilArray), 2)
+			Equal(t, test.NilArray[0], "1")
+			Equal(t, test.NilArray[1], "2")
+			Equal(t, len(test.TooSmallArray), 3)
+			Equal(t, test.TooSmallArray[0], "0")
+			Equal(t, test.TooSmallArray[1], "1")
+			Equal(t, test.TooSmallArray[2], "2")
+			Equal(t, len(test.ZeroLengthArray), 0)
+			Equal(t, len(test.TooSmallNumberedArray), 3)
+			Equal(t, test.TooSmallNumberedArray[0], "0")
+			Equal(t, test.TooSmallNumberedArray[1], "")
+			Equal(t, test.TooSmallNumberedArray[2], "2")
+			Equal(t, len(test.BigEnoughNumberedArray), 3)
+			Equal(t, cap(test.BigEnoughNumberedArray), 10)
+			Equal(t, test.BigEnoughNumberedArray[0], "")
+			Equal(t, test.BigEnoughNumberedArray[1], "")
+			Equal(t, test.BigEnoughNumberedArray[2], "1")
+			Equal(t, len(test.TooSmallCapOKArray), 2)
+			Equal(t, cap(test.TooSmallCapOKArray), 10)
+			Equal(t, test.TooSmallCapOKArray[0], "1")
+			Equal(t, test.TooSmallCapOKArray[1], "2")
+			Equal(t, len(test.TooSmallCapOKNumberedArray), 3)
+			Equal(t, cap(test.TooSmallCapOKNumberedArray), 10)
+			Equal(t, test.TooSmallCapOKNumberedArray[0], "")
+			Equal(t, test.TooSmallCapOKNumberedArray[1], "")
+			Equal(t, test.TooSmallCapOKNumberedArray[2], "2")
 
-	_, ok := test.TimeMapKey[tm]
-	Equal(t, ok, true)
+			Equal(t, len(test.ExistingArray), 2)
+			Equal(t, test.ExistingArray[0], "arr1")
+			Equal(t, test.ExistingArray[1], "arr2")
 
-	s := struct {
-		Value     string
-		Ignore    string `form:"-"`
-		unexposed string
-	}{}
+			Equal(t, len(test.ExistingArrayIndex), 2)
+			Equal(t, test.ExistingArrayIndex[0], "arr1")
+			Equal(t, test.ExistingArrayIndex[1], "arr2")
 
-	errs = decoder.Decode(&s, values)
-	Equal(t, errs, nil)
-	Equal(t, s.Value, "")
-	Equal(t, s.Ignore, "")
-	Equal(t, s.unexposed, "")
+			tm, _ := time.Parse("2006-01-02", "2016-01-02")
+			Equal(t, test.Time.Equal(tm), true)
+			Equal(t, test.TimePtr.Equal(tm), true)
+
+			NotEqual(t, test.TimeMapKey, nil)
+			Equal(t, len(test.TimeMapKey), 1)
+
+			_, ok := test.TimeMapKey[tm]
+			Equal(t, ok, true)
+
+			s := struct {
+				Value     string
+				Ignore    string `form:"-"`
+				unexposed string
+			}{}
+
+			errs = decoder.Decode(&s, defaultValues)
+			Equal(t, errs, nil)
+			Equal(t, s.Value, "")
+			Equal(t, s.Ignore, "")
+			Equal(t, s.unexposed, "")
+
+			Equal(t, test.TestMapKeys.MapIfaceKey["key"], "3")
+			Equal(t, test.TestMapKeys.MapFloat32Key[float32(0.0)], float32(3.3))
+			Equal(t, test.TestMapKeys.MapFloat64Key[float64(0.0)], float64(3.3))
+
+			Equal(t, test.TestMapKeys.MapInt8[int8(0)], int8(3))
+			Equal(t, test.TestMapKeys.MapInt16[int16(0)], int16(3))
+			Equal(t, test.TestMapKeys.MapInt32[int32(0)], int32(3))
+
+			Equal(t, test.TestMapKeys.MapUint8[uint8(0)], uint8(3))
+			Equal(t, test.TestMapKeys.MapUint16[uint16(0)], uint16(3))
+			Equal(t, test.TestMapKeys.MapUint32[uint32(0)], uint32(3))
+
+			Equal(t, len(test.TestMapKeys.MapNestedInt), 1)
+			Equal(t, len(test.TestMapKeys.MapNestedInt[1]), 1)
+			Equal(t, test.TestMapKeys.MapNestedInt[1][2], 3)
+		})
+	}
 }
 
 func TestDecoderNativeTime(t *testing.T) {
@@ -783,134 +925,152 @@ func TestDecoderErrors(t *testing.T) {
 		"BadArrayIndex[bad index]":   []string{"bad idx"},
 	}
 
-	test := TestError{
-		OverFlowExistingArray: make([]int, 2),
+	testCases := []struct {
+		NamespacePrefix string
+		NamespaceSuffix string
+	}{{
+		NamespacePrefix: ".",
+	}, {
+		NamespacePrefix: "[",
+		NamespaceSuffix: "]",
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(fmt.Sprintf("Namespace_%s%s", tc.NamespacePrefix, tc.NamespaceSuffix), func(t *testing.T) {
+			decoder := NewDecoder()
+			decoder.SetNamespacePrefix(tc.NamespacePrefix)
+			decoder.SetNamespaceSuffix(tc.NamespaceSuffix)
+
+			decoder.SetMaxArraySize(4)
+			decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+				return nil, errors.New("Bad Type Conversion")
+			}, "")
+
+			test := TestError{
+				OverFlowExistingArray: make([]int, 2),
+			}
+
+			errs := decoder.Decode(&test, values)
+			NotEqual(t, errs, nil)
+
+			e := errs.Error()
+			NotEqual(t, e, "")
+
+			err := errs.(DecodeErrors)
+			Equal(t, len(err), 30)
+
+			k := err["bool"]
+			Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'bool'")
+
+			k = err["Int"]
+			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int' Namespace 'Int'")
+
+			k = err["Int8"]
+			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int8' Namespace 'Int8'")
+
+			k = err["Int16"]
+			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int16' Namespace 'Int16'")
+
+			k = err["Int32"]
+			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int32' Namespace 'Int32'")
+
+			k = err["Uint"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint' Namespace 'Uint'")
+
+			k = err["Uint8"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint8' Namespace 'Uint8'")
+
+			k = err["Uint16"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint16' Namespace 'Uint16'")
+
+			k = err["Uint32"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint32' Namespace 'Uint32'")
+
+			k = err["Float32"]
+			Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float32' Namespace 'Float32'")
+
+			k = err["Float64"]
+			Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float64' Namespace 'Float64'")
+
+			k = err["String"]
+			Equal(t, k.Error(), "Bad Type Conversion")
+
+			k = err["Time"]
+			Equal(t, k.Error(), "parsing time \"bad\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"bad\" as \"2006\"")
+
+			k = err["MapBadIntKey"]
+			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int' Namespace 'MapBadIntKey'")
+
+			k = err["MapBadInt8Key"]
+			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int8' Namespace 'MapBadInt8Key'")
+
+			k = err["MapBadInt16Key"]
+			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int16' Namespace 'MapBadInt16Key'")
+
+			k = err["MapBadInt32Key"]
+			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int32' Namespace 'MapBadInt32Key'")
+
+			k = err["MapBadUintKey"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint' Namespace 'MapBadUintKey'")
+
+			k = err["MapBadUint8Key"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint8' Namespace 'MapBadUint8Key'")
+
+			k = err["MapBadUint16Key"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint16' Namespace 'MapBadUint16Key'")
+
+			k = err["MapBadUint32Key"]
+			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint32' Namespace 'MapBadUint32Key'")
+
+			k = err["MapBadFloat32Key"]
+			Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloat32Key'")
+
+			k = err["MapBadFloat64Key"]
+			Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float64' Namespace 'MapBadFloat64Key'")
+
+			k = err["MapBadBoolKey"]
+			Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'MapBadBoolKey'")
+
+			k = err["MapBadKeyType"]
+			Equal(t, k.Error(), "Unsupported Map Key '1.4', Type 'complex64' Namespace 'MapBadKeyType'")
+
+			k = err["BadArrayValue[0]"]
+			Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
+
+			k = err["OverflowNilArray"]
+			Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
+
+			k = err["OverFlowExistingArray"]
+			Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
+
+			k = err["BadArrayIndex"]
+			Equal(t, k.Error(), "invalid slice index 'bad index'")
+
+			type TestError2 struct {
+				BadMapKey map[time.Time]string
+			}
+
+			values2 := url.Values{
+				"BadMapKey[badtime]": []string{"badtime"},
+			}
+
+			var test2 TestError2
+			decoder2 := NewDecoder()
+			decoder2.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+				return time.Parse("2006-01-02", vals[0])
+			}, time.Time{})
+
+			errs = decoder2.Decode(&test2, values2)
+			NotEqual(t, errs, nil)
+
+			e = errs.Error()
+			NotEqual(t, e, "")
+
+			k = err["BadMapKey"]
+			Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
+		})
 	}
-
-	decoder := NewDecoder()
-	decoder.SetMaxArraySize(4)
-	decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return nil, errors.New("Bad Type Conversion")
-	}, "")
-
-	errs := decoder.Decode(&test, values)
-	NotEqual(t, errs, nil)
-
-	e := errs.Error()
-	NotEqual(t, e, "")
-
-	err := errs.(DecodeErrors)
-	Equal(t, len(err), 30)
-
-	k := err["bool"]
-	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'bool'")
-
-	k = err["Int"]
-	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int' Namespace 'Int'")
-
-	k = err["Int8"]
-	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int8' Namespace 'Int8'")
-
-	k = err["Int16"]
-	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int16' Namespace 'Int16'")
-
-	k = err["Int32"]
-	Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int32' Namespace 'Int32'")
-
-	k = err["Uint"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint' Namespace 'Uint'")
-
-	k = err["Uint8"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint8' Namespace 'Uint8'")
-
-	k = err["Uint16"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint16' Namespace 'Uint16'")
-
-	k = err["Uint32"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint32' Namespace 'Uint32'")
-
-	k = err["Float32"]
-	Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float32' Namespace 'Float32'")
-
-	k = err["Float64"]
-	Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float64' Namespace 'Float64'")
-
-	k = err["String"]
-	Equal(t, k.Error(), "Bad Type Conversion")
-
-	k = err["Time"]
-	Equal(t, k.Error(), "parsing time \"bad\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"bad\" as \"2006\"")
-
-	k = err["MapBadIntKey"]
-	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int' Namespace 'MapBadIntKey'")
-
-	k = err["MapBadInt8Key"]
-	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int8' Namespace 'MapBadInt8Key'")
-
-	k = err["MapBadInt16Key"]
-	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int16' Namespace 'MapBadInt16Key'")
-
-	k = err["MapBadInt32Key"]
-	Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int32' Namespace 'MapBadInt32Key'")
-
-	k = err["MapBadUintKey"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint' Namespace 'MapBadUintKey'")
-
-	k = err["MapBadUint8Key"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint8' Namespace 'MapBadUint8Key'")
-
-	k = err["MapBadUint16Key"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint16' Namespace 'MapBadUint16Key'")
-
-	k = err["MapBadUint32Key"]
-	Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint32' Namespace 'MapBadUint32Key'")
-
-	k = err["MapBadFloat32Key"]
-	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloat32Key'")
-
-	k = err["MapBadFloat64Key"]
-	Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float64' Namespace 'MapBadFloat64Key'")
-
-	k = err["MapBadBoolKey"]
-	Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'MapBadBoolKey'")
-
-	k = err["MapBadKeyType"]
-	Equal(t, k.Error(), "Unsupported Map Key '1.4', Type 'complex64' Namespace 'MapBadKeyType'")
-
-	k = err["BadArrayValue[0]"]
-	Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
-
-	k = err["OverflowNilArray"]
-	Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
-
-	k = err["OverFlowExistingArray"]
-	Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
-
-	k = err["BadArrayIndex"]
-	Equal(t, k.Error(), "invalid slice index 'bad index'")
-
-	type TestError2 struct {
-		BadMapKey map[time.Time]string
-	}
-
-	values2 := url.Values{
-		"BadMapKey[badtime]": []string{"badtime"},
-	}
-
-	var test2 TestError2
-	decoder2 := NewDecoder()
-	decoder2.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
-		return time.Parse("2006-01-02", vals[0])
-	}, time.Time{})
-
-	errs = decoder2.Decode(&test2, values2)
-	NotEqual(t, errs, nil)
-
-	e = errs.Error()
-	NotEqual(t, e, "")
-
-	k = err["BadMapKey"]
-	Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
 }
 
 func TestDecodeAllTypes(t *testing.T) {
@@ -1231,24 +1391,46 @@ func TestDecoderMapKeys(t *testing.T) {
 
 	var test TestMapKeys
 
-	decoder := NewDecoder()
-	errs := decoder.Decode(&test, values)
-	Equal(t, errs, nil)
-	Equal(t, test.MapIfaceKey["key"], "3")
-	Equal(t, test.MapFloat32Key[float32(0.0)], float32(3.3))
-	Equal(t, test.MapFloat64Key[float64(0.0)], float64(3.3))
+	testCases := []struct {
+		NamespacePrefix string
+		NamespaceSuffix string
+	}{
+		{
+			NamespacePrefix: ".",
+		},
+		{
+			NamespacePrefix: "[",
+			NamespaceSuffix: "]",
+		},
+	}
 
-	Equal(t, test.MapInt8[int8(0)], int8(3))
-	Equal(t, test.MapInt16[int16(0)], int16(3))
-	Equal(t, test.MapInt32[int32(0)], int32(3))
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(fmt.Sprintf("Namespace_%s%s", tc.NamespacePrefix, tc.NamespaceSuffix), func(t *testing.T) {
+			decoder := NewDecoder()
+			decoder.SetNamespacePrefix(tc.NamespacePrefix)
+			decoder.SetNamespaceSuffix(tc.NamespaceSuffix)
 
-	Equal(t, test.MapUint8[uint8(0)], uint8(3))
-	Equal(t, test.MapUint16[uint16(0)], uint16(3))
-	Equal(t, test.MapUint32[uint32(0)], uint32(3))
+			errs := decoder.Decode(&test, values)
+			Equal(t, errs, nil)
 
-	Equal(t, len(test.MapNestedInt), 1)
-	Equal(t, len(test.MapNestedInt[1]), 1)
-	Equal(t, test.MapNestedInt[1][2], 3)
+			Equal(t, test.MapIfaceKey["key"], "3")
+			Equal(t, test.MapFloat32Key[float32(0.0)], float32(3.3))
+			Equal(t, test.MapFloat64Key[float64(0.0)], float64(3.3))
+
+			Equal(t, test.MapInt8[int8(0)], int8(3))
+			Equal(t, test.MapInt16[int16(0)], int16(3))
+			Equal(t, test.MapInt32[int32(0)], int32(3))
+
+			Equal(t, test.MapUint8[uint8(0)], uint8(3))
+			Equal(t, test.MapUint16[uint16(0)], uint16(3))
+			Equal(t, test.MapUint32[uint32(0)], uint32(3))
+
+			Equal(t, len(test.MapNestedInt), 1)
+			Equal(t, len(test.MapNestedInt[1]), 1)
+			Equal(t, test.MapNestedInt[1][2], 3)
+		})
+	}
 }
 
 func TestDecoderStructRecursion(t *testing.T) {
@@ -1259,21 +1441,64 @@ func TestDecoderStructRecursion(t *testing.T) {
 	}
 
 	type TestRecursive struct {
-		Nested Nested
+		Nested    Nested
+		NestedPtr *Nested
+		NestedTwo Nested
 	}
 
-	values := url.Values{
-		"Value":        []string{"value"},
-		"Nested.Value": []string{"value"},
+	defaultValues := url.Values{
+		"Value": []string{"value"},
 	}
 
-	var test TestRecursive
+	testCases := []struct {
+		Values          url.Values
+		NamespacePrefix string
+		NamespaceSuffix string
+	}{{
+		NamespacePrefix: ".",
+		Values: url.Values{
+			"Nested.Value":           []string{"value"},
+			"NestedPtr.Value":        []string{"value"},
+			"NestedTwo.Nested.Value": []string{"value"},
+		},
+	}, {
+		NamespacePrefix: "[",
+		NamespaceSuffix: "]",
+		Values: url.Values{
+			"Nested[Value]":            []string{"value"},
+			"NestedPtr[Value]":         []string{"value"},
+			"NestedTwo[Nested][Value]": []string{"value"},
+		},
+	}}
 
-	decoder := NewDecoder()
-	errs := decoder.Decode(&test, values)
-	Equal(t, errs, nil)
-	Equal(t, test.Nested.Value, "value")
-	Equal(t, test.Nested.Nested, nil)
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(fmt.Sprintf("Namespace_%s%s", tc.NamespacePrefix, tc.NamespaceSuffix), func(t *testing.T) {
+			values := url.Values{}
+
+			for key, vals := range defaultValues {
+				values[key] = vals
+			}
+			for key, vals := range tc.Values {
+				values[key] = vals
+			}
+
+			decoder := NewDecoder()
+			decoder.SetNamespacePrefix(tc.NamespacePrefix)
+			decoder.SetNamespaceSuffix(tc.NamespaceSuffix)
+
+			var test TestRecursive
+
+			errs := decoder.Decode(&test, values)
+			Equal(t, errs, nil)
+
+			Equal(t, test.Nested.Value, "value")
+			Equal(t, test.NestedPtr.Value, "value")
+			Equal(t, test.Nested.Nested, nil)
+			Equal(t, test.NestedTwo.Nested.Value, "value")
+		})
+	}
+
 }
 
 func TestDecoderFormDecode(t *testing.T) {

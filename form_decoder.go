@@ -69,16 +69,19 @@ type Decoder struct {
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 	maxArraySize    int
 	dataPool        *sync.Pool
+	namespacePrefix string
+	namespaceSuffix string
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
 func NewDecoder() *Decoder {
 
 	d := &Decoder{
-		tagName:      "form",
-		mode:         ModeImplicit,
-		structCache:  newStructCacheMap(),
-		maxArraySize: 10000,
+		tagName:         "form",
+		mode:            ModeImplicit,
+		structCache:     newStructCacheMap(),
+		maxArraySize:    10000,
+		namespacePrefix: ".",
 	}
 
 	d.dataPool = &sync.Pool{New: func() interface{} {
@@ -101,6 +104,16 @@ func (d *Decoder) SetTagName(tagName string) {
 // Default is ModeImplicit
 func (d *Decoder) SetMode(mode Mode) {
 	d.mode = mode
+}
+
+// SetNamespacePrefix sets a struct namespace prefix.
+func (d *Decoder) SetNamespacePrefix(namespacePrefix string) {
+	d.namespacePrefix = namespacePrefix
+}
+
+// SetNamespaceSuffix sets a struct namespace suffix.
+func (d *Decoder) SetNamespaceSuffix(namespaceSuffix string) {
+	d.namespaceSuffix = namespaceSuffix
 }
 
 // SetMaxArraySize sets maximum array size that can be created.
