@@ -1534,6 +1534,10 @@ func TestEncoderEmbedModes(t *testing.T) {
 
 func TestOmitEmpty(t *testing.T) {
 
+	type NotComparable struct {
+		Slice []string
+	}
+
 	type Test struct {
 		String  string            `form:",omitempty"`
 		Array   []string          `form:",omitempty"`
@@ -1541,6 +1545,7 @@ func TestOmitEmpty(t *testing.T) {
 		String2 string            `form:"str,omitempty"`
 		Array2  []string          `form:"arr,omitempty"`
 		Map2    map[string]string `form:"map,omitempty"`
+		NotComparable			  `form:",omitempty"`
 	}
 
 	var tst Test
