@@ -1923,4 +1923,16 @@ func TestDecoder_InvalidSliceIndex(t *testing.T) {
 	err := d.Decode(v, in)
 	NotEqual(t, err, nil)
 	Equal(t, err.Error(), "Field Namespace:PostIds ERROR:invalid slice index ''")
+
+	// No error with proper name
+	type PostsRequest2 struct {
+		PostIds []string `form:"PostIds[]"`
+	}
+
+	v2 := new(PostsRequest2)
+	err = d.Decode(v2, in)
+	Equal(t, err, nil)
+	Equal(t, len(v2.PostIds), 2)
+	Equal(t, v2.PostIds[0], "1")
+	Equal(t, v2.PostIds[1], "2")
 }

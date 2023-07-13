@@ -109,7 +109,11 @@ func (d *decoder) parseMapData() {
 					// no need to check for error, it will always pass
 					// as we have done the checking to ensure
 					// the value is a number ahead of time.
-					ke.ivalue, _ = strconv.Atoi(ke.value)
+					var err error
+					ke.ivalue, err = strconv.Atoi(ke.value)
+					if err != nil {
+						ke.ivalue = -1
+					}
 
 					if ke.ivalue > rd.sliceLen {
 						rd.sliceLen = ke.ivalue
@@ -432,7 +436,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				kv = rd.keys[i]
 				newVal := reflect.New(varr.Type().Elem()).Elem()
 
-				if kv.ivalue == -1 || len(kv.value) == 0 {
+				if kv.ivalue == -1 {
 					d.setError(namespace, fmt.Errorf("invalid slice index '%s'", kv.value))
 					continue
 				}
@@ -502,7 +506,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				}
 				newVal := reflect.New(varr.Type().Elem()).Elem()
 
-				if kv.ivalue == -1 || len(kv.value) == 0 {
+				if kv.ivalue == -1 {
 					d.setError(namespace, fmt.Errorf("invalid array index '%s'", kv.value))
 					continue
 				}
