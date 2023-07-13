@@ -1,10 +1,13 @@
-all: lint test
+all: lint test bench
 
-lint: linters-install
+lint:
 	golangci-lint run --timeout 5m
 
 test:
 	go test -covermode=atomic -race ./...
 
-.PHONY: test lint linters-install
+bench:
+	go test -bench=. -benchmem ./...
+
+.PHONY: test lint bench
 .DEFAULT_GOAL := all
