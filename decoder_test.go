@@ -1909,3 +1909,18 @@ func TestDecoder_EmptyArrayBool(t *testing.T) {
 	err := d.Decode(v, in)
 	Equal(t, err, nil)
 }
+
+func TestDecoder_InvalidSliceIndex(t *testing.T) {
+	type PostsRequest struct {
+		PostIds []string
+	}
+	in := url.Values{
+		"PostIds[]": []string{"1", "2"},
+	}
+
+	v := new(PostsRequest)
+	d := NewDecoder()
+	err := d.Decode(v, in)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:PostIds ERROR:invalid slice index ''")
+}

@@ -432,7 +432,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				kv = rd.keys[i]
 				newVal := reflect.New(varr.Type().Elem()).Elem()
 
-				if kv.ivalue == -1 {
+				if kv.ivalue == -1 || len(kv.value) == 0 {
 					d.setError(namespace, fmt.Errorf("invalid slice index '%s'", kv.value))
 					continue
 				}
@@ -502,7 +502,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 				}
 				newVal := reflect.New(varr.Type().Elem()).Elem()
 
-				if kv.ivalue == -1 {
+				if kv.ivalue == -1 || len(kv.value) == 0 {
 					d.setError(namespace, fmt.Errorf("invalid array index '%s'", kv.value))
 					continue
 				}
