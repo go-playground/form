@@ -202,7 +202,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		if um, ok := v.Interface().(Unmarshaler); ok {
 			// if receiver is a nil pointer, set before calling function.
-			if t := v.Type(); t.Kind() == reflect.Ptr && v.IsNil() {
+			if t.Kind() == reflect.Ptr && v.IsNil() {
 				t = t.Elem()
 				v.Set(reflect.New(t))
 				um = v.Interface().(Unmarshaler)

@@ -99,7 +99,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 	}
 	{
-		v := v // deliberately shadow v as to not modify
 		if t := v.Type(); t.Kind() == reflect.Ptr && v.IsNil() {
 			return
 		}
