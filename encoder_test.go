@@ -1608,9 +1608,11 @@ func (m marshaler) MarshalForm() ([]string, error) {
 
 func Test_MarshalForm(t *testing.T) {
 	T1 := struct {
-		Ptr    *marshaler
-		NilPtr *marshaler
-		Struct marshaler
+		Ptr      *marshaler
+		NilPtr   *marshaler
+		Struct   marshaler
+		Slice    []*marshaler
+		SlicePtr []*marshaler
 	}{
 		Ptr: &marshaler{
 			Fname: "John",
@@ -1620,12 +1622,30 @@ func Test_MarshalForm(t *testing.T) {
 			Fname: "Bob",
 			Sname: "Dylan",
 		},
+		Slice: []*marshaler{{
+			Fname: "Danny",
+			Sname: "Devito",
+		}, {
+			Fname: "Arnold",
+			Sname: "Schwarzenegger",
+		}},
+		SlicePtr: []*marshaler{{
+			Fname: "Mary-Kate",
+			Sname: "Olsen",
+		}, {
+			Fname: "Ashley",
+			Sname: "Olsen",
+		}},
 	}
 	values, err := NewEncoder().Encode(T1)
 	Equal(t, err, nil)
 	Equal(t, values["Ptr"], []string{"John", "Smith"})
 	Equal(t, values["NilPointer"], nil)
 	Equal(t, values["Struct"], []string{"Bob", "Dylan"})
+	Equal(t, values["Slice[0]"], []string{"Danny", "Devito"})
+	Equal(t, values["Slice[1]"], []string{"Arnold", "Schwarzenegger"})
+	Equal(t, values["SlicePtr[0]"], []string{"Mary-Kate", "Olsen"})
+	Equal(t, values["SlicePtr[1]"], []string{"Ashley", "Olsen"})
 }
 
 type errmarshaler struct {
