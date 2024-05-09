@@ -8,6 +8,11 @@ import (
 	"sync"
 )
 
+// FormMarshaler is the interface implemented by an object that can marshal itself into a textual form.
+type FormMarshaler interface {
+	MarshalForm() ([]string, error)
+}
+
 // EncodeCustomTypeFunc allows for registering/overriding types to be parsed.
 type EncodeCustomTypeFunc func(x interface{}) ([]string, error)
 
@@ -34,7 +39,6 @@ type InvalidEncodeError struct {
 }
 
 func (e *InvalidEncodeError) Error() string {
-
 	if e.Type == nil {
 		return "form: Encode(nil)"
 	}
@@ -56,7 +60,6 @@ type Encoder struct {
 
 // NewEncoder creates a new encoder instance with sane defaults
 func NewEncoder() *Encoder {
-
 	e := &Encoder{
 		tagName:         "form",
 		mode:            ModeImplicit,
@@ -116,7 +119,6 @@ func (e *Encoder) RegisterTagNameFunc(fn TagNameFunc) {
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
 func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...interface{}) {
-
 	if e.customTypeFuncs == nil {
 		e.customTypeFuncs = map[reflect.Type]EncodeCustomTypeFunc{}
 	}
@@ -128,7 +130,6 @@ func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...inter
 
 // Encode encodes the given values and sets the corresponding struct values
 func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
-
 	val, kind := ExtractType(reflect.ValueOf(v))
 
 	if kind == reflect.Ptr || kind == reflect.Interface || kind == reflect.Invalid {

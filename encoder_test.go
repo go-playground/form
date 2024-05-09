@@ -29,7 +29,6 @@ import (
 // go test -memprofile mem.out
 
 func TestEncoderInt(t *testing.T) {
-
 	type TestInt struct {
 		Int              int
 		Int8             int8
@@ -194,7 +193,6 @@ func TestEncoderInt(t *testing.T) {
 }
 
 func TestEncoderUint(t *testing.T) {
-
 	type TestUint struct {
 		Uint              uint
 		Uint8             uint8
@@ -360,7 +358,6 @@ func TestEncoderUint(t *testing.T) {
 }
 
 func TestEncoderString(t *testing.T) {
-
 	type TestString struct {
 		String              string
 		StringPtr           *string
@@ -487,7 +484,6 @@ func TestEncoderString(t *testing.T) {
 }
 
 func TestEncoderFloat(t *testing.T) {
-
 	type TestFloat struct {
 		Float32              float32
 		Float32Ptr           *float32
@@ -706,7 +702,6 @@ func TestEncoderFloat(t *testing.T) {
 }
 
 func TestEncoderBool(t *testing.T) {
-
 	type TestBool struct {
 		Bool              bool
 		BoolPtr           *bool
@@ -820,7 +815,6 @@ func TestEncoderBool(t *testing.T) {
 }
 
 func TestEncoderStruct(t *testing.T) {
-
 	type Phone struct {
 		Number string
 	}
@@ -1019,7 +1013,6 @@ func TestEncoderStruct(t *testing.T) {
 }
 
 func TestEncoderStructCustomNamespace(t *testing.T) {
-
 	type Phone struct {
 		Number string
 	}
@@ -1237,7 +1230,6 @@ func TestEncoderMap(t *testing.T) {
 }
 
 func TestDecodeAllNonStructTypes(t *testing.T) {
-
 	encoder := NewEncoder()
 
 	// test integers
@@ -1351,7 +1343,6 @@ func TestDecodeAllNonStructTypes(t *testing.T) {
 }
 
 func TestEncoderNativeTime(t *testing.T) {
-
 	type TestError struct {
 		Time        time.Time
 		TimeNoValue time.Time
@@ -1378,7 +1369,6 @@ func TestEncoderNativeTime(t *testing.T) {
 }
 
 func TestEncoderErrors(t *testing.T) {
-
 	tm, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 	Equal(t, err, nil)
 
@@ -1422,7 +1412,6 @@ func TestEncoderErrors(t *testing.T) {
 }
 
 func TestEncoderPanicsAndBadValues(t *testing.T) {
-
 	encoder := NewEncoder()
 
 	values, err := encoder.Encode(nil)
@@ -1449,7 +1438,6 @@ func TestEncoderPanicsAndBadValues(t *testing.T) {
 }
 
 func TestEncoderExplicit(t *testing.T) {
-
 	type Test struct {
 		Name string `form:"Name"`
 		Age  int
@@ -1470,7 +1458,6 @@ func TestEncoderExplicit(t *testing.T) {
 }
 
 func TestEncoderRegisterTagNameFunc(t *testing.T) {
-
 	type Test struct {
 		Name string `json:"name"`
 		Age  int    `json:"-"`
@@ -1499,7 +1486,6 @@ func TestEncoderRegisterTagNameFunc(t *testing.T) {
 }
 
 func TestEncoderEmbedModes(t *testing.T) {
-
 	type A struct {
 		Field string
 	}
@@ -1533,19 +1519,18 @@ func TestEncoderEmbedModes(t *testing.T) {
 }
 
 func TestOmitEmpty(t *testing.T) {
-
 	type NotComparable struct {
 		Slice []string
 	}
 
 	type Test struct {
-		String  string            `form:",omitempty"`
-		Array   []string          `form:",omitempty"`
-		Map     map[string]string `form:",omitempty"`
-		String2 string            `form:"str,omitempty"`
-		Array2  []string          `form:"arr,omitempty"`
-		Map2    map[string]string `form:"map,omitempty"`
-		NotComparable			  `form:",omitempty"`
+		String        string            `form:",omitempty"`
+		Array         []string          `form:",omitempty"`
+		Map           map[string]string `form:",omitempty"`
+		String2       string            `form:"str,omitempty"`
+		Array2        []string          `form:"arr,omitempty"`
+		Map2          map[string]string `form:"map,omitempty"`
+		NotComparable `form:",omitempty"`
 	}
 
 	var tst Test
@@ -1606,4 +1591,36 @@ func TestOmitEmpty(t *testing.T) {
 	Equal(t, len(values), 2)
 	Equal(t, values["x"][0], "0")
 	Equal(t, values["arr[0]"][0], "")
+}
+
+type marshaler struct {
+	Fname string
+	Sname string
+}
+
+func (m marshaler) MarshalForm() ([]string, error) {
+	return []string{
+		m.Fname,
+		m.Sname,
+	}, nil
+}
+
+func Test_MarshalForm(t *testing.T) {
+	T1 := struct {
+		Ptr    *marshaler
+		Struct marshaler
+	}{
+		Ptr: &marshaler{
+			Fname: "John",
+			Sname: "Smith",
+		},
+		Struct: marshaler{
+			Fname: "Bob",
+			Sname: "Dylan",
+		},
+	}
+	values, err := NewEncoder().Encode(T1)
+	Equal(t, err, nil)
+	Equal(t, values["Ptr"], []string{"John", "Smith"})
+	Equal(t, values["Struct"], []string{"Bob", "Dylan"})
 }

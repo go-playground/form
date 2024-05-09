@@ -24,7 +24,6 @@ func (e *encoder) setError(namespace []byte, err error) {
 }
 
 func (e *encoder) setVal(namespace []byte, idx int, vals ...string) {
-
 	arr, ok := e.values[string(namespace)]
 	if ok {
 		arr = append(arr, vals...)
@@ -36,7 +35,6 @@ func (e *encoder) setVal(namespace []byte, idx int, vals ...string) {
 }
 
 func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
-
 	typ := v.Type()
 	l := len(namespace)
 	first := l == 0
@@ -69,7 +67,6 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 }
 
 func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx int, isOmitEmpty bool) {
-
 	if idx > -1 && current.Kind() == reflect.Ptr {
 		namespace = append(namespace, '[')
 		namespace = strconv.AppendInt(namespace, int64(idx), 10)
@@ -83,7 +80,6 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 	v, kind := ExtractType(current)
 
 	if e.e.customTypeFuncs != nil {
-
 		if cf, ok := e.e.customTypeFuncs[v.Type()]; ok {
 
 			arr, err := cf(v.Interface())
@@ -99,6 +95,21 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			}
 
 			e.setVal(namespace, idx, arr...)
+			return
+		}
+	}
+	{
+		v := v // deliberately shadow v as to not modify
+		if t := v.Type(); t.Kind() == reflect.Ptr && v.IsNil() {
+			return
+		}
+		if um, ok := v.Interface().(FormMarshaler); ok {
+			vals, err := um.MarshalForm()
+			if err != nil {
+				e.setError(namespace, err)
+				return
+			}
+			e.setVal(namespace, idx, vals...)
 			return
 		}
 	}
@@ -216,11 +227,9 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 }
 
 func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) {
-
 	v, kind := ExtractType(key)
 
 	if e.e.customTypeFuncs != nil {
-
 		if cf, ok := e.e.customTypeFuncs[v.Type()]; ok {
 			arr, err := cf(v.Interface())
 			if err != nil {
