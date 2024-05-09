@@ -1613,38 +1613,64 @@ func Test_MarshalForm(t *testing.T) {
 		Struct   marshaler
 		Slice    []marshaler
 		SlicePtr []*marshaler
+		Map      map[string]marshaler
+		MapPtr   map[string]*marshaler
 	}{
 		Ptr: &marshaler{
-			Fname: "John",
-			Sname: "Smith",
+			Fname: "ptrfname",
+			Sname: "ptrsname",
 		},
 		Struct: marshaler{
-			Fname: "Bob",
-			Sname: "Dylan",
+			Fname: "structfname",
+			Sname: "structsname",
 		},
 		Slice: []marshaler{{
-			Fname: "Danny",
-			Sname: "Devito",
+			Fname: "slice1fname",
+			Sname: "slice1sname",
 		}, {
-			Fname: "Arnold",
-			Sname: "Schwarzenegger",
+			Fname: "slice2fname",
+			Sname: "slice2sname",
 		}},
 		SlicePtr: []*marshaler{{
-			Fname: "Mary-Kate",
-			Sname: "Olsen",
+			Fname: "sliceptr1fname",
+			Sname: "sliceptr1sname",
 		}, {
-			Fname: "Ashley",
-			Sname: "Olsen",
+			Fname: "sliceptr2fname",
+			Sname: "sliceptr2sname",
 		}},
+		Map: map[string]marshaler{
+			"key1": {
+				Fname: "mapk1fname",
+				Sname: "mapk1sname",
+			},
+			"key2": {
+				Fname: "mapk2fname",
+				Sname: "mapk2sname",
+			},
+		},
+		MapPtr: map[string]*marshaler{
+			"key1": {
+				Fname: "mapptrk1fname",
+				Sname: "mapptrk1sname",
+			},
+			"key2": {
+				Fname: "mapptrk2fname",
+				Sname: "mapptrk2sname",
+			},
+		},
 	}
 	values, err := NewEncoder().Encode(T1)
 	Equal(t, err, nil)
-	Equal(t, values["Ptr"], []string{"John", "Smith"})
+	Equal(t, values["Ptr"], []string{"ptrfname", "ptrsname"})
 	Equal(t, values["NilPointer"], nil)
-	Equal(t, values["Struct"], []string{"Bob", "Dylan"})
-	Equal(t, values["Slice"], []string{"Danny", "Devito", "Arnold", "Schwarzenegger"})
-	Equal(t, values["SlicePtr[0]"], []string{"Mary-Kate", "Olsen"})
-	Equal(t, values["SlicePtr[1]"], []string{"Ashley", "Olsen"})
+	Equal(t, values["Struct"], []string{"structfname", "structsname"})
+	Equal(t, values["Slice"], []string{"slice1fname", "slice1sname", "slice2fname", "slice2sname"})
+	Equal(t, values["SlicePtr[0]"], []string{"sliceptr1fname", "sliceptr1sname"})
+	Equal(t, values["SlicePtr[1]"], []string{"sliceptr2fname", "sliceptr2sname"})
+	Equal(t, values["Map[key1]"], []string{"mapk1fname", "mapk1sname"})
+	Equal(t, values["Map[key2]"], []string{"mapk2fname", "mapk2sname"})
+	Equal(t, values["MapPtr[key1]"], []string{"mapptrk1fname", "mapptrk1sname"})
+	Equal(t, values["MapPtr[key2]"], []string{"mapptrk2fname", "mapptrk2sname"})
 }
 
 type errmarshaler struct {
