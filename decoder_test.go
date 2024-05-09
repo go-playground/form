@@ -1930,15 +1930,27 @@ func (u *unmarshaler) UnmarshalForm(ss []string) error {
 
 func TestDecoder_UnmarshalForm(t *testing.T) {
 	type T1 struct {
-		Ptr    *unmarshaler
-		NilPtr *unmarshaler
-		Struct unmarshaler
+		Ptr      *unmarshaler
+		NilPtr   *unmarshaler
+		Struct   unmarshaler
+		Slice    []unmarshaler
+		SlicePtr []*unmarshaler
+		Map      map[string]unmarshaler
+		MapPtr   map[string]*unmarshaler
 	}
 
 	in := url.Values{
-		"Ptr":    []string{"Liam", "Neeson"},
-		"NilPtr": []string{"John", "Smith"},
-		"Struct": []string{"Bob", "Dylan"},
+		"Ptr":          []string{"ptrfname", "ptrsname"},
+		"NilPtr":       []string{"nilptrfname", "nilptrsname"},
+		"Struct":       []string{"structfname", "structsname"},
+		"Slice[0]":     []string{"slice0fname", "slice0sname"},
+		"Slice[1]":     []string{"slice1fname", "slice1sname"},
+		"SlicePtr[0]":  []string{"sliceptr0fname", "sliceptr0sname"},
+		"SlicePtr[1]":  []string{"sliceptr1fname", "sliceptr1sname"},
+		"Map[key1]":    []string{"mapk1fname", "mapk1sname"},
+		"Map[key2]":    []string{"mapk2fname", "mapk2sname"},
+		"MapPtr[key1]": []string{"mapptrk1fname", "mapptrk1sname"},
+		"MapPtr[key2]": []string{"mapptrk2fname", "mapptrk2sname"},
 	}
 
 	v := new(T1)
@@ -1946,12 +1958,32 @@ func TestDecoder_UnmarshalForm(t *testing.T) {
 	err := NewDecoder().Decode(v, in)
 	Equal(t, err, nil)
 	NotEqual(t, v.NilPtr, nil)
-	Equal(t, v.Ptr.fname, "Liam")
-	Equal(t, v.Ptr.sname, "Neeson")
-	Equal(t, v.NilPtr.fname, "John")
-	Equal(t, v.NilPtr.sname, "Smith")
-	Equal(t, v.Struct.fname, "Bob")
-	Equal(t, v.Struct.sname, "Dylan")
+	Equal(t, v.Ptr.fname, "ptrfname")
+	Equal(t, v.Ptr.sname, "ptrsname")
+	Equal(t, v.NilPtr.fname, "nilptrfname")
+	Equal(t, v.NilPtr.sname, "nilptrsname")
+	Equal(t, v.Struct.fname, "structfname")
+	Equal(t, v.Struct.sname, "structsname")
+
+	Equal(t, len(v.Slice), 2)
+	Equal(t, v.Slice[0].fname, "slice0fname")
+	Equal(t, v.Slice[1].fname, "slice1fname")
+
+	Equal(t, len(v.SlicePtr), 2)
+	Equal(t, v.SlicePtr[0].fname, "sliceptr0fname")
+	Equal(t, v.SlicePtr[1].fname, "sliceptr1fname")
+
+	Equal(t, len(v.Map), 2)
+	Equal(t, v.Map["key1"].fname, "mapk1fname")
+	Equal(t, v.Map["key1"].sname, "mapk1sname")
+	Equal(t, v.Map["key2"].fname, "mapk2fname")
+	Equal(t, v.Map["key2"].sname, "mapk2sname")
+
+	Equal(t, len(v.MapPtr), 2)
+	Equal(t, v.MapPtr["key1"].fname, "mapptrk1fname")
+	Equal(t, v.MapPtr["key1"].sname, "mapptrk1sname")
+	Equal(t, v.MapPtr["key2"].fname, "mapptrk2fname")
+	Equal(t, v.MapPtr["key2"].sname, "mapptrk2sname")
 }
 
 func TestDecoder_UnmarshalForm_Error(t *testing.T) {

@@ -1625,18 +1625,18 @@ func Test_MarshalForm(t *testing.T) {
 			Sname: "structsname",
 		},
 		Slice: []marshaler{{
+			Fname: "slice0fname",
+			Sname: "slice0sname",
+		}, {
 			Fname: "slice1fname",
 			Sname: "slice1sname",
-		}, {
-			Fname: "slice2fname",
-			Sname: "slice2sname",
 		}},
 		SlicePtr: []*marshaler{{
+			Fname: "sliceptr0fname",
+			Sname: "sliceptr0sname",
+		}, {
 			Fname: "sliceptr1fname",
 			Sname: "sliceptr1sname",
-		}, {
-			Fname: "sliceptr2fname",
-			Sname: "sliceptr2sname",
 		}},
 		Map: map[string]marshaler{
 			"key1": {
@@ -1664,9 +1664,9 @@ func Test_MarshalForm(t *testing.T) {
 	Equal(t, values["Ptr"], []string{"ptrfname", "ptrsname"})
 	Equal(t, values["NilPointer"], nil)
 	Equal(t, values["Struct"], []string{"structfname", "structsname"})
-	Equal(t, values["Slice"], []string{"slice1fname", "slice1sname", "slice2fname", "slice2sname"})
-	Equal(t, values["SlicePtr[0]"], []string{"sliceptr1fname", "sliceptr1sname"})
-	Equal(t, values["SlicePtr[1]"], []string{"sliceptr2fname", "sliceptr2sname"})
+	Equal(t, values["Slice"], []string{"slice0fname", "slice0sname", "slice1fname", "slice1sname"})
+	Equal(t, values["SlicePtr[0]"], []string{"sliceptr0fname", "sliceptr0sname"})
+	Equal(t, values["SlicePtr[1]"], []string{"sliceptr1fname", "sliceptr1sname"})
 	Equal(t, values["Map[key1]"], []string{"mapk1fname", "mapk1sname"})
 	Equal(t, values["Map[key2]"], []string{"mapk2fname", "mapk2sname"})
 	Equal(t, values["MapPtr[key1]"], []string{"mapptrk1fname", "mapptrk1sname"})
