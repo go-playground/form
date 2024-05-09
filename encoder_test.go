@@ -1611,7 +1611,7 @@ func Test_MarshalForm(t *testing.T) {
 		Ptr      *marshaler
 		NilPtr   *marshaler
 		Struct   marshaler
-		Slice    []*marshaler
+		Slice    []marshaler
 		SlicePtr []*marshaler
 	}{
 		Ptr: &marshaler{
@@ -1622,7 +1622,7 @@ func Test_MarshalForm(t *testing.T) {
 			Fname: "Bob",
 			Sname: "Dylan",
 		},
-		Slice: []*marshaler{{
+		Slice: []marshaler{{
 			Fname: "Danny",
 			Sname: "Devito",
 		}, {
@@ -1642,8 +1642,7 @@ func Test_MarshalForm(t *testing.T) {
 	Equal(t, values["Ptr"], []string{"John", "Smith"})
 	Equal(t, values["NilPointer"], nil)
 	Equal(t, values["Struct"], []string{"Bob", "Dylan"})
-	Equal(t, values["Slice[0]"], []string{"Danny", "Devito"})
-	Equal(t, values["Slice[1]"], []string{"Arnold", "Schwarzenegger"})
+	Equal(t, values["Slice"], []string{"Danny", "Devito", "Arnold", "Schwarzenegger"})
 	Equal(t, values["SlicePtr[0]"], []string{"Mary-Kate", "Olsen"})
 	Equal(t, values["SlicePtr[1]"], []string{"Ashley", "Olsen"})
 }
