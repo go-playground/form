@@ -2,6 +2,7 @@ package form
 
 import (
 	"errors"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -1608,6 +1609,7 @@ func (m marshaler) MarshalForm() ([]string, error) {
 func Test_MarshalForm(t *testing.T) {
 	T1 := struct {
 		Ptr    *marshaler
+		NilPtr *marshaler
 		Struct marshaler
 	}{
 		Ptr: &marshaler{
@@ -1622,5 +1624,52 @@ func Test_MarshalForm(t *testing.T) {
 	values, err := NewEncoder().Encode(T1)
 	Equal(t, err, nil)
 	Equal(t, values["Ptr"], []string{"John", "Smith"})
+	Equal(t, values["NilPointer"], nil)
 	Equal(t, values["Struct"], []string{"Bob", "Dylan"})
+}
+
+type errmarshaler struct {
+	Fname string
+	Sname string
+}
+
+func (m errmarshaler) MarshalForm() ([]string, error) {
+	return nil, errors.New("always err")
+}
+
+func Test_MarshalForm_Err(t *testing.T) {
+	encoder := NewEncoder()
+
+	t1 := struct {
+		Ptr *errmarshaler
+	}{
+		Ptr: &errmarshaler{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	v1, err := encoder.Encode(t1)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Ptr ERROR:always err")
+	Equal(t, v1, url.Values{})
+
+	t2 := struct {
+		NilPtr *errmarshaler
+	}{}
+	v2, err := encoder.Encode(t2)
+	Equal(t, err, nil)
+	Equal(t, v2, url.Values{})
+
+	t3 := struct {
+		Struct errmarshaler
+	}{
+		Struct: errmarshaler{
+			Fname: "Bob",
+			Sname: "Dylan",
+		},
+	}
+	v3, err := encoder.Encode(t3)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Struct ERROR:always err")
+	Equal(t, v3, url.Values{})
 }
