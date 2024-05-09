@@ -200,12 +200,12 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		if t.Kind() != reflect.Ptr && v.CanAddr() {
 			v = v.Addr()
 		}
-		if um, ok := v.Interface().(FormUnmarshaler); ok {
+		if um, ok := v.Interface().(Unmarshaler); ok {
 			// if receiver is a nil pointer, set before calling function.
 			if t := v.Type(); t.Kind() == reflect.Ptr && v.IsNil() {
 				t = t.Elem()
 				v.Set(reflect.New(t))
-				um = v.Interface().(FormUnmarshaler)
+				um = v.Interface().(Unmarshaler)
 			}
 			if err = um.UnmarshalForm(arr[idx:]); err != nil {
 				d.setError(namespace, err)

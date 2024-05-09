@@ -8,8 +8,8 @@ import (
 	"sync"
 )
 
-// FormMarshaler is the interface implemented by an object that can marshal itself into a textual form.
-type FormMarshaler interface {
+// Marshaler is the interface implemented by an object that can marshal itself into a textual form.
+type Marshaler interface {
 	MarshalForm() ([]string, error)
 }
 

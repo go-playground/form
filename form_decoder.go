@@ -8,8 +8,8 @@ import (
 	"sync"
 )
 
-// FormUnmarshaler is the interface implemented by an object that can unmarshal a form representation of itself.
-type FormUnmarshaler interface {
+// Unmarshaler is the interface implemented by an object that can unmarshal a form representation of itself.
+type Unmarshaler interface {
 	UnmarshalForm(ss []string) error
 }
 

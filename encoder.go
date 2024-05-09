@@ -103,7 +103,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		if t := v.Type(); t.Kind() == reflect.Ptr && v.IsNil() {
 			return
 		}
-		if um, ok := v.Interface().(FormMarshaler); ok {
+		if um, ok := v.Interface().(Marshaler); ok {
 			vals, err := um.MarshalForm()
 			if err != nil {
 				e.setError(namespace, err)
