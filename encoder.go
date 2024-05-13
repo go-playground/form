@@ -274,7 +274,10 @@ func (e *encoder) marshal(namespace []byte, v reflect.Value, idx int) (bool, err
 	if t.Kind() == reflect.Ptr && v.IsNil() {
 		return false, nil
 	}
-	um := v.Interface().(Marshaler)
+	um, ok := v.Interface().(Marshaler)
+	if !ok {
+		return false, nil
+	}
 	vals, err := um.MarshalForm()
 	if err != nil {
 		return false, err

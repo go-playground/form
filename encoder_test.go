@@ -1718,3 +1718,50 @@ func Test_MarshalForm_Err(t *testing.T) {
 	Equal(t, err.Error(), "Field Namespace:Struct ERROR:always err")
 	Equal(t, v3, url.Values{})
 }
+
+type errmarshalerptrrec struct {
+	called bool
+	Fname  string
+	Sname  string
+}
+
+func (m *errmarshalerptrrec) MarshalForm() ([]string, error) {
+	m.called = true
+	return nil, errors.New("always err")
+}
+
+func Test_MarshalForm_ErrPtrRec(t *testing.T) {
+	encoder := NewEncoder()
+
+	t1 := struct {
+		Ptr *errmarshalerptrrec
+	}{
+		Ptr: &errmarshalerptrrec{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	v1, err := encoder.Encode(t1)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Ptr ERROR:always err")
+	Equal(t, v1, url.Values{})
+
+	t2 := struct {
+		NilPtr *errmarshalerptrrec
+	}{}
+	v2, err := encoder.Encode(t2)
+	Equal(t, err, nil)
+	Equal(t, v2, url.Values{})
+
+	t3 := struct {
+		Struct errmarshalerptrrec
+	}{
+		Struct: errmarshalerptrrec{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	_, err = encoder.Encode(t3)
+	Equal(t, err, nil)
+	Equal(t, t3.Struct.called, false)
+}
