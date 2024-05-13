@@ -265,13 +265,13 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 
 func (e *encoder) marshal(namespace []byte, v reflect.Value, idx int) (bool, error) {
 	t := v.Type()
-	if t.Kind() != reflect.Pointer && v.CanAddr() && reflect.PointerTo(t).Implements(marshalerType) {
+	if t.Kind() != reflect.Ptr && v.CanAddr() && reflect.PtrTo(t).Implements(marshalerType) {
 		return e.marshalAddr(namespace, v, idx)
 	}
-	if !t.Implements(marshalerType) && !reflect.PointerTo(t).Implements(marshalerType) {
+	if !t.Implements(marshalerType) && !reflect.PtrTo(t).Implements(marshalerType) {
 		return false, nil
 	}
-	if t.Kind() == reflect.Pointer && v.IsNil() {
+	if t.Kind() == reflect.Ptr && v.IsNil() {
 		return false, nil
 	}
 	um := v.Interface().(Marshaler)
