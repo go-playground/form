@@ -1709,8 +1709,8 @@ func Test_MarshalForm_Err(t *testing.T) {
 		Struct errmarshaler
 	}{
 		Struct: errmarshaler{
-			Fname: "Bob",
-			Sname: "Dylan",
+			Fname: "John",
+			Sname: "Smith",
 		},
 	}
 	v3, err := encoder.Encode(t3)

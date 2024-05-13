@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
+
 type encoder struct {
 	e         *Encoder
 	errs      EncodeErrors
@@ -98,19 +100,9 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			return
 		}
 	}
-	{
-		if t := v.Type(); t.Kind() == reflect.Ptr && v.IsNil() {
-			return
-		}
-		if um, ok := v.Interface().(Marshaler); ok {
-			vals, err := um.MarshalForm()
-			if err != nil {
-				e.setError(namespace, err)
-				return
-			}
-			e.setVal(namespace, idx, vals...)
-			return
-		}
+
+	if ok := e.marshal(namespace, v, idx); ok {
+		return
 	}
 
 	switch kind {
@@ -266,4 +258,40 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 		e.setError(namespace, fmt.Errorf("Unsupported Map Key '%v' Namespace '%s'", v.String(), namespace))
 		return "", false
 	}
+}
+
+func (e *encoder) marshal(namespace []byte, v reflect.Value, idx int) bool {
+	t := v.Type()
+	if t.Kind() != reflect.Pointer && v.CanAddr() && reflect.PointerTo(t).Implements(marshalerType) {
+		return e.marshalAddr(namespace, v, idx)
+	}
+	if !t.Implements(marshalerType) && !reflect.PointerTo(t).Implements(marshalerType) {
+		return false
+	}
+	if t.Kind() == reflect.Pointer && v.IsNil() {
+		return false
+	}
+	um := v.Interface().(Marshaler)
+	vals, err := um.MarshalForm()
+	if err != nil {
+		e.setError(namespace, err)
+		return true
+	}
+	e.setVal(namespace, idx, vals...)
+	return true
+}
+
+func (e *encoder) marshalAddr(namespace []byte, v reflect.Value, idx int) bool {
+	va := v.Addr()
+	if va.IsNil() {
+		return false
+	}
+	um := va.Interface().(Marshaler)
+	vals, err := um.MarshalForm()
+	if err != nil {
+		e.setError(namespace, err)
+		return true
+	}
+	e.setVal(namespace, idx, vals...)
+	return true
 }

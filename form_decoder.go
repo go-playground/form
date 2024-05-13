@@ -10,7 +10,7 @@ import (
 
 // Unmarshaler is the interface implemented by an object that can unmarshal a form representation of itself.
 type Unmarshaler interface {
-	UnmarshalForm(ss []string) error
+	UnmarshalForm([]string) error
 }
 
 // DecodeCustomTypeFunc allows for registering/overriding types to be parsed.
