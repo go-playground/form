@@ -782,7 +782,8 @@ func (d *decoder) unmarshal(v reflect.Value, idx int, arr []string) (bool, error
 
 func (d *decoder) unmarshalAddr(v reflect.Value, idx int, arr []string) (bool, error) {
 	nv := reflect.New(v.Type().Elem())
-	if err := nv.Interface().(Unmarshaler).UnmarshalForm(arr[idx:]); err != nil {
+	um := nv.Interface().(Unmarshaler)
+	if err := um.UnmarshalForm(arr[idx:]); err != nil {
 		return false, err
 	}
 	v.Set(nv)

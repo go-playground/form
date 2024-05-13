@@ -101,7 +101,10 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 	}
 
-	if ok := e.marshal(namespace, v, idx); ok {
+	if encoded, err := e.marshal(namespace, v, idx); err != nil {
+		e.setError(namespace, err)
+		return
+	} else if encoded {
 		return
 	}
 
@@ -260,38 +263,36 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 	}
 }
 
-func (e *encoder) marshal(namespace []byte, v reflect.Value, idx int) bool {
+func (e *encoder) marshal(namespace []byte, v reflect.Value, idx int) (bool, error) {
 	t := v.Type()
 	if t.Kind() != reflect.Pointer && v.CanAddr() && reflect.PointerTo(t).Implements(marshalerType) {
 		return e.marshalAddr(namespace, v, idx)
 	}
 	if !t.Implements(marshalerType) && !reflect.PointerTo(t).Implements(marshalerType) {
-		return false
+		return false, nil
 	}
 	if t.Kind() == reflect.Pointer && v.IsNil() {
-		return false
+		return false, nil
 	}
 	um := v.Interface().(Marshaler)
 	vals, err := um.MarshalForm()
 	if err != nil {
-		e.setError(namespace, err)
-		return true
+		return false, err
 	}
 	e.setVal(namespace, idx, vals...)
-	return true
+	return true, nil
 }
 
-func (e *encoder) marshalAddr(namespace []byte, v reflect.Value, idx int) bool {
+func (e *encoder) marshalAddr(namespace []byte, v reflect.Value, idx int) (bool, error) {
 	va := v.Addr()
 	if va.IsNil() {
-		return false
+		return false, nil
 	}
-	um := va.Interface().(Marshaler)
-	vals, err := um.MarshalForm()
+	m := va.Interface().(Marshaler)
+	vals, err := m.MarshalForm()
 	if err != nil {
-		e.setError(namespace, err)
-		return true
+		return false, err
 	}
 	e.setVal(namespace, idx, vals...)
-	return true
+	return true, nil
 }
