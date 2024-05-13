@@ -31,7 +31,6 @@ import (
 // go test -memprofile mem.out
 
 func TestDecoderInt(t *testing.T) {
-
 	type TestInt struct {
 		Int              int
 		Int8             int8
@@ -150,7 +149,6 @@ func TestDecoderInt(t *testing.T) {
 }
 
 func TestDecoderUint(t *testing.T) {
-
 	type TestUint struct {
 		Uint              uint
 		Uint8             uint8
@@ -269,7 +267,6 @@ func TestDecoderUint(t *testing.T) {
 }
 
 func TestDecoderString(t *testing.T) {
-
 	type TestString struct {
 		String              string
 		StringPtr           *string
@@ -353,7 +350,6 @@ func TestDecoderString(t *testing.T) {
 }
 
 func TestDecoderFloat(t *testing.T) {
-
 	type TestFloat struct {
 		Float32              float32
 		Float32Ptr           *float32
@@ -445,7 +441,6 @@ func TestDecoderFloat(t *testing.T) {
 }
 
 func TestDecoderBool(t *testing.T) {
-
 	type TestBool struct {
 		Bool              bool
 		BoolPtr           *bool
@@ -588,7 +583,6 @@ func TestDecoderEqualStructMapValue(t *testing.T) {
 }
 
 func TestDecoderStruct(t *testing.T) {
-
 	type Phone struct {
 		Number string
 	}
@@ -829,7 +823,6 @@ func TestDecoderStruct(t *testing.T) {
 }
 
 func TestDecoderNativeTime(t *testing.T) {
-
 	type TestError struct {
 		Time        time.Time
 		TimeNoValue time.Time
@@ -858,7 +851,6 @@ func TestDecoderNativeTime(t *testing.T) {
 }
 
 func TestDecoderErrors(t *testing.T) {
-
 	type TestError struct {
 		Bool                  bool `form:"bool"`
 		Int                   int
@@ -1074,7 +1066,6 @@ func TestDecoderErrors(t *testing.T) {
 }
 
 func TestDecodeAllTypes(t *testing.T) {
-
 	values := url.Values{
 		"": []string{"3"},
 	}
@@ -1297,7 +1288,6 @@ func TestDecodeAllTypes(t *testing.T) {
 }
 
 func TestDecoderPanicsAndBadValues(t *testing.T) {
-
 	type Phone struct {
 		Number string
 	}
@@ -1362,7 +1352,6 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 }
 
 func TestDecoderMapKeys(t *testing.T) {
-
 	type TestMapKeys struct {
 		MapIfaceKey   map[interface{}]string
 		MapFloat32Key map[float32]float32
@@ -1434,7 +1423,6 @@ func TestDecoderMapKeys(t *testing.T) {
 }
 
 func TestDecoderStructRecursion(t *testing.T) {
-
 	type Nested struct {
 		Value  string
 		Nested *Nested
@@ -1498,11 +1486,9 @@ func TestDecoderStructRecursion(t *testing.T) {
 			Equal(t, test.NestedTwo.Nested.Value, "value")
 		})
 	}
-
 }
 
 func TestDecoderFormDecode(t *testing.T) {
-
 	type Struct2 struct {
 		Foo string
 		Bar string
@@ -1535,13 +1521,11 @@ func TestDecoderFormDecode(t *testing.T) {
 }
 
 func TestDecoderArrayKeysSort(t *testing.T) {
-
 	type Struct struct {
 		Array []int
 	}
 
 	values := map[string][]string{
-
 		"Array[2]":  {"2"},
 		"Array[10]": {"10"},
 	}
@@ -1559,7 +1543,6 @@ func TestDecoderArrayKeysSort(t *testing.T) {
 }
 
 func TestDecoderIncreasingKeys(t *testing.T) {
-
 	type Struct struct {
 		Array []int
 	}
@@ -1591,7 +1574,6 @@ func TestDecoderIncreasingKeys(t *testing.T) {
 }
 
 func TestDecoderInterface(t *testing.T) {
-
 	var iface interface{}
 
 	d := NewDecoder()
@@ -1644,7 +1626,6 @@ func TestDecoderInterface(t *testing.T) {
 }
 
 func TestDecoderPointerToPointer(t *testing.T) {
-
 	values := map[string][]string{
 		"Value": {"testVal"},
 	}
@@ -1662,7 +1643,6 @@ func TestDecoderPointerToPointer(t *testing.T) {
 }
 
 func TestDecoderExplicit(t *testing.T) {
-
 	type Test struct {
 		Name string `form:"Name"`
 		Age  int
@@ -1707,7 +1687,6 @@ func TestDecoderStructWithJSONTag(t *testing.T) {
 }
 
 func TestDecoderRegisterTagNameFunc(t *testing.T) {
-
 	type Test struct {
 		Value  string `json:"val,omitempty"`
 		Ignore string `json:"-"`
@@ -1738,7 +1717,6 @@ func TestDecoderRegisterTagNameFunc(t *testing.T) {
 }
 
 func TestDecoderEmbedModes(t *testing.T) {
-
 	type A struct {
 		Field string
 	}
@@ -1773,7 +1751,6 @@ func TestDecoderEmbedModes(t *testing.T) {
 }
 
 func TestInterfaceDecoding(t *testing.T) {
-
 	type Test struct {
 		Iface interface{}
 	}
@@ -1935,4 +1912,110 @@ func TestDecoder_InvalidSliceIndex(t *testing.T) {
 	Equal(t, len(v2.PostIds), 2)
 	Equal(t, v2.PostIds[0], "1")
 	Equal(t, v2.PostIds[1], "2")
+}
+
+type unmarshaler struct {
+	fname string
+	sname string
+}
+
+func (u *unmarshaler) UnmarshalForm(ss []string) error {
+	if len(ss) != 2 {
+		return errors.New("invalid value")
+	}
+	u.fname = ss[0]
+	u.sname = ss[1]
+	return nil
+}
+
+func TestDecoder_UnmarshalForm(t *testing.T) {
+	type T1 struct {
+		Ptr      *unmarshaler
+		NilPtr   *unmarshaler
+		Struct   unmarshaler
+		Slice    []unmarshaler
+		SlicePtr []*unmarshaler
+		Map      map[string]unmarshaler
+		MapPtr   map[string]*unmarshaler
+	}
+
+	in := url.Values{
+		"Ptr":          []string{"ptrfname", "ptrsname"},
+		"NilPtr":       []string{"nilptrfname", "nilptrsname"},
+		"Struct":       []string{"structfname", "structsname"},
+		"Slice[0]":     []string{"slice0fname", "slice0sname"},
+		"Slice[1]":     []string{"slice1fname", "slice1sname"},
+		"SlicePtr[0]":  []string{"sliceptr0fname", "sliceptr0sname"},
+		"SlicePtr[1]":  []string{"sliceptr1fname", "sliceptr1sname"},
+		"Map[key1]":    []string{"mapk1fname", "mapk1sname"},
+		"Map[key2]":    []string{"mapk2fname", "mapk2sname"},
+		"MapPtr[key1]": []string{"mapptrk1fname", "mapptrk1sname"},
+		"MapPtr[key2]": []string{"mapptrk2fname", "mapptrk2sname"},
+	}
+
+	v := new(T1)
+	v.Ptr = &unmarshaler{}
+	err := NewDecoder().Decode(v, in)
+	Equal(t, err, nil)
+	NotEqual(t, v.NilPtr, nil)
+	Equal(t, v.Ptr.fname, "ptrfname")
+	Equal(t, v.Ptr.sname, "ptrsname")
+	Equal(t, v.NilPtr.fname, "nilptrfname")
+	Equal(t, v.NilPtr.sname, "nilptrsname")
+	Equal(t, v.Struct.fname, "structfname")
+	Equal(t, v.Struct.sname, "structsname")
+
+	Equal(t, len(v.Slice), 2)
+	Equal(t, v.Slice[0].fname, "slice0fname")
+	Equal(t, v.Slice[1].fname, "slice1fname")
+
+	Equal(t, len(v.SlicePtr), 2)
+	Equal(t, v.SlicePtr[0].fname, "sliceptr0fname")
+	Equal(t, v.SlicePtr[1].fname, "sliceptr1fname")
+
+	Equal(t, len(v.Map), 2)
+	Equal(t, v.Map["key1"].fname, "mapk1fname")
+	Equal(t, v.Map["key1"].sname, "mapk1sname")
+	Equal(t, v.Map["key2"].fname, "mapk2fname")
+	Equal(t, v.Map["key2"].sname, "mapk2sname")
+
+	Equal(t, len(v.MapPtr), 2)
+	Equal(t, v.MapPtr["key1"].fname, "mapptrk1fname")
+	Equal(t, v.MapPtr["key1"].sname, "mapptrk1sname")
+	Equal(t, v.MapPtr["key2"].fname, "mapptrk2fname")
+	Equal(t, v.MapPtr["key2"].sname, "mapptrk2sname")
+}
+
+func TestDecoder_UnmarshalForm_Error(t *testing.T) {
+	in := url.Values{
+		"Ptr":    []string{"John"},
+		"NilPtr": []string{"John"},
+		"Struct": []string{"John"},
+	}
+	d := NewDecoder()
+
+	type t1 struct {
+		Ptr *unmarshaler
+	}
+	v1 := new(t1)
+	err := d.Decode(v1, in)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Ptr ERROR:invalid value")
+
+	type t2 struct {
+		NilPtr *unmarshaler
+	}
+
+	v2 := new(t2)
+	err = d.Decode(v2, in)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:NilPtr ERROR:invalid value")
+
+	type t3 struct {
+		Struct unmarshaler
+	}
+	v3 := new(t3)
+	err = d.Decode(v3, in)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Struct ERROR:invalid value")
 }

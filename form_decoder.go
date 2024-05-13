@@ -8,6 +8,11 @@ import (
 	"sync"
 )
 
+// Unmarshaler is the interface implemented by an object that can unmarshal a form representation of itself.
+type Unmarshaler interface {
+	UnmarshalForm([]string) error
+}
+
 // DecodeCustomTypeFunc allows for registering/overriding types to be parsed.
 type DecodeCustomTypeFunc func([]string) (interface{}, error)
 
@@ -35,7 +40,6 @@ type InvalidDecoderError struct {
 }
 
 func (e *InvalidDecoderError) Error() string {
-
 	if e.Type == nil {
 		return "form: Decode(nil)"
 	}
@@ -75,7 +79,6 @@ type Decoder struct {
 
 // NewDecoder creates a new decoder instance with sane defaults
 func NewDecoder() *Decoder {
-
 	d := &Decoder{
 		tagName:         "form",
 		mode:            ModeImplicit,
@@ -142,7 +145,6 @@ func (d *Decoder) RegisterTagNameFunc(fn TagNameFunc) {
 // the struct and not just the struct fields eg. url.Values{"User":"Name%3Djoeybloggs"} will call the
 // custom type function with `User` as the type, however url.Values{"User.Name":"joeybloggs"} will not.
 func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...interface{}) {
-
 	if d.customTypeFuncs == nil {
 		d.customTypeFuncs = map[reflect.Type]DecodeCustomTypeFunc{}
 	}
@@ -156,7 +158,6 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 //
 // Decode returns an InvalidDecoderError if interface passed is invalid.
 func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
-
 	val := reflect.ValueOf(v)
 
 	if val.Kind() != reflect.Ptr || val.IsNil() {
