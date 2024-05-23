@@ -75,6 +75,13 @@ func (d *decoder) parseMapData() {
 					log.Panicf(errMissingStartBracket, k)
 				}
 
+				insideBracket = false
+
+				// ignore empty key
+				if i == idx+1 {
+					continue
+				}
+
 				if rd = d.findAlias(k[:idx]); rd == nil {
 
 					l = len(d.dm) + 1
@@ -122,8 +129,6 @@ func (d *decoder) parseMapData() {
 				}
 
 				rd.keys = append(rd.keys, ke)
-
-				insideBracket = false
 			default:
 				// checking if not a number, 0-9 is 48-57 in byte, see for yourself fmt.Println('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 				if insideBracket && (k[i] > 57 || k[i] < 48) {
@@ -356,16 +361,24 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		d.parseMapData()
 		// slice elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
 
-		if ok && len(arr) > 0 {
-			var varr reflect.Value
+		// handle also param[]=1&param[]=2 syntax
+		arraySuffix := []byte("[]")
+		suffixNamespace := append(namespace, arraySuffix...)
 
-			var ol int
+		for _, namespace := range [][]byte{namespace, suffixNamespace} {
+			arr, ok := d.values[string(namespace)]
 			l := len(arr)
 
-			if v.IsNil() {
-				varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
-			} else {
+			if !ok || l == 0 {
+				continue
+			}
 
+			var varr reflect.Value
+			var ol int
+
+			if v.IsNil() {
+				varr = reflect.MakeSlice(v.Type(), l, l)
+			} else {
 				ol = v.Len()
 				l += ol
 
@@ -456,14 +469,25 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 
 	case reflect.Array:
 		d.parseMapData()
-
 		// array elements could be mixed eg. number and non-numbers Value[0]=[]string{"10"} and Value=[]string{"10","20"}
 
-		if ok && len(arr) > 0 {
-			var varr reflect.Value
+		// handle also param[]=1&param[]=2 syntax
+		arraySuffix := []byte("[]")
+		suffixNamespace := append(namespace, arraySuffix...)
+
+		var ol int
+
+		for _, namespace := range [][]byte{namespace, suffixNamespace} {
+			arr, ok := d.values[string(namespace)]
 			l := len(arr)
-			overCapacity := v.Len() < l
-			if overCapacity {
+
+			if !ok || l == 0 {
+				continue
+			}
+
+			var varr reflect.Value
+
+			if v.Len() < l {
 				// more values than array capacity, ignore values over capacity as it's possible some would just want
 				// to grab the first x number of elements; in the future strict mode logic should return an error
 				fmt.Println("warning number of post form array values is larger than array capacity, ignoring overflow values")
@@ -474,15 +498,19 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			if v.Len() < len(arr) {
 				l = v.Len()
 			}
-			for i := 0; i < l; i++ {
+			l += ol
+
+			for i := ol; i < l; i++ {
 				newVal := reflect.New(v.Type().Elem()).Elem()
 
-				if d.setFieldByType(newVal, namespace, i) {
+				if d.setFieldByType(newVal, namespace, i-ol) {
 					set = true
 					varr.Index(i).Set(newVal)
 				}
 			}
+
 			v.Set(varr)
+			ol = l
 		}
 
 		// maybe it's an numbered array i.e. Phone[0].Number

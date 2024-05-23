@@ -1910,29 +1910,41 @@ func TestDecoder_EmptyArrayBool(t *testing.T) {
 	Equal(t, err, nil)
 }
 
-func TestDecoder_InvalidSliceIndex(t *testing.T) {
+func TestDecoder_ArrayIndexes(t *testing.T) {
 	type PostsRequest struct {
-		PostIds []string
+		StrSlice              []string
+		MapOfStrSlice         map[string][]string
+		StrSliceExplicitField []string `form:"StrArrExplicitField[]"`
+		StrArr                [4]string
 	}
 	in := url.Values{
-		"PostIds[]": []string{"1", "2"},
+		"StrArr":                 []string{"0"},
+		"StrArr[]":               []string{"1", "2"},
+		"StrArr[3]":              []string{"3"},
+		"StrSlice":               []string{"0"},
+		"StrSlice[]":             []string{"1", "2"},
+		"StrSlice[3]":            []string{"3"},
+		"MapOfStrSlice[test1][]": []string{"0", "1"},
+		"StrArrExplicitField[]":  []string{"0", "1"},
 	}
 
 	v := new(PostsRequest)
 	d := NewDecoder()
 	err := d.Decode(v, in)
-	NotEqual(t, err, nil)
-	Equal(t, err.Error(), "Field Namespace:PostIds ERROR:invalid slice index ''")
-
-	// No error with proper name
-	type PostsRequest2 struct {
-		PostIds []string `form:"PostIds[]"`
-	}
-
-	v2 := new(PostsRequest2)
-	err = d.Decode(v2, in)
 	Equal(t, err, nil)
-	Equal(t, len(v2.PostIds), 2)
-	Equal(t, v2.PostIds[0], "1")
-	Equal(t, v2.PostIds[1], "2")
+	Equal(t, len(v.StrSlice), 4)
+	Equal(t, v.StrSlice[0], "0")
+	Equal(t, v.StrSlice[1], "1")
+	Equal(t, v.StrSlice[2], "2")
+	Equal(t, v.StrSlice[3], "3")
+	Equal(t, len(v.StrArr), 4)
+	Equal(t, v.StrArr[0], "0")
+	Equal(t, v.StrArr[1], "1")
+	Equal(t, v.StrArr[2], "2")
+	Equal(t, v.StrArr[3], "3")
+	Equal(t, len(v.MapOfStrSlice["test1"]), 2)
+	Equal(t, v.MapOfStrSlice["test1"][0], "0")
+	Equal(t, v.MapOfStrSlice["test1"][1], "1")
+	Equal(t, v.StrSliceExplicitField[0], "0")
+	Equal(t, v.StrSliceExplicitField[1], "1")
 }
