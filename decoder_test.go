@@ -830,21 +830,57 @@ func TestDecoderStruct(t *testing.T) {
 
 func TestDecoderNativeTime(t *testing.T) {
 
+	type TType time.Time
+	type TTypePtr *time.Time
+	type TTypePtrWithCustomDecoder *time.Time
+
 	type TestError struct {
-		Time        time.Time
-		TimeNoValue time.Time
-		TimePtr     *time.Time
+		Time                                time.Time
+		TimeNoValue                         time.Time
+		TimePtr                             *time.Time
+		TimeType                            TType
+		TimeTypeNoValue                     TType
+		TimeTypePtr                         TTypePtr
+		TimeTypePtrNoValue                  TTypePtr
+		TimeTypePtrWithCustomDecoder        TTypePtrWithCustomDecoder
+		TimeTypePtrWithCustomDecoderNoValue TTypePtrWithCustomDecoder
 	}
 
 	values := url.Values{
-		"Time":        []string{"2006-01-02T15:04:05Z"},
-		"TimeNoValue": []string{""},
-		"TimePtr":     []string{"2006-01-02T15:04:05Z"},
+		"Time":                                []string{"2006-01-02T15:04:05Z"},
+		"TimeNoValue":                         []string{""},
+		"TimePtr":                             []string{"2006-01-02T15:04:05Z"},
+		"TimeType":                            []string{"2006-01-02T15:04:05Z"},
+		"TimeTypeNoValue":                     []string{""},
+		"TimeTypePtr":                         []string{"2006-01-02T15:04:05Z"},
+		"TimeTypePtrNoValue":                  []string{""},
+		"TimeTypePtrWithCustomDecoder":        []string{"2006-01-02T15:04:05Z"},
+		"TimeTypePtrWithCustomDecoderNoValue": []string{""},
 	}
 
 	var test TestError
 
 	decoder := NewDecoder()
+	decoder.RegisterCustomTypeFunc(func(s []string) (interface{}, error) {
+		if s[0] == "" {
+			return TType{}, nil
+		}
+		parsed, err := time.Parse(time.RFC3339, s[0])
+		if err != nil {
+			return nil, err
+		}
+		return TType(parsed), nil
+	}, TType{})
+	decoder.RegisterCustomTypeFunc(func(s []string) (interface{}, error) {
+		if s[0] == "" {
+			return nil, nil
+		}
+		parsed, err := time.Parse(time.RFC3339, s[0])
+		if err != nil {
+			return nil, err
+		}
+		return TTypePtrWithCustomDecoder(&parsed), nil
+	}, TTypePtrWithCustomDecoder(nil))
 
 	errs := decoder.Decode(&test, values)
 	Equal(t, errs, nil)
@@ -852,6 +888,13 @@ func TestDecoderNativeTime(t *testing.T) {
 	tm, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 	Equal(t, test.Time.Equal(tm), true)
 	Equal(t, test.TimeNoValue.Equal(tm), false)
+	Equal(t, tm.Equal(time.Time(test.TimeType)), true)
+	Equal(t, time.Time(test.TimeTypeNoValue).Equal(tm), false)
+	Equal(t, time.Time(test.TimeTypeNoValue).IsZero(), true)
+	Equal(t, (*time.Time)(test.TimeTypePtr).Equal(tm), true)
+	Equal(t, test.TimeTypePtrNoValue, nil)
+	Equal(t, (*time.Time)(test.TimeTypePtrWithCustomDecoder).Equal(tm), true)
+	Equal(t, test.TimeTypePtrWithCustomDecoderNoValue, nil)
 
 	NotEqual(t, test.TimePtr, nil)
 	Equal(t, (*test.TimePtr).Equal(tm), true)
