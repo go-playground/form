@@ -25,4 +25,18 @@ _testmain.go
 old.txt
 new.txt
 
-/.idea
+/.idea# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# devenv nix files
+devenv.nix
+devenv.yaml
+devenv.lock
+.envrc
