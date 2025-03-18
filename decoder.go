@@ -192,8 +192,15 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 					d.setError(namespace, err)
 					return
 				}
+				if kind == reflect.Ptr {
+					newVal := reflect.New(v.Type().Elem())
+					if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
+						v.Set(newVal)
+					}
+				} else {
+					v.Set(reflect.ValueOf(val))
+				}
 
-				v.Set(reflect.ValueOf(val))
 				set = true
 				return
 			}
