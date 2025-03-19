@@ -1,6 +1,6 @@
 Package form
 ============
-<img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">![Project status](https://img.shields.io/badge/version-4.2.1-green.svg)
+<img align="right" src="https://raw.githubusercontent.com/go-playground/form/master/logo.jpg">![Project status](https://img.shields.io/badge/version-4.2.2-green.svg)
 [![Build Status](https://github.com/go-playground/form/actions/workflows/workflow.yml/badge.svg)](https://github.com/go-playground/form/actions/workflows/workflow.yml)
 [![Coverage Status](https://coveralls.io/repos/github/go-playground/form/badge.svg?branch=master)](https://coveralls.io/github/go-playground/form?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/form)](https://goreportcard.com/report/github.com/go-playground/form)
