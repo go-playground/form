@@ -2,6 +2,7 @@ package form
 
 import (
 	"errors"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -29,7 +30,6 @@ import (
 // go test -memprofile mem.out
 
 func TestEncoderInt(t *testing.T) {
-
 	type TestInt struct {
 		Int              int
 		Int8             int8
@@ -194,7 +194,6 @@ func TestEncoderInt(t *testing.T) {
 }
 
 func TestEncoderUint(t *testing.T) {
-
 	type TestUint struct {
 		Uint              uint
 		Uint8             uint8
@@ -360,7 +359,6 @@ func TestEncoderUint(t *testing.T) {
 }
 
 func TestEncoderString(t *testing.T) {
-
 	type TestString struct {
 		String              string
 		StringPtr           *string
@@ -487,7 +485,6 @@ func TestEncoderString(t *testing.T) {
 }
 
 func TestEncoderFloat(t *testing.T) {
-
 	type TestFloat struct {
 		Float32              float32
 		Float32Ptr           *float32
@@ -706,7 +703,6 @@ func TestEncoderFloat(t *testing.T) {
 }
 
 func TestEncoderBool(t *testing.T) {
-
 	type TestBool struct {
 		Bool              bool
 		BoolPtr           *bool
@@ -820,7 +816,6 @@ func TestEncoderBool(t *testing.T) {
 }
 
 func TestEncoderStruct(t *testing.T) {
-
 	type Phone struct {
 		Number string
 	}
@@ -1019,7 +1014,6 @@ func TestEncoderStruct(t *testing.T) {
 }
 
 func TestEncoderStructCustomNamespace(t *testing.T) {
-
 	type Phone struct {
 		Number string
 	}
@@ -1237,7 +1231,6 @@ func TestEncoderMap(t *testing.T) {
 }
 
 func TestDecodeAllNonStructTypes(t *testing.T) {
-
 	encoder := NewEncoder()
 
 	// test integers
@@ -1351,7 +1344,6 @@ func TestDecodeAllNonStructTypes(t *testing.T) {
 }
 
 func TestEncoderNativeTime(t *testing.T) {
-
 	type TestError struct {
 		Time        time.Time
 		TimeNoValue time.Time
@@ -1378,7 +1370,6 @@ func TestEncoderNativeTime(t *testing.T) {
 }
 
 func TestEncoderErrors(t *testing.T) {
-
 	tm, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 	Equal(t, err, nil)
 
@@ -1422,7 +1413,6 @@ func TestEncoderErrors(t *testing.T) {
 }
 
 func TestEncoderPanicsAndBadValues(t *testing.T) {
-
 	encoder := NewEncoder()
 
 	values, err := encoder.Encode(nil)
@@ -1449,7 +1439,6 @@ func TestEncoderPanicsAndBadValues(t *testing.T) {
 }
 
 func TestEncoderExplicit(t *testing.T) {
-
 	type Test struct {
 		Name string `form:"Name"`
 		Age  int
@@ -1470,7 +1459,6 @@ func TestEncoderExplicit(t *testing.T) {
 }
 
 func TestEncoderRegisterTagNameFunc(t *testing.T) {
-
 	type Test struct {
 		Name string `json:"name"`
 		Age  int    `json:"-"`
@@ -1499,7 +1487,6 @@ func TestEncoderRegisterTagNameFunc(t *testing.T) {
 }
 
 func TestEncoderEmbedModes(t *testing.T) {
-
 	type A struct {
 		Field string
 	}
@@ -1533,19 +1520,18 @@ func TestEncoderEmbedModes(t *testing.T) {
 }
 
 func TestOmitEmpty(t *testing.T) {
-
 	type NotComparable struct {
 		Slice []string
 	}
 
 	type Test struct {
-		String  string            `form:",omitempty"`
-		Array   []string          `form:",omitempty"`
-		Map     map[string]string `form:",omitempty"`
-		String2 string            `form:"str,omitempty"`
-		Array2  []string          `form:"arr,omitempty"`
-		Map2    map[string]string `form:"map,omitempty"`
-		NotComparable			  `form:",omitempty"`
+		String        string            `form:",omitempty"`
+		Array         []string          `form:",omitempty"`
+		Map           map[string]string `form:",omitempty"`
+		String2       string            `form:"str,omitempty"`
+		Array2        []string          `form:"arr,omitempty"`
+		Map2          map[string]string `form:"map,omitempty"`
+		NotComparable `form:",omitempty"`
 	}
 
 	var tst Test
@@ -1606,4 +1592,176 @@ func TestOmitEmpty(t *testing.T) {
 	Equal(t, len(values), 2)
 	Equal(t, values["x"][0], "0")
 	Equal(t, values["arr[0]"][0], "")
+}
+
+type marshaler struct {
+	Fname string
+	Sname string
+}
+
+func (m marshaler) MarshalForm() ([]string, error) {
+	return []string{
+		m.Fname,
+		m.Sname,
+	}, nil
+}
+
+func Test_MarshalForm(t *testing.T) {
+	T1 := struct {
+		Ptr      *marshaler
+		NilPtr   *marshaler
+		Struct   marshaler
+		Slice    []marshaler
+		SlicePtr []*marshaler
+		Map      map[string]marshaler
+		MapPtr   map[string]*marshaler
+	}{
+		Ptr: &marshaler{
+			Fname: "ptrfname",
+			Sname: "ptrsname",
+		},
+		Struct: marshaler{
+			Fname: "structfname",
+			Sname: "structsname",
+		},
+		Slice: []marshaler{{
+			Fname: "slice0fname",
+			Sname: "slice0sname",
+		}, {
+			Fname: "slice1fname",
+			Sname: "slice1sname",
+		}},
+		SlicePtr: []*marshaler{{
+			Fname: "sliceptr0fname",
+			Sname: "sliceptr0sname",
+		}, {
+			Fname: "sliceptr1fname",
+			Sname: "sliceptr1sname",
+		}},
+		Map: map[string]marshaler{
+			"key1": {
+				Fname: "mapk1fname",
+				Sname: "mapk1sname",
+			},
+			"key2": {
+				Fname: "mapk2fname",
+				Sname: "mapk2sname",
+			},
+		},
+		MapPtr: map[string]*marshaler{
+			"key1": {
+				Fname: "mapptrk1fname",
+				Sname: "mapptrk1sname",
+			},
+			"key2": {
+				Fname: "mapptrk2fname",
+				Sname: "mapptrk2sname",
+			},
+		},
+	}
+	values, err := NewEncoder().Encode(T1)
+	Equal(t, err, nil)
+	Equal(t, values["Ptr"], []string{"ptrfname", "ptrsname"})
+	Equal(t, values["NilPointer"], nil)
+	Equal(t, values["Struct"], []string{"structfname", "structsname"})
+	Equal(t, values["Slice"], []string{"slice0fname", "slice0sname", "slice1fname", "slice1sname"})
+	Equal(t, values["SlicePtr[0]"], []string{"sliceptr0fname", "sliceptr0sname"})
+	Equal(t, values["SlicePtr[1]"], []string{"sliceptr1fname", "sliceptr1sname"})
+	Equal(t, values["Map[key1]"], []string{"mapk1fname", "mapk1sname"})
+	Equal(t, values["Map[key2]"], []string{"mapk2fname", "mapk2sname"})
+	Equal(t, values["MapPtr[key1]"], []string{"mapptrk1fname", "mapptrk1sname"})
+	Equal(t, values["MapPtr[key2]"], []string{"mapptrk2fname", "mapptrk2sname"})
+}
+
+type errmarshaler struct {
+	Fname string
+	Sname string
+}
+
+func (m errmarshaler) MarshalForm() ([]string, error) {
+	return nil, errors.New("always err")
+}
+
+func Test_MarshalForm_Err(t *testing.T) {
+	encoder := NewEncoder()
+
+	t1 := struct {
+		Ptr *errmarshaler
+	}{
+		Ptr: &errmarshaler{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	v1, err := encoder.Encode(t1)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Ptr ERROR:always err")
+	Equal(t, v1, url.Values{})
+
+	t2 := struct {
+		NilPtr *errmarshaler
+	}{}
+	v2, err := encoder.Encode(t2)
+	Equal(t, err, nil)
+	Equal(t, v2, url.Values{})
+
+	t3 := struct {
+		Struct errmarshaler
+	}{
+		Struct: errmarshaler{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	v3, err := encoder.Encode(t3)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Struct ERROR:always err")
+	Equal(t, v3, url.Values{})
+}
+
+type errmarshalerptrrec struct {
+	called bool
+	Fname  string
+	Sname  string
+}
+
+func (m *errmarshalerptrrec) MarshalForm() ([]string, error) {
+	m.called = true
+	return nil, errors.New("always err")
+}
+
+func Test_MarshalForm_ErrPtrRec(t *testing.T) {
+	encoder := NewEncoder()
+
+	t1 := struct {
+		Ptr *errmarshalerptrrec
+	}{
+		Ptr: &errmarshalerptrrec{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	v1, err := encoder.Encode(t1)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "Field Namespace:Ptr ERROR:always err")
+	Equal(t, v1, url.Values{})
+
+	t2 := struct {
+		NilPtr *errmarshalerptrrec
+	}{}
+	v2, err := encoder.Encode(t2)
+	Equal(t, err, nil)
+	Equal(t, v2, url.Values{})
+
+	t3 := struct {
+		Struct errmarshalerptrrec
+	}{
+		Struct: errmarshalerptrrec{
+			Fname: "John",
+			Sname: "Smith",
+		},
+	}
+	_, err = encoder.Encode(t3)
+	Equal(t, err, nil)
+	Equal(t, t3.Struct.called, false)
 }

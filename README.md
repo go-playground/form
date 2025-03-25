@@ -23,7 +23,7 @@ It has the following features:
 
 Common Questions
 
-- Does it support encoding.TextUnmarshaler? No because TextUnmarshaler only accepts []byte but posted values can have multiple values, so is not suitable.
+- Does it support encoding.TextUnmarshaler? No, instead we have `form.Unmarshaler` because TextUnmarshaler only accepts []byte but posted values can have multiple values, so is not suitable.
 - Mixing `array/slice` with `array[idx]/slice[idx]`, in which order are they parsed? `array/slice` then `array[idx]/slice[idx]`
 
 Supported Types ( out of the box )
@@ -228,6 +228,33 @@ Encoder
 encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
 	return []string{x.(time.Time).Format("2006-01-02")}, nil
 }, time.Time{})
+```
+
+Implementing Marshaler and Unmarshaler
+--------------
+Marshaler
+```go
+type CustomStruct struct {
+    A string
+    B string
+}
+
+func (c CustomStruct) MarshalForm() ([]string, error) {
+    return []string{ c.A, c.B }, nil
+}
+```
+
+Unmarshaler
+```go
+type CustomStruct struct {
+    A string
+    B string
+}
+
+func (c *CustomStruct) UnmarshalForm(ss []string) error {
+    c.A = ss[0]
+    c.B = ss[1]
+}
 ```
 
 Ignoring Fields

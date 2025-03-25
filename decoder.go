@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var unmarhsalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
+
 const (
 	errArraySize           = "Array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
 	errMissingStartBracket = "Invalid formatting for key '%s' missing '[' bracket"
@@ -63,7 +65,6 @@ func (d *decoder) parseMapData() {
 		}
 
 		for i = 0; i < len(k); i++ {
-
 			switch k[i] {
 			case '[':
 				idx = i
@@ -117,7 +118,6 @@ func (d *decoder) parseMapData() {
 
 					if ke.ivalue > rd.sliceLen {
 						rd.sliceLen = ke.ivalue
-
 					}
 				}
 
@@ -140,7 +140,6 @@ func (d *decoder) parseMapData() {
 }
 
 func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []byte) (set bool) {
-
 	l := len(namespace)
 	first := l == 0
 
@@ -177,14 +176,12 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 }
 
 func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx int) (set bool) {
-
 	var err error
 	v, kind := ExtractType(current)
 
 	arr, ok := d.values[string(namespace)]
 
 	if d.d.customTypeFuncs != nil {
-
 		if ok {
 			if cf, ok := d.d.customTypeFuncs[v.Type()]; ok {
 				val, err := cf(arr[idx:])
@@ -199,6 +196,14 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			}
 		}
 	}
+
+	if set, err = d.unmarshal(v, idx, arr); err != nil {
+		d.setError(namespace, err)
+		return
+	} else if set {
+		return
+	}
+
 	switch kind {
 	case reflect.Interface:
 		if !ok || idx == len(arr) {
@@ -602,7 +607,6 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 }
 
 func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte) (err error) {
-
 	v, kind := ExtractType(current)
 
 	if d.d.customTypeFuncs != nil {
@@ -749,4 +753,39 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 	}
 
 	return
+}
+
+func (d *decoder) unmarshal(v reflect.Value, idx int, arr []string) (bool, error) {
+	t := v.Type()
+	if t.Kind() != reflect.Ptr && v.CanAddr() {
+		v = v.Addr()
+		t = v.Type()
+	}
+	if v.Type().NumMethod() == 0 || !v.CanInterface() {
+		return false, nil
+	}
+
+	if !t.Implements(unmarhsalerType) {
+		return false, nil
+	}
+
+	if t.Kind() == reflect.Ptr && v.CanAddr() {
+		return d.unmarshalAddr(v, idx, arr)
+	}
+
+	um := v.Interface().(Unmarshaler)
+	if err := um.UnmarshalForm(arr[idx:]); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (d *decoder) unmarshalAddr(v reflect.Value, idx int, arr []string) (bool, error) {
+	nv := reflect.New(v.Type().Elem())
+	um := nv.Interface().(Unmarshaler)
+	if err := um.UnmarshalForm(arr[idx:]); err != nil {
+		return false, err
+	}
+	v.Set(nv)
+	return true, nil
 }
