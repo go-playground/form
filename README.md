@@ -282,33 +282,55 @@ Benchmarks
 NOTE: the 1 allocation and B/op in the first 4 decodes is actually the struct allocating when passing it in, so primitives are actually zero allocation.
 
 ```go
-go test -run=NONE -bench=. -benchmem=true ./...
+go test -run=NONE -bench=. -benchmem ./...
+goos: darwin
+goarch: arm64
+pkg: github.com/go-playground/form/v4
+cpu: Apple M3 Max
+BenchmarkNestedArrayDecode100-16     	      75	  15782643 ns/op	18754349 B/op	  360810 allocs/op
+BenchmarkNestedArrayDecode1000-16    	       1	2227892458 ns/op	1877558216 B/op	36011385 allocs/op
+PASS
+ok  	github.com/go-playground/form/v4	4.251s
 goos: darwin
 goarch: arm64
 pkg: github.com/go-playground/form/v4/benchmarks
-BenchmarkSimpleUserDecodeStruct-8                                8704111               121.1 ns/op            64 B/op          1 allocs/op
-BenchmarkSimpleUserDecodeStructParallel-8                       35916134                32.89 ns/op           64 B/op          1 allocs/op
-BenchmarkSimpleUserEncodeStruct-8                                3746173               320.7 ns/op           485 B/op         10 allocs/op
-BenchmarkSimpleUserEncodeStructParallel-8                        7293147               180.0 ns/op           485 B/op         10 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-8              2993259               400.5 ns/op            96 B/op          1 allocs/op
-BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-8     13023300                97.70 ns/op           96 B/op          1 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-8               643202              1767 ns/op            2977 B/op         35 allocs/op
-BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-8      1000000              1202 ns/op            2978 B/op         35 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypes-8                       172630              6822 ns/op            2008 B/op        121 allocs/op
-BenchmarkComplexArrayDecodeStructAllTypesParallel-8               719788              1735 ns/op            2009 B/op        121 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypes-8                       197052              5839 ns/op            7087 B/op        104 allocs/op
-BenchmarkComplexArrayEncodeStructAllTypesParallel-8               348039              3247 ns/op            7089 B/op        104 allocs/op
-BenchmarkComplexMapDecodeStructAllTypes-8                         139246              8550 ns/op            5313 B/op        130 allocs/op
-BenchmarkComplexMapDecodeStructAllTypesParallel-8                 409018              3143 ns/op            5317 B/op        130 allocs/op
-BenchmarkComplexMapEncodeStructAllTypes-8                         208833              5515 ns/op            4257 B/op        103 allocs/op
-BenchmarkComplexMapEncodeStructAllTypesParallel-8                 523833              2182 ns/op            4258 B/op        103 allocs/op
-BenchmarkDecodeNestedStruct-8                                     807690              1408 ns/op             344 B/op         14 allocs/op
-BenchmarkDecodeNestedStructParallel-8                            3409441               359.6 ns/op           344 B/op         14 allocs/op
-BenchmarkEncodeNestedStruct-8                                    1488520               803.6 ns/op           653 B/op         16 allocs/op
-BenchmarkEncodeNestedStructParallel-8                            3570204               346.6 ns/op           653 B/op         16 allocs/op
+cpu: Apple M3 Max
+BenchmarkSimpleUserDecodeStruct-16                              	12669696	        94.60 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserDecodeStructParallel-16                      	46715631	        27.79 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSimpleUserEncodeStruct-16                              	 4624094	       256.7 ns/op	     485 B/op	      10 allocs/op
+BenchmarkSimpleUserEncodeStructParallel-16                      	 7386290	       166.2 ns/op	     485 B/op	      10 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypes-16            	 3533421	       332.3 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesDecodeStructAllPrimitivesTypesParallel-16    	20706642	        59.43 ns/op	      96 B/op	       1 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypes-16            	 1228750	       966.4 ns/op	    1465 B/op	      34 allocs/op
+BenchmarkPrimitivesEncodeStructAllPrimitivesTypesParallel-16    	 1962678	       607.2 ns/op	    1465 B/op	      34 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypes-16                    	  213568	      5361 ns/op	    2081 B/op	     121 allocs/op
+BenchmarkComplexArrayDecodeStructAllTypesParallel-16            	  960226	      1314 ns/op	    2087 B/op	     121 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypes-16                    	  271944	      4017 ns/op	    6788 B/op	     107 allocs/op
+BenchmarkComplexArrayEncodeStructAllTypesParallel-16            	  441998	      2829 ns/op	    6791 B/op	     107 allocs/op
+BenchmarkComplexMapDecodeStructAllTypes-16                      	  179220	      6359 ns/op	    5300 B/op	     130 allocs/op
+BenchmarkComplexMapDecodeStructAllTypesParallel-16              	  412233	      2933 ns/op	    5310 B/op	     130 allocs/op
+BenchmarkComplexMapEncodeStructAllTypes-16                      	  262464	      4122 ns/op	    4083 B/op	     106 allocs/op
+BenchmarkComplexMapEncodeStructAllTypesParallel-16              	  622110	      2084 ns/op	    4084 B/op	     106 allocs/op
+BenchmarkDecodeNestedStruct-16                                  	  823956	      1247 ns/op	     344 B/op	      14 allocs/op
+BenchmarkDecodeNestedStructParallel-16                          	 4689418	       267.5 ns/op	     344 B/op	      14 allocs/op
+BenchmarkEncodeNestedStruct-16                                  	 1844667	       636.0 ns/op	     653 B/op	      16 allocs/op
+BenchmarkEncodeNestedStructParallel-16                          	 4302678	       278.8 ns/op	     653 B/op	      16 allocs/op
 ```
 
 Competitor benchmarks can be found [here](https://github.com/go-playground/form/blob/master/benchmarks/benchmarks.md)
+
+
+Maintenance and support for SDK major versions
+----------------------------------------------
+
+This package is aligned with the [Go release policy](https://go.dev/doc/devel/release) in that support is guaranteed for
+the two most recent major versions.
+
+This does not mean the package will not work with older versions of Go, only that we reserve the right to increase the
+MSGV(Minimum Supported Go Version) when the need arises to address Security issues/patches, OS issues & support or newly
+introduced functionality that would greatly benefit the maintenance and/or usage of this package.
+
+If and when the MSGV is increased it will be done so in a minimum of a `Minor` release bump.
 
 Complimentary Software
 ----------------------

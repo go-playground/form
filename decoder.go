@@ -51,9 +51,7 @@ func (d *decoder) parseMapData() {
 	if d.aliasMap == nil {
 		d.aliasMap = make(map[string]*recursiveData)
 	} else {
-		for k := range d.aliasMap {
-			delete(d.aliasMap, k)
-		}
+		clear(d.aliasMap)
 	}
 
 	var i int

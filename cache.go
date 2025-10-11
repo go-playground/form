@@ -82,7 +82,7 @@ func (s *structCacheMap) parseStruct(mode Mode, current reflect.Value, key refle
 	typ := current.Type()
 	cs = &cachedStruct{fields: make([]cachedField, 0, 4)} // init 4, betting most structs decoding into have at aleast 4 fields.
 
-	numFields := current.NumField()
+	numFields := typ.NumField()
 
 	var fld reflect.StructField
 	var name string
