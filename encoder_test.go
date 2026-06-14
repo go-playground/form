@@ -840,13 +840,13 @@ func TestEncoderStruct(t *testing.T) {
 		Time            time.Time
 		TimePtr         *time.Time
 		unexposed       string
-		Invalid         interface{}
+		Invalid         any
 		ExistingMap     map[string]string `form:"mp"`
 		MapNoValue      map[int]int
 		Array           []string
 		ZeroLengthArray []string
-		IfaceNonNil     interface{}
-		IfaceInvalid    interface{}
+		IfaceNonNil     any
+		IfaceInvalid    any
 		TimeMapKey      map[time.Time]string
 		ArrayMap        []map[int]int
 		ArrayTime       []time.Time
@@ -889,7 +889,7 @@ func TestEncoderStruct(t *testing.T) {
 
 	encoder := NewEncoder()
 	encoder.SetTagName("form")
-	encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
+	encoder.RegisterCustomTypeFunc(func(x any) ([]string, error) {
 		return []string{x.(time.Time).Format("2006-01-02")}, nil
 	}, time.Time{})
 
@@ -1039,13 +1039,13 @@ func TestEncoderStructCustomNamespace(t *testing.T) {
 		Time            time.Time
 		TimePtr         *time.Time
 		unexposed       string
-		Invalid         interface{}
+		Invalid         any
 		ExistingMap     map[string]string `form:"mp"`
 		MapNoValue      map[int]int
 		Array           []string
 		ZeroLengthArray []string
-		IfaceNonNil     interface{}
-		IfaceInvalid    interface{}
+		IfaceNonNil     any
+		IfaceInvalid    any
 		TimeMapKey      map[time.Time]string
 		ArrayMap        []map[int]int
 		ArrayTime       []time.Time
@@ -1088,7 +1088,7 @@ func TestEncoderStructCustomNamespace(t *testing.T) {
 
 	encoder := NewEncoder()
 	encoder.SetTagName("form")
-	encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
+	encoder.RegisterCustomTypeFunc(func(x any) ([]string, error) {
 		return []string{x.(time.Time).Format("2006-01-02")}, nil
 	}, time.Time{})
 	encoder.SetNamespacePrefix("[")
@@ -1220,11 +1220,11 @@ func TestEncoderStructCustomNamespace(t *testing.T) {
 }
 
 func TestEncoderMap(t *testing.T) {
-	inner := map[string]interface{}{
+	inner := map[string]any{
 		"inner": "1",
 	}
 
-	outer := map[string]interface{}{
+	outer := map[string]any{
 		"outer": inner,
 	}
 
@@ -1385,18 +1385,18 @@ func TestEncoderErrors(t *testing.T) {
 	type TestError struct {
 		Time      time.Time
 		BadMapKey map[time.Time]string
-		Iface     map[interface{}]string
+		Iface     map[any]string
 		Struct    map[struct{}]string
 	}
 
 	test := TestError{
 		BadMapKey: map[time.Time]string{tm: "time"},
-		Iface:     map[interface{}]string{nil: "time"},
+		Iface:     map[any]string{nil: "time"},
 		Struct:    map[struct{}]string{{}: "str"},
 	}
 
 	encoder := NewEncoder()
-	encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
+	encoder.RegisterCustomTypeFunc(func(x any) ([]string, error) {
 		return nil, errors.New("Bad Type Conversion")
 	}, time.Time{})
 

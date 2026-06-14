@@ -594,7 +594,7 @@ func TestDecoderStruct(t *testing.T) {
 	}
 
 	type TestMapKeys struct {
-		MapIfaceKey   map[interface{}]string
+		MapIfaceKey   map[any]string
 		MapFloat32Key map[float32]float32
 		MapFloat64Key map[float64]float64
 		MapNestedInt  map[int]map[int]int
@@ -619,7 +619,7 @@ func TestDecoderStruct(t *testing.T) {
 		}
 		Time                       time.Time
 		TimePtr                    *time.Time
-		Invalid                    interface{}
+		Invalid                    any
 		ExistingMap                map[string]string `form:"mp"`
 		MapNoValue                 map[int]int
 		TestMapKeys                TestMapKeys
@@ -630,8 +630,8 @@ func TestDecoderStruct(t *testing.T) {
 		TooSmallNumberedArray      []string
 		TooSmallCapOKNumberedArray []string
 		BigEnoughNumberedArray     []string
-		IfaceNonNil                interface{}
-		IfaceInvalid               interface{}
+		IfaceNonNil                any
+		IfaceInvalid               any
 		TimeMapKey                 map[time.Time]string
 		ExistingArray              []string
 		ExistingArrayIndex         []string
@@ -719,7 +719,7 @@ func TestDecoderStruct(t *testing.T) {
 			}
 
 			decoder.SetTagName("form")
-			decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+			decoder.RegisterCustomTypeFunc(func(vals []string) (any, error) {
 				return time.Parse("2006-01-02", vals[0])
 			}, time.Time{})
 
@@ -943,7 +943,7 @@ func TestDecoderErrors(t *testing.T) {
 			decoder.SetNamespaceSuffix(tc.NamespaceSuffix)
 
 			decoder.SetMaxArraySize(4)
-			decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+			decoder.RegisterCustomTypeFunc(func(vals []string) (any, error) {
 				return nil, errors.New("Bad Type Conversion")
 			}, "")
 
@@ -1057,7 +1057,7 @@ func TestDecoderErrors(t *testing.T) {
 
 			var test2 TestError2
 			decoder2 := NewDecoder()
-			decoder2.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+			decoder2.RegisterCustomTypeFunc(func(vals []string) (any, error) {
 				return time.Parse("2006-01-02", vals[0])
 			}, time.Time{})
 
@@ -1364,7 +1364,7 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 func TestDecoderMapKeys(t *testing.T) {
 
 	type TestMapKeys struct {
-		MapIfaceKey   map[interface{}]string
+		MapIfaceKey   map[any]string
 		MapFloat32Key map[float32]float32
 		MapFloat64Key map[float64]float64
 		MapNestedInt  map[int]map[int]int
@@ -1592,7 +1592,7 @@ func TestDecoderIncreasingKeys(t *testing.T) {
 
 func TestDecoderInterface(t *testing.T) {
 
-	var iface interface{}
+	var iface any
 
 	d := NewDecoder()
 
@@ -1775,7 +1775,7 @@ func TestDecoderEmbedModes(t *testing.T) {
 func TestInterfaceDecoding(t *testing.T) {
 
 	type Test struct {
-		Iface interface{}
+		Iface any
 	}
 
 	var b Test
@@ -1848,7 +1848,7 @@ func TestDecoder_RegisterCustomTypeFuncOnSlice(t *testing.T) {
 	}
 
 	d := NewDecoder()
-	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
+	d.RegisterCustomTypeFunc(func(vals []string) (i any, e error) {
 		custom := make([]customString, 0, len(vals))
 		for i := 0; i < len(vals); i++ {
 			custom = append(custom, customString("custom"+vals[i]))
@@ -1870,7 +1870,7 @@ func TestDecoder_RegisterCustomTypeFunc(t *testing.T) {
 	}
 
 	d := NewDecoder()
-	d.RegisterCustomTypeFunc(func(vals []string) (i interface{}, e error) {
+	d.RegisterCustomTypeFunc(func(vals []string) (i any, e error) {
 		return customString("custom" + vals[0]), nil
 	}, customString(""))
 

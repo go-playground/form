@@ -9,7 +9,7 @@ import (
 )
 
 // DecodeCustomTypeFunc allows for registering/overriding types to be parsed.
-type DecodeCustomTypeFunc func([]string) (interface{}, error)
+type DecodeCustomTypeFunc func([]string) (any, error)
 
 // DecodeErrors is a map of errors encountered during form decoding
 type DecodeErrors map[string]error
@@ -84,7 +84,7 @@ func NewDecoder() *Decoder {
 		namespacePrefix: ".",
 	}
 
-	d.dataPool = &sync.Pool{New: func() interface{} {
+	d.dataPool = &sync.Pool{New: func() any {
 		return &decoder{
 			d:         d,
 			namespace: make([]byte, 0, 64),
@@ -141,7 +141,7 @@ func (d *Decoder) RegisterTagNameFunc(fn TagNameFunc) {
 // ADDITIONAL: if a struct type is registered, the function will only be called if a url.Value exists for
 // the struct and not just the struct fields eg. url.Values{"User":"Name%3Djoeybloggs"} will call the
 // custom type function with `User` as the type, however url.Values{"User.Name":"joeybloggs"} will not.
-func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...interface{}) {
+func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...any) {
 
 	if d.customTypeFuncs == nil {
 		d.customTypeFuncs = map[reflect.Type]DecodeCustomTypeFunc{}
@@ -155,7 +155,7 @@ func (d *Decoder) RegisterCustomTypeFunc(fn DecodeCustomTypeFunc, types ...inter
 // Decode parses the given values and sets the corresponding struct and/or type values
 //
 // Decode returns an InvalidDecoderError if interface passed is invalid.
-func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
+func (d *Decoder) Decode(v any, values url.Values) (err error) {
 
 	val := reflect.ValueOf(v)
 
