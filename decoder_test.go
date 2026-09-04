@@ -1881,6 +1881,36 @@ func TestDecoder_RegisterCustomTypeFunc(t *testing.T) {
 	Equal(t, v.Slice, []customString{"customv1", "customv2"})
 }
 
+func TestDecoder_CustomTypeFuncPointerNilValue(t *testing.T) {
+	type User struct {
+		Name string
+	}
+
+	type TestStruct struct {
+		U *User `form:"u"`
+	}
+
+	d := NewDecoder()
+	d.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		if vals[0] == "" {
+			// "Leave the field at its zero value" must not panic on a pointer field.
+			return nil, nil
+		}
+		return &User{Name: vals[0]}, nil
+	}, &User{})
+
+	var empty TestStruct
+	err := d.Decode(&empty, url.Values{"u": {""}})
+	Equal(t, err, nil)
+	Equal(t, empty.U, nil)
+
+	var populated TestStruct
+	err = d.Decode(&populated, url.Values{"u": {"bob"}})
+	Equal(t, err, nil)
+	NotEqual(t, populated.U, nil)
+	Equal(t, populated.U.Name, "bob")
+}
+
 func TestDecoder_EmptyArrayString(t *testing.T) {
 	type T1 struct {
 		F1 string `form:"F1"`
