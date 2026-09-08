@@ -199,6 +199,11 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 					return
 				}
 
+				// Set would panic on the invalid zero Value, so nil leaves the field alone.
+				if val == nil {
+					return
+				}
+
 				v.Set(reflect.ValueOf(val))
 				set = true
 				return
