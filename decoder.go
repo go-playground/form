@@ -236,7 +236,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			return
 		}
 		var u64 uint64
-		if u64, err = strconv.ParseUint(arr[idx], 10, 64); err != nil {
+		if u64, err = strconv.ParseUint(arr[idx], 10, v.Type().Bits()); err != nil {
 			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
@@ -284,7 +284,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			return
 		}
 		var i64 int64
-		if i64, err = strconv.ParseInt(arr[idx], 10, 64); err != nil {
+		if i64, err = strconv.ParseInt(arr[idx], 10, v.Type().Bits()); err != nil {
 			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
