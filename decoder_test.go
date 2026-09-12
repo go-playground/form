@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -2100,5 +2101,46 @@ func BenchmarkNestedArrayDecode1000(b *testing.B) {
 		if err := decoder.Decode(&req, urlValues); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func TestDecodeNativeIntegerOverflow(t *testing.T) {
+	if strconv.IntSize != 32 {
+		t.Skip("native int and uint overflow below 64 bits only on 32-bit platforms")
+	}
+	for _, input := range []string{"2147483648", "-2147483649"} {
+		value := struct{ Value int }{Value: 7}
+		err := NewDecoder().Decode(&value, url.Values{"Value": []string{input}})
+		if err == nil {
+			t.Errorf("int %s: expected overflow error", input)
+		}
+		if value.Value != 7 {
+			t.Errorf("int %s: changed value to %d", input, value.Value)
+		}
+	}
+	value := struct{ Value uint }{Value: 7}
+	err := NewDecoder().Decode(&value, url.Values{"Value": []string{"4294967296"}})
+	if err == nil {
+		t.Error("uint: expected overflow error")
+	}
+	if value.Value != 7 {
+		t.Errorf("uint: changed value to %d", value.Value)
+	}
+
+	limits := struct {
+		Int    int
+		Uint   uint
+		Int64  int64
+		Uint64 uint64
+	}{}
+	err = NewDecoder().Decode(&limits, url.Values{
+		"Int": []string{"2147483647"}, "Uint": []string{"4294967295"},
+		"Int64": []string{"2147483648"}, "Uint64": []string{"4294967296"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if limits.Int != 2147483647 || limits.Uint != 4294967295 || limits.Int64 != 2147483648 || limits.Uint64 != 4294967296 {
+		t.Errorf("boundary and 64-bit values changed: %+v", limits)
 	}
 }
