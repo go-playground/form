@@ -1,6 +1,6 @@
 module github.com/go-playground/form/v4
 
-go 1.21
+go 1.26
 
 retract (
 	v4.2.3 // For retractions and revert of that code.
