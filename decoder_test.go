@@ -1772,6 +1772,34 @@ func TestDecoderEmbedModes(t *testing.T) {
 	Equal(t, b.A.Field, "A Val")
 }
 
+func TestDecoderAnonymousSeparateIssue31(t *testing.T) {
+	type Embed struct {
+		A string
+	}
+	var data struct {
+		A string
+		Embed
+	}
+
+	decoder := NewDecoder()
+	decoder.SetAnonymousMode(AnonymousSeparate)
+
+	err := decoder.Decode(&data, url.Values{
+		"A": {"one"},
+	})
+	Equal(t, err, nil)
+	Equal(t, data.A, "one")
+	Equal(t, data.Embed.A, "")
+
+	err = decoder.Decode(&data, url.Values{
+		"A":       {"one"},
+		"Embed.A": {"two"},
+	})
+	Equal(t, err, nil)
+	Equal(t, data.A, "one")
+	Equal(t, data.Embed.A, "two")
+}
+
 func TestInterfaceDecoding(t *testing.T) {
 
 	type Test struct {

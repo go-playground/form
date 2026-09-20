@@ -71,6 +71,7 @@ type Decoder struct {
 	dataPool        *sync.Pool
 	namespacePrefix string
 	namespaceSuffix string
+	embedAnonymous  bool
 }
 
 // NewDecoder creates a new decoder instance with sane defaults
@@ -82,6 +83,7 @@ func NewDecoder() *Decoder {
 		structCache:     newStructCacheMap(),
 		maxArraySize:    10000,
 		namespacePrefix: ".",
+		embedAnonymous:  true,
 	}
 
 	d.dataPool = &sync.Pool{New: func() interface{} {
@@ -104,6 +106,14 @@ func (d *Decoder) SetTagName(tagName string) {
 // Default is ModeImplicit
 func (d *Decoder) SetMode(mode Mode) {
 	d.mode = mode
+}
+
+// SetAnonymousMode sets how embedded structs are decoded.
+// Default is AnonymousEmbed, which also fills promoted fields from the
+// parent namespace. AnonymousSeparate only sets an embedded field from
+// its own namespace (e.g. "A.Field"), matching Encoder.SetAnonymousMode.
+func (d *Decoder) SetAnonymousMode(mode AnonymousMode) {
+	d.embedAnonymous = mode == AnonymousEmbed
 }
 
 // SetNamespacePrefix sets a struct namespace prefix.
