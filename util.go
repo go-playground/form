@@ -10,10 +10,10 @@ import (
 func ExtractType(current reflect.Value) (reflect.Value, reflect.Kind) {
 
 	switch current.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 
 		if current.IsNil() {
-			return current, reflect.Ptr
+			return current, reflect.Pointer
 		}
 
 		return ExtractType(current.Elem())
@@ -48,7 +48,7 @@ func parseBool(str string) (bool, error) {
 // hasValue determines if a reflect.Value is it's default value
 func hasValue(field reflect.Value) bool {
 	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
 		if !field.IsValid() {

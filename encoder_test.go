@@ -1418,7 +1418,7 @@ func TestEncoderErrors(t *testing.T) {
 	Equal(t, k.Error(), "Bad Type Conversion")
 
 	k = ee["Struct"]
-	Equal(t, k.Error(), "Unsupported Map Key '<struct {} Value>' Namespace 'Struct'")
+	Equal(t, k.Error(), "unsupported map key '<struct {} Value>' namespace 'Struct'")
 }
 
 func TestEncoderPanicsAndBadValues(t *testing.T) {
@@ -1539,13 +1539,13 @@ func TestOmitEmpty(t *testing.T) {
 	}
 
 	type Test struct {
-		String  string            `form:",omitempty"`
-		Array   []string          `form:",omitempty"`
-		Map     map[string]string `form:",omitempty"`
-		String2 string            `form:"str,omitempty"`
-		Array2  []string          `form:"arr,omitempty"`
-		Map2    map[string]string `form:"map,omitempty"`
-		NotComparable			  `form:",omitempty"`
+		String        string            `form:",omitempty"`
+		Array         []string          `form:",omitempty"`
+		Map           map[string]string `form:",omitempty"`
+		String2       string            `form:"str,omitempty"`
+		Array2        []string          `form:"arr,omitempty"`
+		Map2          map[string]string `form:"map,omitempty"`
+		NotComparable `form:",omitempty"`
 	}
 
 	var tst Test

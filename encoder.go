@@ -70,7 +70,7 @@ func (e *encoder) traverseStruct(v reflect.Value, namespace []byte, idx int) {
 
 func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx int, isOmitEmpty bool) {
 
-	if idx > -1 && current.Kind() == reflect.Ptr {
+	if idx > -1 && current.Kind() == reflect.Pointer {
 		namespace = append(namespace, '[')
 		namespace = strconv.AppendInt(namespace, int64(idx), 10)
 		namespace = append(namespace, ']')
@@ -104,7 +104,7 @@ func (e *encoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 	}
 
 	switch kind {
-	case reflect.Ptr, reflect.Interface, reflect.Invalid:
+	case reflect.Pointer, reflect.Interface, reflect.Invalid:
 		return
 
 	case reflect.String:
@@ -233,7 +233,7 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 	}
 
 	switch kind {
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Interface, reflect.Pointer:
 		return "", false
 
 	case reflect.String:
@@ -255,7 +255,7 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 		return strconv.FormatBool(v.Bool()), true
 
 	default:
-		e.setError(namespace, fmt.Errorf("Unsupported Map Key '%v' Namespace '%s'", v.String(), namespace))
+		e.setError(namespace, fmt.Errorf("unsupported map key '%v' namespace '%s'", v.String(), namespace))
 		return "", false
 	}
 }

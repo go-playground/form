@@ -961,37 +961,37 @@ func TestDecoderErrors(t *testing.T) {
 			Equal(t, len(err), 30)
 
 			k := err["bool"]
-			Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'bool'")
+			Equal(t, k.Error(), "invalid boolean value 'uh-huh' type 'bool' namespace 'bool'")
 
 			k = err["Int"]
-			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int' Namespace 'Int'")
+			Equal(t, k.Error(), "invalid integer value 'bad' type 'int' namespace 'Int'")
 
 			k = err["Int8"]
-			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int8' Namespace 'Int8'")
+			Equal(t, k.Error(), "invalid integer value 'bad' type 'int8' namespace 'Int8'")
 
 			k = err["Int16"]
-			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int16' Namespace 'Int16'")
+			Equal(t, k.Error(), "invalid integer value 'bad' type 'int16' namespace 'Int16'")
 
 			k = err["Int32"]
-			Equal(t, k.Error(), "Invalid Integer Value 'bad' Type 'int32' Namespace 'Int32'")
+			Equal(t, k.Error(), "invalid integer value 'bad' type 'int32' namespace 'Int32'")
 
 			k = err["Uint"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint' Namespace 'Uint'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'bad' type 'uint' namespace 'Uint'")
 
 			k = err["Uint8"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint8' Namespace 'Uint8'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'bad' type 'uint8' namespace 'Uint8'")
 
 			k = err["Uint16"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint16' Namespace 'Uint16'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'bad' type 'uint16' namespace 'Uint16'")
 
 			k = err["Uint32"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'bad' Type 'uint32' Namespace 'Uint32'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'bad' type 'uint32' namespace 'Uint32'")
 
 			k = err["Float32"]
-			Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float32' Namespace 'Float32'")
+			Equal(t, k.Error(), "invalid float value 'bad' type 'float32' namespace 'Float32'")
 
 			k = err["Float64"]
-			Equal(t, k.Error(), "Invalid Float Value 'bad' Type 'float64' Namespace 'Float64'")
+			Equal(t, k.Error(), "invalid float value 'bad' type 'float64' namespace 'Float64'")
 
 			k = err["String"]
 			Equal(t, k.Error(), "Bad Type Conversion")
@@ -1000,49 +1000,49 @@ func TestDecoderErrors(t *testing.T) {
 			Equal(t, k.Error(), "parsing time \"bad\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"bad\" as \"2006\"")
 
 			k = err["MapBadIntKey"]
-			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int' Namespace 'MapBadIntKey'")
+			Equal(t, k.Error(), "invalid integer value 'key' type 'int' namespace 'MapBadIntKey'")
 
 			k = err["MapBadInt8Key"]
-			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int8' Namespace 'MapBadInt8Key'")
+			Equal(t, k.Error(), "invalid integer value 'key' type 'int8' namespace 'MapBadInt8Key'")
 
 			k = err["MapBadInt16Key"]
-			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int16' Namespace 'MapBadInt16Key'")
+			Equal(t, k.Error(), "invalid integer value 'key' type 'int16' namespace 'MapBadInt16Key'")
 
 			k = err["MapBadInt32Key"]
-			Equal(t, k.Error(), "Invalid Integer Value 'key' Type 'int32' Namespace 'MapBadInt32Key'")
+			Equal(t, k.Error(), "invalid integer value 'key' type 'int32' namespace 'MapBadInt32Key'")
 
 			k = err["MapBadUintKey"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint' Namespace 'MapBadUintKey'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'key' type 'uint' namespace 'MapBadUintKey'")
 
 			k = err["MapBadUint8Key"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint8' Namespace 'MapBadUint8Key'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'key' type 'uint8' namespace 'MapBadUint8Key'")
 
 			k = err["MapBadUint16Key"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint16' Namespace 'MapBadUint16Key'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'key' type 'uint16' namespace 'MapBadUint16Key'")
 
 			k = err["MapBadUint32Key"]
-			Equal(t, k.Error(), "Invalid Unsigned Integer Value 'key' Type 'uint32' Namespace 'MapBadUint32Key'")
+			Equal(t, k.Error(), "invalid unsigned integer value 'key' type 'uint32' namespace 'MapBadUint32Key'")
 
 			k = err["MapBadFloat32Key"]
-			Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float32' Namespace 'MapBadFloat32Key'")
+			Equal(t, k.Error(), "invalid float value 'key' type 'float32' namespace 'MapBadFloat32Key'")
 
 			k = err["MapBadFloat64Key"]
-			Equal(t, k.Error(), "Invalid Float Value 'key' Type 'float64' Namespace 'MapBadFloat64Key'")
+			Equal(t, k.Error(), "invalid float value 'key' type 'float64' namespace 'MapBadFloat64Key'")
 
 			k = err["MapBadBoolKey"]
-			Equal(t, k.Error(), "Invalid Boolean Value 'uh-huh' Type 'bool' Namespace 'MapBadBoolKey'")
+			Equal(t, k.Error(), "invalid boolean value 'uh-huh' type 'bool' namespace 'MapBadBoolKey'")
 
 			k = err["MapBadKeyType"]
-			Equal(t, k.Error(), "Unsupported Map Key '1.4', Type 'complex64' Namespace 'MapBadKeyType'")
+			Equal(t, k.Error(), "unsupported map key '1.4', type 'complex64' namespace 'MapBadKeyType'")
 
 			k = err["BadArrayValue[0]"]
-			Equal(t, k.Error(), "Invalid Integer Value 'badintval' Type 'int' Namespace 'BadArrayValue[0]'")
+			Equal(t, k.Error(), "invalid integer value 'badintval' type 'int' namespace 'BadArrayValue[0]'")
 
 			k = err["OverflowNilArray"]
-			Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
+			Equal(t, k.Error(), "array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
 
 			k = err["OverFlowExistingArray"]
-			Equal(t, k.Error(), "Array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
+			Equal(t, k.Error(), "array size of '1000' is larger than the maximum currently set on the decoder of '4'. To increase this limit please see, SetMaxArraySize(size uint)")
 
 			k = err["BadArrayIndex"]
 			Equal(t, k.Error(), "invalid slice index 'bad index'")
@@ -1068,7 +1068,7 @@ func TestDecoderErrors(t *testing.T) {
 			NotEqual(t, e, "")
 
 			k = err["BadMapKey"]
-			Equal(t, k.Error(), "Unsupported Map Key 'badtime', Type 'time.Time' Namespace 'BadMapKey'")
+			Equal(t, k.Error(), "unsupported map key 'badtime', type 'time.Time' namespace 'BadMapKey'")
 		})
 	}
 }
