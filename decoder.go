@@ -222,6 +222,12 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		newVal := reflect.New(v.Type().Elem())
 		if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
 			v.Set(newVal)
+		} else if ok && idx < len(arr) && len(arr[idx]) == 0 {
+			// Key is present with an empty value. Strings already set ""
+			// above; numeric/time types skip empty input and would leave
+			// the pointer nil. Allocate the zero value instead (#48).
+			v.Set(newVal)
+			set = true
 		}
 
 	case reflect.String:

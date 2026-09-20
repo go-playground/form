@@ -2102,3 +2102,43 @@ func BenchmarkNestedArrayDecode1000(b *testing.B) {
 		}
 	}
 }
+
+func TestDecoder_EmptyPointerNumeric(t *testing.T) {
+	// Issue #48: an empty form value sets *string to "" but left *int nil.
+	type Request struct {
+		TestInt    *int     `form:"test_int"`
+		TestString *string  `form:"test_string"`
+		TestUint   *uint    `form:"test_uint"`
+		TestFloat  *float64 `form:"test_float"`
+		TestBool   *bool    `form:"test_bool"`
+		MissingInt *int     `form:"missing_int"`
+	}
+
+	d := NewDecoder()
+	var req Request
+	err := d.Decode(&req, url.Values{
+		"test_int":    {""},
+		"test_string": {""},
+		"test_uint":   {""},
+		"test_float":  {""},
+		"test_bool":   {""},
+	})
+	Equal(t, err, nil)
+
+	NotEqual(t, req.TestString, nil)
+	Equal(t, *req.TestString, "")
+
+	NotEqual(t, req.TestInt, nil)
+	Equal(t, *req.TestInt, 0)
+
+	NotEqual(t, req.TestUint, nil)
+	Equal(t, *req.TestUint, uint(0))
+
+	NotEqual(t, req.TestFloat, nil)
+	Equal(t, *req.TestFloat, 0.0)
+
+	NotEqual(t, req.TestBool, nil)
+	Equal(t, *req.TestBool, false)
+
+	Equal(t, req.MissingInt, nil)
+}
