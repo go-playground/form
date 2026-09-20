@@ -40,7 +40,7 @@ func (e *InvalidDecoderError) Error() string {
 		return "form: Decode(nil)"
 	}
 
-	if e.Type.Kind() != reflect.Ptr {
+	if e.Type.Kind() != reflect.Pointer {
 		return "form: Decode(non-pointer " + e.Type.String() + ")"
 	}
 
@@ -159,7 +159,7 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 
 	val := reflect.ValueOf(v)
 
-	if val.Kind() != reflect.Ptr || val.IsNil() {
+	if val.Kind() != reflect.Pointer || val.IsNil() {
 		return &InvalidDecoderError{reflect.TypeOf(v)}
 	}
 

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	errArraySize           = "Array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
+	errArraySize           = "array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
 	errMissingStartBracket = "Invalid formatting for key '%s' missing '[' bracket"
 	errMissingEndBracket   = "Invalid formatting for key '%s' missing ']' bracket"
 )
@@ -218,7 +218,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		v.Set(reflect.ValueOf(arr[idx]))
 		set = true
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		newVal := reflect.New(v.Type().Elem())
 		if set = d.setFieldByType(newVal.Elem(), namespace, idx); set {
 			v.Set(newVal)
@@ -237,7 +237,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var u64 uint64
 		if u64, err = strconv.ParseUint(arr[idx], 10, 64); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetUint(u64)
@@ -249,7 +249,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var u64 uint64
 		if u64, err = strconv.ParseUint(arr[idx], 10, 8); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetUint(u64)
@@ -261,7 +261,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var u64 uint64
 		if u64, err = strconv.ParseUint(arr[idx], 10, 16); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetUint(u64)
@@ -273,7 +273,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var u64 uint64
 		if u64, err = strconv.ParseUint(arr[idx], 10, 32); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetUint(u64)
@@ -285,7 +285,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var i64 int64
 		if i64, err = strconv.ParseInt(arr[idx], 10, 64); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetInt(i64)
@@ -297,7 +297,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var i64 int64
 		if i64, err = strconv.ParseInt(arr[idx], 10, 8); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetInt(i64)
@@ -309,7 +309,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var i64 int64
 		if i64, err = strconv.ParseInt(arr[idx], 10, 16); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetInt(i64)
@@ -321,7 +321,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var i64 int64
 		if i64, err = strconv.ParseInt(arr[idx], 10, 32); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetInt(i64)
@@ -333,7 +333,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var f float64
 		if f, err = strconv.ParseFloat(arr[idx], 32); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid float value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetFloat(f)
@@ -345,7 +345,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var f float64
 		if f, err = strconv.ParseFloat(arr[idx], 64); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid float value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetFloat(f)
@@ -357,7 +357,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 		}
 		var b bool
 		if b, err = parseBool(arr[idx]); err != nil {
-			d.setError(namespace, fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", arr[idx], v.Type(), string(namespace)))
+			d.setError(namespace, fmt.Errorf("invalid boolean value '%s' type '%v' namespace '%s'", arr[idx], v.Type(), string(namespace)))
 			return
 		}
 		v.SetBool(b)
@@ -636,7 +636,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 		// say to a struct value we would not get here but kind would be struct.
 		v.Set(reflect.ValueOf(key))
 		return
-	case reflect.Ptr:
+	case reflect.Pointer:
 		newVal := reflect.New(v.Type().Elem())
 		if err = d.getMapKey(key, newVal.Elem(), namespace); err == nil {
 			v.Set(newVal)
@@ -649,7 +649,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		u64, e := strconv.ParseUint(key, 10, 64)
 		if e != nil {
-			err = fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -659,7 +659,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		u64, e := strconv.ParseUint(key, 10, 8)
 		if e != nil {
-			err = fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -669,7 +669,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		u64, e := strconv.ParseUint(key, 10, 16)
 		if e != nil {
-			err = fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -679,7 +679,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		u64, e := strconv.ParseUint(key, 10, 32)
 		if e != nil {
-			err = fmt.Errorf("Invalid Unsigned Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid unsigned integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -689,7 +689,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		i64, e := strconv.ParseInt(key, 10, 64)
 		if e != nil {
-			err = fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -699,7 +699,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		i64, e := strconv.ParseInt(key, 10, 8)
 		if e != nil {
-			err = fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -709,7 +709,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		i64, e := strconv.ParseInt(key, 10, 16)
 		if e != nil {
-			err = fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -719,7 +719,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		i64, e := strconv.ParseInt(key, 10, 32)
 		if e != nil {
-			err = fmt.Errorf("Invalid Integer Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid integer value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -729,7 +729,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		f, e := strconv.ParseFloat(key, 32)
 		if e != nil {
-			err = fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid float value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -739,7 +739,7 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		f, e := strconv.ParseFloat(key, 64)
 		if e != nil {
-			err = fmt.Errorf("Invalid Float Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid float value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
@@ -749,14 +749,14 @@ func (d *decoder) getMapKey(key string, current reflect.Value, namespace []byte)
 
 		b, e := parseBool(key)
 		if e != nil {
-			err = fmt.Errorf("Invalid Boolean Value '%s' Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+			err = fmt.Errorf("invalid boolean value '%s' type '%v' namespace '%s'", key, v.Type(), string(namespace))
 			return
 		}
 
 		v.SetBool(b)
 
 	default:
-		err = fmt.Errorf("Unsupported Map Key '%s', Type '%v' Namespace '%s'", key, v.Type(), string(namespace))
+		err = fmt.Errorf("unsupported map key '%s', type '%v' namespace '%s'", key, v.Type(), string(namespace))
 	}
 
 	return

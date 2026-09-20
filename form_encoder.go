@@ -131,7 +131,7 @@ func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
 
 	val, kind := ExtractType(reflect.ValueOf(v))
 
-	if kind == reflect.Ptr || kind == reflect.Interface || kind == reflect.Invalid {
+	if kind == reflect.Pointer || kind == reflect.Interface || kind == reflect.Invalid {
 		return nil, &InvalidEncodeError{reflect.TypeOf(v)}
 	}
 
