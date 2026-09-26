@@ -25,6 +25,7 @@ Common Questions
 
 - Does it support encoding.TextUnmarshaler? No because TextUnmarshaler only accepts []byte but posted values can have multiple values, so is not suitable.
 - Mixing `array/slice` with `array[idx]/slice[idx]`, in which order are they parsed? `array/slice` then `array[idx]/slice[idx]`
+- Decoding an unindexed slice field into a prefilled struct appends by default. To replace its existing values when the form field is present, call `decoder.SetSliceMode(form.SliceReplace)` before decoding. Numbered fields such as `Field[0]` still update their specified positions; an absent field leaves the slice unchanged.
 
 Supported Types ( out of the box )
 ----------
