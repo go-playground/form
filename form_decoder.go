@@ -65,6 +65,7 @@ type dataMap []*recursiveData
 type Decoder struct {
 	tagName         string
 	mode            Mode
+	sliceMode       SliceMode
 	structCache     *structCacheMap
 	customTypeFuncs map[reflect.Type]DecodeCustomTypeFunc
 	maxArraySize    int
@@ -106,6 +107,13 @@ func (d *Decoder) SetTagName(tagName string) {
 // Default is ModeImplicit
 func (d *Decoder) SetMode(mode Mode) {
 	d.mode = mode
+}
+
+// SetSliceMode controls whether unindexed form values append to or replace
+// existing slice values. The default is SliceAppend. Numbered form keys
+// continue to update their specified positions in either mode.
+func (d *Decoder) SetSliceMode(mode SliceMode) {
+	d.sliceMode = mode
 }
 
 // SetAnonymousMode sets how embedded structs are decoded.
