@@ -57,6 +57,6 @@ func hasValue(field reflect.Value) bool {
 		if !field.Type().Comparable() {
 			return true
 		}
-		return field.Interface() != reflect.Zero(field.Type()).Interface()
+		return !field.IsZero()
 	}
 }
