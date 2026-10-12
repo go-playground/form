@@ -228,6 +228,10 @@ func (e *encoder) getMapKey(key reflect.Value, namespace []byte) (string, bool) 
 				return "", false
 			}
 
+			if len(arr) == 0 {
+				return "", false
+			}
+
 			return arr[0], true
 		}
 	}
