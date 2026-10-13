@@ -2,7 +2,6 @@ package form
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -11,8 +10,8 @@ import (
 
 const (
 	errArraySize           = "array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
-	errMissingStartBracket = "Invalid formatting for key '%s' missing '[' bracket"
-	errMissingEndBracket   = "Invalid formatting for key '%s' missing ']' bracket"
+	errMissingStartBracket = "invalid formatting for key '%s' missing '[' bracket"
+	errMissingEndBracket   = "invalid formatting for key '%s' missing ']' bracket"
 )
 
 type decoder struct {
@@ -61,7 +60,26 @@ func (d *decoder) parseMapData() {
 	var rd *recursiveData
 	var isNum bool
 
+keyLoop:
 	for k := range d.values {
+		// Validate the whole key before recording any partial indexes.
+		insideBracket = false
+		for i = 0; i < len(k); i++ {
+			switch k[i] {
+			case '[':
+				insideBracket = true
+			case ']':
+				if !insideBracket {
+					d.setError([]byte(k), fmt.Errorf(errMissingStartBracket, k))
+					continue keyLoop
+				}
+				insideBracket = false
+			}
+		}
+		if insideBracket {
+			d.setError([]byte(k), fmt.Errorf(errMissingEndBracket, k))
+			continue
+		}
 
 		if len(k) > d.maxKeyLen {
 			d.maxKeyLen = len(k)
@@ -75,10 +93,6 @@ func (d *decoder) parseMapData() {
 				insideBracket = true
 				isNum = true
 			case ']':
-
-				if !insideBracket {
-					log.Panicf(errMissingStartBracket, k)
-				}
 
 				if rd = d.findAlias(k[:idx]); rd == nil {
 
@@ -136,11 +150,6 @@ func (d *decoder) parseMapData() {
 					isNum = false
 				}
 			}
-		}
-
-		// if still inside bracket, that means no ending bracket was ever specified
-		if insideBracket {
-			log.Panicf(errMissingEndBracket, k)
 		}
 	}
 }
