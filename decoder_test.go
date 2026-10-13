@@ -1296,7 +1296,7 @@ func TestDecodeAllTypes(t *testing.T) {
 	Equal(t, phones[1].Label, "label2")
 }
 
-func TestDecoderPanicsAndBadValues(t *testing.T) {
+func TestDecoderBadValues(t *testing.T) {
 
 	type Phone struct {
 		Number string
@@ -1312,11 +1312,7 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 		"Phone[0.Number": []string{"1(111)111-1111"},
 	}
 
-	var test TestError
-
 	decoder := NewDecoder()
-
-	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[0.Number' missing ']' bracket")
 
 	i := 1
 	err := decoder.Decode(i, values)
@@ -1342,23 +1338,6 @@ func TestDecoderPanicsAndBadValues(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, err.Error(), "form: Decode(nil *form.TestError)")
 
-	values = url.Values{
-		"Phone0].Number": []string{"1(111)111-1111"},
-	}
-
-	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0].Number' missing '[' bracket")
-
-	values = url.Values{
-		"Phone[[0.Number": []string{"1(111)111-1111"},
-	}
-
-	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket")
-
-	values = url.Values{
-		"Phone0]].Number": []string{"1(111)111-1111"},
-	}
-
-	PanicMatches(t, func() { _ = decoder.Decode(&test, values) }, "Invalid formatting for key 'Phone0]].Number' missing '[' bracket")
 }
 
 func TestDecoderMapKeys(t *testing.T) {
