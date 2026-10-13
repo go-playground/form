@@ -17,32 +17,32 @@ func TestDecoderMalformedBracketKeys(t *testing.T) {
 		{
 			name: "missing_start",
 			key:  "a]",
-			want: "Invalid formatting for key 'a]' missing '[' bracket",
+			want: "invalid formatting for key 'a]' missing '[' bracket",
 		},
 		{
 			name: "missing_end",
 			key:  "a[",
-			want: "Invalid formatting for key 'a[' missing ']' bracket",
+			want: "invalid formatting for key 'a[' missing ']' bracket",
 		},
 		{
 			name: "nested_missing_end",
 			key:  "Phone[0.Number",
-			want: "Invalid formatting for key 'Phone[0.Number' missing ']' bracket",
+			want: "invalid formatting for key 'Phone[0.Number' missing ']' bracket",
 		},
 		{
 			name: "nested_missing_start",
 			key:  "Phone0].Number",
-			want: "Invalid formatting for key 'Phone0].Number' missing '[' bracket",
+			want: "invalid formatting for key 'Phone0].Number' missing '[' bracket",
 		},
 		{
 			name: "repeated_missing_end",
 			key:  "Phone[[0.Number",
-			want: "Invalid formatting for key 'Phone[[0.Number' missing ']' bracket",
+			want: "invalid formatting for key 'Phone[[0.Number' missing ']' bracket",
 		},
 		{
 			name: "repeated_missing_start",
 			key:  "Phone0]].Number",
-			want: "Invalid formatting for key 'Phone0]].Number' missing '[' bracket",
+			want: "invalid formatting for key 'Phone0]].Number' missing '[' bracket",
 		},
 	}
 
@@ -113,7 +113,7 @@ func TestDecoderMalformedBracketKeysSkipPartialIndexes(t *testing.T) {
 		if keyErr := errs[key]; keyErr == nil {
 			t.Errorf("missing error for key %q: %v", key, errs)
 		} else {
-			Equal(t, keyErr.Error(), fmt.Sprintf("Invalid formatting for key '%s' missing '%s' bracket", key, bracket))
+			Equal(t, keyErr.Error(), fmt.Sprintf("invalid formatting for key '%s' missing '%s' bracket", key, bracket))
 		}
 	}
 	if countErr := errs["Count"]; countErr == nil {

@@ -10,8 +10,8 @@ import (
 
 const (
 	errArraySize           = "array size of '%d' is larger than the maximum currently set on the decoder of '%d'. To increase this limit please see, SetMaxArraySize(size uint)"
-	errMissingStartBracket = "Invalid formatting for key '%s' missing '[' bracket"
-	errMissingEndBracket   = "Invalid formatting for key '%s' missing ']' bracket"
+	errMissingStartBracket = "invalid formatting for key '%s' missing '[' bracket"
+	errMissingEndBracket   = "invalid formatting for key '%s' missing ']' bracket"
 )
 
 type decoder struct {
