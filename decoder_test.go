@@ -1501,6 +1501,30 @@ func TestDecoderStructRecursion(t *testing.T) {
 
 }
 
+func TestDecoderSliceStructPreservesValueIndex(t *testing.T) {
+	type ID string
+	type OuterID struct {
+		ID
+	}
+	type TestStruct struct {
+		Outers []OuterID
+	}
+
+	values := url.Values{
+		"Outers": {"id1", "id2"},
+	}
+
+	decoder := NewDecoder()
+	var test TestStruct
+
+	err := decoder.Decode(&test, values)
+	Equal(t, err, nil)
+	Equal(t, test.Outers, []OuterID{
+		{ID: "id1"},
+		{ID: "id2"},
+	})
+}
+
 func TestDecoderFormDecode(t *testing.T) {
 
 	type Struct2 struct {

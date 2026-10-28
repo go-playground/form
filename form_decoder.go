@@ -181,7 +181,7 @@ func (d *Decoder) Decode(v interface{}, values url.Values) (err error) {
 	typ := val.Type()
 
 	if val.Kind() == reflect.Struct && typ != timeType {
-		dec.traverseStruct(val, typ, dec.namespace[0:0])
+		dec.traverseStruct(val, typ, dec.namespace[0:0], 0)
 	} else {
 		dec.setFieldByType(val, dec.namespace[0:0], 0)
 	}
