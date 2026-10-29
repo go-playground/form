@@ -3,6 +3,7 @@ package form
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net/url"
 	"reflect"
 	"strings"
@@ -11,6 +12,47 @@ import (
 
 	. "github.com/go-playground/assert/v2"
 )
+
+func TestDecoderSliceIndexOverflow(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		initial []string
+	}{
+		{"nil", nil},
+		{"empty", []string{}},
+		{"populated", []string{"unchanged"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var dst struct{ Items []string }
+			dst.Items = tc.initial
+			decoder := NewDecoder()
+			key := fmt.Sprintf("Items[%d]", math.MaxInt)
+			err := decoder.Decode(&dst, url.Values{key: {"value"}})
+			errs, ok := err.(DecodeErrors)
+			if !ok {
+				t.Fatalf("Decode returned %v, want DecodeErrors", err)
+			}
+			Equal(t, len(errs), 1)
+			if errs["Items"] == nil {
+				t.Fatalf("missing Items error: %v", errs)
+			}
+			Equal(t, errs["Items"].Error(), fmt.Sprintf("invalid slice index '%d'", math.MaxInt))
+			Equal(t, dst.Items, tc.initial)
+
+			var next struct{ Items []string }
+			Equal(t, decoder.Decode(&next, url.Values{"Items[0]": {"valid"}}), nil)
+			Equal(t, next.Items, []string{"valid"})
+		})
+	}
+}
+
+func TestDecoderMaximumIntegerMapKey(t *testing.T) {
+	var dst struct{ Items map[string]string }
+	index := fmt.Sprint(math.MaxInt)
+	err := NewDecoder().Decode(&dst, url.Values{"Items[" + index + "]": {"value"}})
+	Equal(t, err, nil)
+	Equal(t, dst.Items, map[string]string{index: "value"})
+}
 
 // NOTES:
 // - Run "go test" to run tests
