@@ -24,7 +24,10 @@ func TestDecoderSliceIndexOverflow(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var dst struct{ Items []string }
-			dst.Items = tc.initial
+			if tc.initial != nil {
+				dst.Items = make([]string, len(tc.initial))
+				copy(dst.Items, tc.initial)
+			}
 			decoder := NewDecoder()
 			key := fmt.Sprintf("Items[%d]", math.MaxInt)
 			err := decoder.Decode(&dst, url.Values{key: {"value"}})
