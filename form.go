@@ -30,6 +30,18 @@ const (
 	ModeExplicit
 )
 
+// SliceMode controls how unindexed form values are decoded into a slice that
+// already contains values. Numbered keys such as Field[0] continue to set
+// their specified positions.
+type SliceMode uint8
+
+const (
+	// SliceAppend preserves existing slice values and appends form values.
+	SliceAppend SliceMode = iota
+	// SliceReplace replaces existing slice values when unindexed values are present.
+	SliceReplace
+)
+
 // AnonymousMode specifies how data should be rolled up
 // or separated from anonymous structs
 type AnonymousMode uint8

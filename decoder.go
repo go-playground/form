@@ -374,7 +374,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			var ol int
 			l := len(arr)
 
-			if v.IsNil() {
+			if v.IsNil() || d.d.sliceMode == SliceReplace {
 				varr = reflect.MakeSlice(v.Type(), len(arr), len(arr))
 			} else {
 
