@@ -145,7 +145,7 @@ func (d *decoder) parseMapData() {
 	}
 }
 
-func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []byte) (set bool) {
+func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []byte, idx int) (set bool) {
 
 	l := len(namespace)
 	first := l == 0
@@ -161,7 +161,7 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 		namespace = namespace[:l]
 
 		if f.isAnonymous && d.d.embedAnonymous {
-			if d.setFieldByType(v.Field(f.idx), namespace, 0) {
+			if d.setFieldByType(v.Field(f.idx), namespace, idx) {
 				set = true
 			}
 		}
@@ -607,7 +607,7 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			return
 		}
 
-		set = d.traverseStruct(v, typ, namespace)
+		set = d.traverseStruct(v, typ, namespace, idx)
 	}
 	return
 }
