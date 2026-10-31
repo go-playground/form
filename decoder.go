@@ -3,6 +3,7 @@ package form
 import (
 	"fmt"
 	"log"
+	"math"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -407,6 +408,11 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 			var varr reflect.Value
 			var kv key
 
+			// The required length must be representable before adding one.
+			if rd.sliceLen == math.MaxInt {
+				d.setError(namespace, fmt.Errorf("invalid slice index '%d'", rd.sliceLen))
+				return
+			}
 			sl := rd.sliceLen + 1
 
 			// checking below for maxArraySize, but if array exists and already
