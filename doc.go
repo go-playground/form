@@ -44,7 +44,7 @@ out of the box supported types
     - uint, uint8, uint16, uint32, uint64
     - float32, float64
     - struct and anonymous struct
-    - interface{}
+    - any
     - time.Time` - by default using RFC3339
     - a `pointer` to one of the above types
     - slice, array
@@ -212,7 +212,7 @@ Registering Custom Types
 
 Decoder
 
-    decoder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+    decoder.RegisterCustomTypeFunc(func(vals []string) (any, error) {
             return time.Parse("2006-01-02", vals[0])
         }, time.Time{})
 
@@ -223,7 +223,7 @@ Decoder
 
 Encoder
 
-    encoder.RegisterCustomTypeFunc(func(x interface{}) ([]string, error) {
+    encoder.RegisterCustomTypeFunc(func(x any) ([]string, error) {
             return []string{x.(time.Time).Format("2006-01-02")}, nil
         }, time.Time{})
 

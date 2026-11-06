@@ -9,7 +9,7 @@ import (
 )
 
 // EncodeCustomTypeFunc allows for registering/overriding types to be parsed.
-type EncodeCustomTypeFunc func(x interface{}) ([]string, error)
+type EncodeCustomTypeFunc func(x any) ([]string, error)
 
 // EncodeErrors is a map of errors encountered during form encoding
 type EncodeErrors map[string]error
@@ -65,7 +65,7 @@ func NewEncoder() *Encoder {
 		namespacePrefix: ".",
 	}
 
-	e.dataPool = &sync.Pool{New: func() interface{} {
+	e.dataPool = &sync.Pool{New: func() any {
 		return &encoder{
 			e:         e,
 			namespace: make([]byte, 0, 64),
@@ -115,7 +115,7 @@ func (e *Encoder) RegisterTagNameFunc(fn TagNameFunc) {
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any parsing
-func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...interface{}) {
+func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...any) {
 
 	if e.customTypeFuncs == nil {
 		e.customTypeFuncs = map[reflect.Type]EncodeCustomTypeFunc{}
@@ -127,7 +127,7 @@ func (e *Encoder) RegisterCustomTypeFunc(fn EncodeCustomTypeFunc, types ...inter
 }
 
 // Encode encodes the given values and sets the corresponding struct values
-func (e *Encoder) Encode(v interface{}) (values url.Values, err error) {
+func (e *Encoder) Encode(v any) (values url.Values, err error) {
 
 	val, kind := ExtractType(reflect.ValueOf(v))
 
