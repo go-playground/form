@@ -1828,7 +1828,9 @@ func TestDecoderEmbedModes(t *testing.T) {
 	err := decoder.Decode(&b, values)
 	Equal(t, err, nil)
 	Equal(t, b.Field, "Value")
-	Equal(t, b.A.Field, "Value")
+	// the outer field shadows the promoted embedded field, per Go's
+	// embedding shadowing rules (issue #31)
+	Equal(t, b.A.Field, "")
 
 	values = url.Values{
 		"Field":   []string{"B Val"},
