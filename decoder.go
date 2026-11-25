@@ -24,6 +24,7 @@ type decoder struct {
 	values    url.Values
 	maxKeyLen int
 	namespace []byte
+	shadowed  map[string]struct{}
 }
 
 func (d *decoder) setError(namespace []byte, err error) {
@@ -162,9 +163,35 @@ func (d *decoder) traverseStruct(v reflect.Value, typ reflect.Type, namespace []
 		namespace = namespace[:l]
 
 		if f.isAnonymous && d.d.embedAnonymous {
+			// the flattened fields of an embedded struct share the namespace
+			// of the fields of the struct embedding them. Where both exist,
+			// Go's shadowing rules give precedence to the outer field, so the
+			// keys of the outer fields are shadowed while decoding the
+			// embedded struct's flattened fields.
+			saved := d.shadowed
+			d.shadowed = make(map[string]struct{}, len(saved)+len(s.fields))
+			for k := range saved {
+				d.shadowed[k] = struct{}{}
+			}
+			for _, of := range s.fields {
+				if of.isAnonymous {
+					continue
+				}
+				if first {
+					d.shadowed[of.name] = struct{}{}
+				} else {
+					key := make([]byte, 0, len(namespace)+len(of.name)+len(d.d.namespacePrefix)+len(d.d.namespaceSuffix))
+					key = append(key, namespace[:l]...)
+					key = append(key, d.d.namespacePrefix...)
+					key = append(key, of.name...)
+					key = append(key, d.d.namespaceSuffix...)
+					d.shadowed[string(key)] = struct{}{}
+				}
+			}
 			if d.setFieldByType(v.Field(f.idx), namespace, idx) {
 				set = true
 			}
+			d.shadowed = saved
 		}
 
 		if first {
@@ -189,6 +216,15 @@ func (d *decoder) setFieldByType(current reflect.Value, namespace []byte, idx in
 	v, kind := ExtractType(current)
 
 	arr, ok := d.values[string(namespace)]
+
+	if ok && len(d.shadowed) > 0 {
+		// when decoding the flattened fields of an embedded struct, keys that
+		// match a field of an outer struct are shadowed by that outer field,
+		// matching Go's embedding shadowing rules.
+		if _, shadow := d.shadowed[string(namespace)]; shadow {
+			arr, ok = nil, false
+		}
+	}
 
 	if d.d.customTypeFuncs != nil {
 
